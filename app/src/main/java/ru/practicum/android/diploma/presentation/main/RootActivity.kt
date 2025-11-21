@@ -5,7 +5,6 @@ import androidx.appcompat.app.AppCompatActivity
 import ru.practicum.android.diploma.R
 import ru.practicum.android.diploma.BuildConfig
 
-
 class RootActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
