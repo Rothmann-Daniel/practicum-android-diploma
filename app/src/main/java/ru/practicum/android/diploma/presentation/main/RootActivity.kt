@@ -2,8 +2,8 @@ package ru.practicum.android.diploma.presentation.main
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import ru.practicum.android.diploma.R
 import ru.practicum.android.diploma.BuildConfig
+import ru.practicum.android.diploma.R
 
 class RootActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
