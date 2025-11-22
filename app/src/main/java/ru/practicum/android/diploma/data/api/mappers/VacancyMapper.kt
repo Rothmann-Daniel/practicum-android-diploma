@@ -41,14 +41,12 @@ class VacancyMapper(
     }
 
     fun toEntity() {
-        //fun toEntity(domain: Vacancy): VacancyEntity
+        // fun toEntity(domain: Vacancy): VacancyEntity
     }
 
     fun toDomain() {
         // fun toDomain(entity: VacancyEntity): Vacancy
     }
-
-
 
     private fun SalaryResponse.toDomain(): Salary {
         return Salary(
