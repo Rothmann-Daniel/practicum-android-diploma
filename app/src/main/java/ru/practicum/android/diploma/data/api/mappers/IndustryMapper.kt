@@ -11,11 +11,11 @@ class IndustryMapper {
         )
     }
 
-    fun toEntity(){
+    fun toEntity() {
         // fun toEntity(domain: Industry): IndustryEntity
     }
 
-    fun toDomain(){
+    fun toDomain() {
         // fun toDomain(entity: IndustryEntity): Industry
     }
 }

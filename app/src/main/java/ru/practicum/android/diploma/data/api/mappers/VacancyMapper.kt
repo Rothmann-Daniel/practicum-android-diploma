@@ -40,11 +40,11 @@ class VacancyMapper(
         )
     }
 
-    fun toEntity(){
+    fun toEntity() {
         //fun toEntity(domain: Vacancy): VacancyEntity
     }
 
-    fun toDomain(){
+    fun toDomain() {
         // fun toDomain(entity: VacancyEntity): Vacancy
     }
 

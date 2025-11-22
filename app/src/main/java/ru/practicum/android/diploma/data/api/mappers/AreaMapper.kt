@@ -3,7 +3,6 @@ package ru.practicum.android.diploma.data.api.mappers
 import ru.practicum.android.diploma.data.api.response.FilterAreaResponse
 import ru.practicum.android.diploma.domain.models.Area
 
-
 class AreaMapper {
     fun toDomain(response: FilterAreaResponse): Area {
         return Area(
@@ -14,7 +13,7 @@ class AreaMapper {
         )
     }
 
-    fun toEntity(){
+    fun toEntity() {
         //fun toEntity(domain: Area): AreaEntity
     }
 
