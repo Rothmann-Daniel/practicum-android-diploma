@@ -5,6 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
+import ru.practicum.android.diploma.R
 import ru.practicum.android.diploma.databinding.FragmentSerchBinding
 
 class SearchFragment: Fragment() {
@@ -22,7 +24,11 @@ class SearchFragment: Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.btnVacancies.setOnClickListener {  }
-        binding.btnFilters.setOnClickListener {  }
+        binding.btnVacancies.setOnClickListener {
+            findNavController().navigate(R.id.action_search_to_vacancy)
+        }
+        binding.btnFilters.setOnClickListener {
+            findNavController().navigate(R.id.action_search_to_filters)
+        }
     }
 }

@@ -28,7 +28,7 @@
 
         <!-- тестовая кнопка перехода на экран выбора отрасли -->
         <Button
-            android:id="@+id/btnFilters"
+            android:id="@+id/btnIndustries"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Отрасли"
