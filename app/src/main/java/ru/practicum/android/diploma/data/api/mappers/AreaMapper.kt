@@ -14,10 +14,10 @@ class AreaMapper {
     }
 
     fun toEntity() {
-        //fun toEntity(domain: Area): AreaEntity
+        // fun toEntity(domain: Area): AreaEntity
     }
 
     fun toDomain() {
-        //fun toDomain(entity: AreaEntity): Area
+        // fun toDomain(entity: AreaEntity): Area
     }
 }
