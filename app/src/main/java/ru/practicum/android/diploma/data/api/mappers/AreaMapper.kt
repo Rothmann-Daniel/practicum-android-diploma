@@ -1,10 +1,10 @@
 package ru.practicum.android.diploma.data.api.mappers
 
-import ru.practicum.android.diploma.data.api.response.FilterAreaResponse
+import ru.practicum.android.diploma.data.api.response.AreaResponse
 import ru.practicum.android.diploma.domain.models.Area
 
 class AreaMapper {
-    fun toDomain(response: FilterAreaResponse): Area {
+    fun toDomain(response: AreaResponse): Area {
         return Area(
             id = response.id,
             name = response.name,

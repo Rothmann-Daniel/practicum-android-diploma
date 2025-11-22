@@ -3,14 +3,14 @@ package ru.practicum.android.diploma.data.api
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
-import ru.practicum.android.diploma.data.api.response.FilterAreaResponse
+import ru.practicum.android.diploma.data.api.response.AreaResponse
 import ru.practicum.android.diploma.data.api.response.FilterIndustryResponse
 import ru.practicum.android.diploma.data.api.response.VacancyDetailResponse
 import ru.practicum.android.diploma.data.api.response.VacancyResponse
 
 interface ApiService {
     @GET("areas")
-    suspend fun getAreas(): List<FilterAreaResponse>
+    suspend fun getAreas(): List<AreaResponse>
 
     @GET("industries")
     suspend fun getIndustries(): List<FilterIndustryResponse>

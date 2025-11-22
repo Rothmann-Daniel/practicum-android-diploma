@@ -18,7 +18,7 @@ data class VacancyDetailResponse(
     val employment: EmploymentResponse?,
     val contacts: ContactsResponse?,
     val employer: EmployerResponse,
-    val area: FilterAreaResponse,
+    val area: AreaResponse,
     val skills: List<String>,
     val url: String,
     val industry: FilterIndustryResponse
