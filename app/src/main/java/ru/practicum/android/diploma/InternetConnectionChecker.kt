@@ -6,21 +6,23 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import androidx.annotation.RequiresPermission
 
-class InternetConnectionChecker(context: Context) {  // provides function isConnected(): Boolean
+class InternetConnectionChecker(context: Context) { // provides function isConnected(): Boolean
 
     val connectivityManager = context.getSystemService(
-        Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        Context.CONNECTIVITY_SERVICE
+    ) as ConnectivityManager
 
     @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     fun isConnected(): Boolean {
         val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+        var connectionFound = false
         if (capabilities != null) {
             when {
-                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> return true
-                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> return true
-                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> return true
+                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> connectionFound = true
+                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> connectionFound = true
+                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> connectionFound = true
             }
         }
-        return false
+        return connectionFound
     }
 }
