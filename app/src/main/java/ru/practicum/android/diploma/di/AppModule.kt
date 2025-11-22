@@ -11,12 +11,9 @@ import ru.practicum.android.diploma.data.api.ApiService
 val appModule = module {
     // Database
 
-
     // DAOs
 
-
     // Mappers
-
 
     // API
     single {
@@ -43,7 +40,5 @@ val appModule = module {
             .create(ApiService::class.java)
     }
 
-
     // Repositories
-
 }
