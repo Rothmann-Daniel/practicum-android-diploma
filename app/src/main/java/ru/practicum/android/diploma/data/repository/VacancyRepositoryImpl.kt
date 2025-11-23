@@ -87,6 +87,7 @@ class VacancyRepositoryImpl(
         }
     }
 
+    @Suppress("SwallowedException")
     override suspend fun getLocalVacancyById(id: String): Vacancy? {
         return kotlin.runCatching {
             vacancyDao.getById(id)?.let { vacancyMapper.toDomain(it) }
