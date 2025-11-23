@@ -73,25 +73,31 @@ class VacancyRepositoryImpl(
         }
     }
 
+    @Suppress("SwallowedException")
     override suspend fun getLocalVacancies(): List<Vacancy> {
         return try {
             vacancyDao.getAll().map { vacancyMapper.toDomain(it) }
         } catch (e: IOException) {
+            // Возвращаем пустой список при ошибке БД - это ожидаемое поведение
             Log.e(TAG, "Error loading local vacancies: ${e.message}", e)
             emptyList()
         } catch (e: IllegalStateException) {
+            // Возвращаем пустой список при ошибке состояния БД
             Log.e(TAG, "Database state error loading local vacancies: ${e.message}", e)
             emptyList()
         }
     }
 
+    @Suppress("SwallowedException")
     override suspend fun getLocalVacancyById(id: String): Vacancy? {
         return try {
             vacancyDao.getById(id)?.let { vacancyMapper.toDomain(it) }
         } catch (e: IOException) {
+            // Возвращаем null при ошибке БД - это ожидаемое поведение
             Log.e(TAG, "Error loading local vacancy $id: ${e.message}", e)
             null
         } catch (e: IllegalStateException) {
+            // Возвращаем null при ошибке состояния БД
             Log.e(TAG, "Database state error loading local vacancy $id: ${e.message}", e)
             null
         }
@@ -124,6 +130,7 @@ class VacancyRepositoryImpl(
         }
     }
 
+    @Suppress("SwallowedException")
     private suspend fun saveVacanciesToDatabase(vacancies: List<Vacancy>) {
         try {
             val entities = vacancies.map { vacancyMapper.toEntity(it) }
@@ -132,20 +139,25 @@ class VacancyRepositoryImpl(
             vacancyDao.insertAll(entities)
             Log.d(TAG, "Successfully saved ${entities.size} vacancies to DB")
         } catch (e: IOException) {
-            Log.e(TAG, "Error saving to database: ${e.message}", e)
+            // Ошибка сохранения в БД не критична - продолжаем работу
+            Log.w(TAG, "Error saving to database: ${e.message}", e)
         } catch (e: IllegalStateException) {
-            Log.e(TAG, "Database state error: ${e.message}", e)
+            // Ошибка состояния БД не критична - продолжаем работу
+            Log.w(TAG, "Database state error: ${e.message}", e)
         }
     }
 
+    @Suppress("SwallowedException")
     private suspend fun saveVacancyToDatabase(vacancy: Vacancy) {
         try {
             vacancyDao.insertAll(listOf(vacancyMapper.toEntity(vacancy)))
             Log.d(TAG, "Saved vacancy ${vacancy.id} to DB")
         } catch (e: IOException) {
-            Log.e(TAG, "Error saving vacancy to database: ${e.message}", e)
+            // Ошибка сохранения в БД не критична - продолжаем работу
+            Log.w(TAG, "Error saving vacancy to database: ${e.message}", e)
         } catch (e: IllegalStateException) {
-            Log.e(TAG, "Database state error: ${e.message}", e)
+            // Ошибка состояния БД не критична - продолжаем работу
+            Log.w(TAG, "Database state error: ${e.message}", e)
         }
     }
 

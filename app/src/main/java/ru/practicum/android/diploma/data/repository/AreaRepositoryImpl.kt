@@ -39,17 +39,18 @@ class AreaRepositoryImpl(
         return areaMapper.buildHierarchy(flatList)
     }
 
+    @Suppress("SwallowedException")
     private suspend fun saveAreasToDatabase(areas: List<Area>) {
         try {
             val flatList = areas.flatMap { areaMapper.flattenHierarchy(it) }
             areaDao.clearAll()
             areaDao.insertAll(flatList)
         } catch (e: IOException) {
+            // Ошибка сохранения в БД не критична - продолжаем работу
             Log.w(TAG, "Error saving areas to database: ${e.message}", e)
-            // Не прерываем выполнение - БД опциональна для основного флоу
         } catch (e: IllegalStateException) {
+            // Ошибка состояния БД не критична - продолжаем работу
             Log.w(TAG, "Database state error: ${e.message}", e)
-            // Не прерываем выполнение - БД опциональна для основного флоу
         }
     }
 
