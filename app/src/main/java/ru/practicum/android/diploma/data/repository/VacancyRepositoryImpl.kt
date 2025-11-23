@@ -67,7 +67,7 @@ class VacancyRepositoryImpl(
         } catch (e: HttpException) {
             handleVacancyByIdHttpException(id, e)
         } catch (e: SocketTimeoutException) {
-            handleVacancyByIdTimeoutException(id)
+            handleVacancyByIdTimeoutException(id, e)
         } catch (e: IOException) {
             handleVacancyByIdNetworkException(id, e)
         }
@@ -100,10 +100,10 @@ class VacancyRepositoryImpl(
                 vacancyMapper.toDomain(vacancyDto)
             } catch (e: IllegalArgumentException) {
                 Log.e(TAG, "$ERROR_MAPPING_VACANCY ${vacancyDto.id}", e)
-                null // Пропускаем невалидную вакансию вместо краша всего списка
+                null
             } catch (e: IllegalStateException) {
                 Log.e(TAG, "$ERROR_MAPPING_VACANCY ${vacancyDto.id}", e)
-                null // Пропускаем невалидную вакансию вместо краша всего списка
+                null
             }
         }
     }
@@ -158,9 +158,10 @@ class VacancyRepositoryImpl(
     }
 
     private fun handleVacancyByIdTimeoutException(
-        id: String
+        id: String,
+        e: SocketTimeoutException
     ): ApiResponse.Error {
-        Log.e(TAG, "Timeout error for vacancy $id")
+        Log.e(TAG, "Timeout error for vacancy $id", e)
         return ApiResponse.Error(ERROR_TIMEOUT, null)
     }
 
@@ -190,15 +191,6 @@ class VacancyRepositoryImpl(
         private const val ERROR_NETWORK_PREFIX = "Ошибка сети:"
 
         // Сообщения для логирования
-        private const val ERROR_LOADING_LOCAL_VACANCIES = "Error loading local vacancies"
-        private const val ERROR_LOADING_LOCAL_VACANCY = "Error loading local vacancy"
-        private const val ERROR_DATABASE_STATE = "Database state error"
-        private const val ERROR_DATABASE_STATE_FOR_ID = "Database state error for"
         private const val ERROR_MAPPING_VACANCY = "Error mapping vacancy"
-        private const val ERROR_SAVING_TO_DATABASE = "Error saving to database"
-        private const val ERROR_SAVING_VACANCY = "Error saving vacancy"
-
-        // Fallback значения
-        private val EMPTY_VACANCY_LIST = emptyList<Vacancy>()
     }
 }
