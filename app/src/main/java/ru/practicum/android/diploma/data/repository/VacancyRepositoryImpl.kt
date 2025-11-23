@@ -74,34 +74,11 @@ class VacancyRepositoryImpl(
     }
 
     override suspend fun getLocalVacancies(): List<Vacancy> {
-        return runCatching {
-            vacancyDao.getAll().map { vacancyMapper.toDomain(it) }
-        }.getOrElse { exception ->
-            when (exception) {
-                is IOException, is IllegalStateException -> {
-                    Log.e(TAG, ERROR_LOADING_LOCAL_VACANCIES, exception)
-                    emptyList()
-                }
-                else -> throw exception
-            }
-        }
+        return vacancyDao.getAll().map { vacancyMapper.toDomain(it) }
     }
 
-    @Suppress("SwallowedException")
     override suspend fun getLocalVacancyById(id: String): Vacancy? {
-        return kotlin.runCatching {
-            vacancyDao.getById(id)?.let { vacancyMapper.toDomain(it) }
-        }.fold(
-            onSuccess = { it },
-            onFailure = { exception ->
-                if (exception is IOException || exception is IllegalStateException) {
-                    Log.e(TAG, "$ERROR_LOADING_LOCAL_VACANCY $id", exception)
-                    null
-                } else {
-                    throw exception
-                }
-            }
-        )
+        return vacancyDao.getById(id)?.let { vacancyMapper.toDomain(it) }
     }
 
     private suspend fun fetchVacanciesFromApi(
