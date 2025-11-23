@@ -95,15 +95,15 @@ class VacancyRepositoryImpl(
     private fun mapVacanciesResponse(
         vacanciesDto: List<ru.practicum.android.diploma.data.api.response.VacancyDetailResponse>
     ): List<Vacancy> {
-        return vacanciesDto.map { vacancyDto ->
+        return vacanciesDto.mapNotNull { vacancyDto ->
             try {
                 vacancyMapper.toDomain(vacancyDto)
             } catch (e: IllegalArgumentException) {
                 Log.e(TAG, "$ERROR_MAPPING_VACANCY ${vacancyDto.id}", e)
-                throw e
+                null // Пропускаем невалидную вакансию вместо краша всего списка
             } catch (e: IllegalStateException) {
                 Log.e(TAG, "$ERROR_MAPPING_VACANCY ${vacancyDto.id}", e)
-                throw e
+                null // Пропускаем невалидную вакансию вместо краша всего списка
             }
         }
     }
