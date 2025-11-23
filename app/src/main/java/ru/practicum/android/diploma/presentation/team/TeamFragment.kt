@@ -7,9 +7,8 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import ru.practicum.android.diploma.databinding.FragmentTeamBinding
 
-
-class TeamFragment: Fragment() {
-    private var _binding: FragmentTeamBinding?= null
+class TeamFragment : Fragment() {
+    private var _binding: FragmentTeamBinding? = null
     private val binding get() = _binding!!
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

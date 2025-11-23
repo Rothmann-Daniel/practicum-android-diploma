@@ -5,16 +5,18 @@
     android:id="@+id/main_navigation_graph"
     app:startDestination="@id/searchFragment">
 
-    <!-- Поиск с ViewPager -->
+    <!-- Поиск -->
     <fragment
         android:id="@+id/searchFragment"
         android:name="ru.practicum.android.diploma.presentation.search.SearchFragment"
         android:label="SearchFragment"
         tools:layout="@layout/fragment_serch">
+
         <!-- Action для перехода на просмотр вакансии -->
         <action
             android:id="@+id/action_search_to_vacancy"
             app:destination="@id/vacancyFragment" />
+
         <!-- Action для перехода настройки фильтров-->
         <action
             android:id="@+id/action_search_to_filters"
@@ -25,8 +27,8 @@
     <fragment
         android:id="@+id/vacancyFragment"
         android:name="ru.practicum.android.diploma.presentation.vacancy.VacancyFragment"
-       android:label="VacancyFragment"
-        tools:layout="@layout/fragment_vacancy"/>
+        android:label="VacancyFragment"
+        tools:layout="@layout/fragment_vacancy" />
 
     <!-- Экран с избранными вакансиями -->
     <fragment
@@ -34,11 +36,11 @@
         android:name="ru.practicum.android.diploma.presentation.favorites.FavoriteVacancyFragment"
         android:label="FavoriteVacancyFragment"
         tools:layout="@layout/fragment_favorite_vacancy">
+
         <!-- Action для перехода на просмотр вакансии -->
         <action
             android:id="@+id/action_favoriteVacancy_to_vacancy"
-            app:destination="@id/vacancyFragment"/>
-
+            app:destination="@id/vacancyFragment" />
     </fragment>
 
     <!-- Экран команды -->
@@ -46,7 +48,7 @@
         android:id="@+id/teamFragment"
         android:name="ru.practicum.android.diploma.presentation.team.TeamFragment"
         android:label="TeamFragment"
-        tools:layout="@layout/fragment_team"/>
+        tools:layout="@layout/fragment_team" />
 
     <!-- Экран с настройками фильтров -->
     <fragment
@@ -54,19 +56,19 @@
         android:name="ru.practicum.android.diploma.presentation.filters.FiltersFragment"
         android:label="Filtersfragment"
         tools:layout="@layout/fragment_filters">
+
         <!-- Action для перехода на выбор отрасли-->
         <action
             android:id="@+id/action_filters_to_industries"
-            app:destination="@+id/filtersIndustriesFragment"/>
+            app:destination="@+id/filtersIndustriesFragment" />
 
     </fragment>
 
+    <!-- Экран для выбора отрасли-->
     <fragment
         android:id="@+id/filtersIndustriesFragment"
         android:name="ru.practicum.android.diploma.presentation.filters.FiltersIndustriesFragment"
         android:label="FiltersIndustriesFragment"
-        tools:layout="@layout/fragment_filters_industries"/>
-
-
+        tools:layout="@layout/fragment_filters_industries" />
 
 </navigation>

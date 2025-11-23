@@ -6,10 +6,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import ru.practicum.android.diploma.R
 import ru.practicum.android.diploma.databinding.FragmentSerchBinding
+import ru.practicum.android.diploma.R
 
-class SearchFragment: Fragment() {
+class SearchFragment : Fragment() {
 
     private var _binding: FragmentSerchBinding? = null
     private val binding get() = _binding!!

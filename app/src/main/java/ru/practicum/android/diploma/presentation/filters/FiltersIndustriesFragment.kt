@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import ru.practicum.android.diploma.databinding.FragmentFiltersIndustriesBinding
 
-class FiltersIndustriesFragment:Fragment() {
+class FiltersIndustriesFragment : Fragment() {
 
     private var _binding: FragmentFiltersIndustriesBinding? = null
     private val binding get() = _binding!!

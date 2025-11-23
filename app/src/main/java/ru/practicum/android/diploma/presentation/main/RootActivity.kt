@@ -4,15 +4,12 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import ru.practicum.android.diploma.BuildConfig
-import ru.practicum.android.diploma.R
 import ru.practicum.android.diploma.databinding.ActivityRootBinding
-
+import ru.practicum.android.diploma.R
 
 class RootActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityRootBinding
-
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
