@@ -74,11 +74,9 @@ class VacancyRepositoryImpl(
     }
 
     override suspend fun getLocalVacancies(): List<Vacancy> {
-        val result = runCatching {
+        return runCatching {
             vacancyDao.getAll().map { vacancyMapper.toDomain(it) }
-        }
-
-        return result.getOrElse { exception ->
+        }.getOrElse { exception ->
             when (exception) {
                 is IOException -> {
                     Log.e(TAG, ERROR_LOADING_LOCAL_VACANCIES, exception)
@@ -94,11 +92,9 @@ class VacancyRepositoryImpl(
     }
 
     override suspend fun getLocalVacancyById(id: String): Vacancy? {
-        val result = runCatching {
+        return runCatching {
             vacancyDao.getById(id)?.let { vacancyMapper.toDomain(it) }
-        }
-
-        return result.getOrElse { exception ->
+        }.getOrElse { exception ->
             when (exception) {
                 is IOException -> {
                     Log.e(TAG, "$ERROR_LOADING_LOCAL_VACANCY $id", exception)
