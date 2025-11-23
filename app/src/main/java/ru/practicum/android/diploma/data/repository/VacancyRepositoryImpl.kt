@@ -89,15 +89,22 @@ class VacancyRepositoryImpl(
     }
 
     override suspend fun getLocalVacancyById(id: String): Vacancy? {
-        return try {
+        val result = runCatching {
             vacancyDao.getById(id)?.let { vacancyMapper.toDomain(it) }
-        } catch (exception: IOException) {
-            Log.e(TAG, "$ERROR_LOADING_LOCAL_VACANCY $id", exception)
-            null
-        } catch (exception: IllegalStateException) {
-            Log.e(TAG, "$ERROR_DATABASE_STATE_FOR_ID $id", exception)
-            null
         }
+
+        return result.fold(
+            onSuccess = { it },
+            onFailure = { exception ->
+                when (exception) {
+                    is IOException, is IllegalStateException -> {
+                        Log.e(TAG, "$ERROR_LOADING_LOCAL_VACANCY $id", exception)
+                        null
+                    }
+                    else -> throw exception
+                }
+            }
+        )
     }
 
     private suspend fun fetchVacanciesFromApi(
