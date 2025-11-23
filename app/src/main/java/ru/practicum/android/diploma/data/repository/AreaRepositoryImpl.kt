@@ -28,7 +28,7 @@ class AreaRepositoryImpl(
         } catch (e: HttpException) {
             handleHttpException(e)
         } catch (e: SocketTimeoutException) {
-            handleTimeoutException()
+            handleTimeoutException(e)
         } catch (e: IOException) {
             handleNetworkException(e)
         }
@@ -46,8 +46,8 @@ class AreaRepositoryImpl(
             areaDao.insertAll(flatList)
         }.onFailure { exception ->
             when (exception) {
-                is IOException -> Log.w(TAG, "Error saving areas: ${exception.message}", exception)
-                is IllegalStateException -> Log.w(TAG, "Database state error: ${exception.message}", exception)
+                is IOException -> Log.w(TAG, ERROR_SAVING_AREAS, exception)
+                is IllegalStateException -> Log.w(TAG, ERROR_DATABASE_STATE, exception)
                 else -> throw exception
             }
         }
@@ -58,27 +58,40 @@ class AreaRepositoryImpl(
             HTTP_FORBIDDEN -> ERROR_ACCESS_DENIED
             HTTP_NOT_FOUND -> ERROR_NOT_FOUND
             HTTP_INTERNAL_ERROR -> ERROR_INTERNAL_SERVER
-            else -> "HTTP ошибка: ${e.code()}"
+            else -> "$ERROR_HTTP_PREFIX ${e.code()}"
         }
+        Log.e(TAG, "HTTP error: $errorMessage", e)
         return ApiResponse.Error(errorMessage, e.code())
     }
 
-    private fun handleTimeoutException(): ApiResponse.Error {
+    private fun handleTimeoutException(e: SocketTimeoutException): ApiResponse.Error {
+        Log.e(TAG, "Timeout error", e)
         return ApiResponse.Error(ERROR_TIMEOUT, null)
     }
 
     private fun handleNetworkException(e: IOException): ApiResponse.Error {
-        return ApiResponse.Error("Ошибка сети: ${e.message}", null)
+        Log.e(TAG, "Network error", e)
+        return ApiResponse.Error("$ERROR_NETWORK_PREFIX ${e.message}", null)
     }
 
     companion object {
         private const val TAG = "AreaRepository"
+
+        // HTTP коды ошибок
         private const val HTTP_FORBIDDEN = 403
         private const val HTTP_NOT_FOUND = 404
         private const val HTTP_INTERNAL_ERROR = 500
+
+        // Сообщения об ошибках
         private const val ERROR_ACCESS_DENIED = "Доступ запрещён. Проверьте токен авторизации"
         private const val ERROR_NOT_FOUND = "Ресурс не найден"
         private const val ERROR_INTERNAL_SERVER = "Внутренняя ошибка сервера"
         private const val ERROR_TIMEOUT = "Превышено время ожидания ответа"
+        private const val ERROR_HTTP_PREFIX = "HTTP ошибка:"
+        private const val ERROR_NETWORK_PREFIX = "Ошибка сети:"
+
+        // Сообщения для логирования
+        private const val ERROR_SAVING_AREAS = "Error saving areas"
+        private const val ERROR_DATABASE_STATE = "Database state error"
     }
 }
