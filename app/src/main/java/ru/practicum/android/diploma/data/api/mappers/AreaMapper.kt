@@ -30,7 +30,7 @@ class AreaMapper {
 
     /**
      * Преобразует entity из БД в domain модель (без вложенных areas)
-     * ВАЖНО: Для восстановления иерархии используйте buildHierarchy()
+     * ВАЖНО: Для восстановления иерархии используем buildHierarchy()
      */
     fun toDomain(entity: AreaEntity): Area {
         return Area(

@@ -1,8 +1,25 @@
 package ru.practicum.android.diploma.data.api.mappers
 
-import ru.practicum.android.diploma.data.api.response.*
+// Исправлено: заменены wildcard импорты на конкретные
+import ru.practicum.android.diploma.data.api.response.AddressResponse
+import ru.practicum.android.diploma.data.api.response.ContactsResponse
+import ru.practicum.android.diploma.data.api.response.EmployerResponse
+import ru.practicum.android.diploma.data.api.response.EmploymentResponse
+import ru.practicum.android.diploma.data.api.response.ExperienceResponse
+import ru.practicum.android.diploma.data.api.response.SalaryResponse
+import ru.practicum.android.diploma.data.api.response.ScheduleResponse
+import ru.practicum.android.diploma.data.api.response.VacancyDetailResponse
 import ru.practicum.android.diploma.data.local.entities.VacancyEntity
-import ru.practicum.android.diploma.domain.models.*
+import ru.practicum.android.diploma.domain.models.Address
+import ru.practicum.android.diploma.domain.models.Area
+import ru.practicum.android.diploma.domain.models.Contacts
+import ru.practicum.android.diploma.domain.models.Employer
+import ru.practicum.android.diploma.domain.models.Employment
+import ru.practicum.android.diploma.domain.models.Experience
+import ru.practicum.android.diploma.domain.models.Industry
+import ru.practicum.android.diploma.domain.models.Salary
+import ru.practicum.android.diploma.domain.models.Schedule
+import ru.practicum.android.diploma.domain.models.Vacancy
 
 class VacancyMapper(
     private val areaMapper: AreaMapper,
@@ -15,7 +32,7 @@ class VacancyMapper(
         return Vacancy(
             id = response.id,
             name = response.name,
-            description = response.description ?: "",
+            description = response.description.orEmpty(),
             salary = response.salary?.toDomain(),
             address = response.address?.toDomain(),
             experience = response.experience?.toDomain(),
@@ -24,7 +41,7 @@ class VacancyMapper(
             contacts = response.contacts?.toDomain(),
             employer = response.employer.toDomain(),
             area = areaMapper.toDomain(response.area),
-            skills = response.skills ?: emptyList(),
+            skills = response.skills.orEmpty(),
             url = response.url,
             industry = response.industry?.let { industryMapper.toDomain(it) }
         )
@@ -50,7 +67,7 @@ class VacancyMapper(
             employmentName = domain.employment?.name,
             employerId = domain.employer.id,
             employerName = domain.employer.name,
-            employerLogo = domain.employer.logo.takeIf { it.isNotBlank() }, // nullable
+            employerLogo = domain.employer.logo.takeIf { it.isNotBlank() },
             areaId = domain.area.id,
             areaName = domain.area.name,
             skills = domain.skills.joinToString(","),
@@ -62,70 +79,111 @@ class VacancyMapper(
 
     /**
      * Преобразует entity из БД в domain модель вакансии
+     * Разбито на несколько методов для снижения сложности
      */
     fun toDomain(entity: VacancyEntity): Vacancy {
         return Vacancy(
             id = entity.id,
             name = entity.name,
             description = entity.description,
-            salary = if (entity.salaryFrom != null || entity.salaryTo != null) {
-                Salary(
-                    from = entity.salaryFrom,
-                    to = entity.salaryTo,
-                    currency = entity.salaryCurrency
-                )
-            } else null,
-            address = entity.address?.let {
-                Address(
-                    city = "",
-                    street = "",
-                    building = "",
-                    fullAddress = it
-                )
-            },
-            experience = entity.experienceId?.let {
-                Experience(
-                    id = it,
-                    name = entity.experienceName ?: ""
-                )
-            },
-            schedule = entity.scheduleId?.let {
-                Schedule(
-                    id = it,
-                    name = entity.scheduleName ?: ""
-                )
-            },
-            employment = entity.employmentId?.let {
-                Employment(
-                    id = it,
-                    name = entity.employmentName ?: ""
-                )
-            },
+            salary = mapSalary(entity),
+            address = mapAddress(entity),
+            experience = mapExperience(entity),
+            schedule = mapSchedule(entity),
+            employment = mapEmployment(entity),
             contacts = null, // Контакты не сохраняются в БД
-            employer = Employer(
-                id = entity.employerId,
-                name = entity.employerName,
-                logo = entity.employerLogo ?: ""
-            ),
-            area = Area(
-                id = entity.areaId,
-                name = entity.areaName,
-                parentId = null,
-                areas = emptyList()
-            ),
-            skills = if (entity.skills.isNotBlank()) {
-                entity.skills.split(",").filter { it.isNotBlank() }
-            } else {
-                emptyList()
-            },
+            employer = mapEmployer(entity),
+            area = mapArea(entity),
+            skills = mapSkills(entity),
             url = entity.url,
-            industry = if (entity.industryId != null && entity.industryName != null) {
-                Industry(
-                    id = entity.industryId,
-                    name = entity.industryName
-                )
-            } else null
+            industry = mapIndustry(entity)
         )
+    }
+
+    private fun mapSalary(entity: VacancyEntity): Salary? {
+        return if (entity.salaryFrom != null || entity.salaryTo != null) {
+            Salary(
+                from = entity.salaryFrom,
+                to = entity.salaryTo,
+                currency = entity.salaryCurrency
+            )
+        } else {
+            null
+        }
+    }
+
+    private fun mapAddress(entity: VacancyEntity): Address? {
+        return entity.address?.let {
+            Address(
+                city = "",
+                street = "",
+                building = "",
+                fullAddress = it
+            )
+        }
+    }
+
+    private fun mapExperience(entity: VacancyEntity): Experience? {
+        return entity.experienceId?.let {
+            Experience(
+                id = it,
+                name = entity.experienceName.orEmpty()
+            )
+        }
+    }
+
+    private fun mapSchedule(entity: VacancyEntity): Schedule? {
+        return entity.scheduleId?.let {
+            Schedule(
+                id = it,
+                name = entity.scheduleName.orEmpty()
+            )
+        }
+    }
+
+    private fun mapEmployment(entity: VacancyEntity): Employment? {
+        return entity.employmentId?.let {
+            Employment(
+                id = it,
+                name = entity.employmentName.orEmpty()
+            )
+        }
+    }
+
+    private fun mapEmployer(entity: VacancyEntity): Employer {
+        return Employer(
+            id = entity.employerId,
+            name = entity.employerName,
+            logo = entity.employerLogo.orEmpty()
+        )
+    }
+
+    private fun mapArea(entity: VacancyEntity): Area {
+        return Area(
+            id = entity.areaId,
+            name = entity.areaName,
+            parentId = null,
+            areas = emptyList()
+        )
+    }
+
+    private fun mapSkills(entity: VacancyEntity): List<String> {
+        return if (entity.skills.isNotBlank()) {
+            entity.skills.split(",").filter { it.isNotBlank() }
+        } else {
+            emptyList()
+        }
+    }
+
+    private fun mapIndustry(entity: VacancyEntity): Industry? {
+        return if (entity.industryId != null && entity.industryName != null) {
+            Industry(
+                id = entity.industryId,
+                name = entity.industryName
+            )
+        } else {
+            null
+        }
     }
 
     private fun SalaryResponse.toDomain(): Salary {
@@ -138,10 +196,10 @@ class VacancyMapper(
 
     private fun AddressResponse.toDomain(): Address {
         return Address(
-            city = city ?: "",
-            street = street ?: "",
-            building = building ?: "",
-            fullAddress = fullAddress ?: ""
+            city = city.orEmpty(),
+            street = street.orEmpty(),
+            building = building.orEmpty(),
+            fullAddress = fullAddress.orEmpty()
         )
     }
 
@@ -167,13 +225,12 @@ class VacancyMapper(
     }
 
     private fun ContactsResponse.toDomain(): Contacts {
-        // Преобразуем массив объектов PhoneResponse в список строк
-        val phoneNumbers = phone?.map { it.formatted } ?: emptyList()
+        val phoneNumbers = phone?.map { it.formatted }.orEmpty()
 
         return Contacts(
             id = id,
             name = name,
-            email = email ?: "",
+            email = email.orEmpty(),
             phone = phoneNumbers
         )
     }
@@ -182,7 +239,7 @@ class VacancyMapper(
         return Employer(
             id = id,
             name = name,
-            logo = logo ?: ""
+            logo = logo.orEmpty()
         )
     }
 }
