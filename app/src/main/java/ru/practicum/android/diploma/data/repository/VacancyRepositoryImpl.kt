@@ -107,7 +107,10 @@ class VacancyRepositoryImpl(
                     Log.e(TAG, "$ERROR_DATABASE_STATE_FOR_ID $id", exception)
                     null
                 }
-                else -> throw exception
+                else -> {
+                    Log.e(TAG, "Unexpected error loading local vacancy $id", exception)
+                    null
+                }
             }
         }
     }
