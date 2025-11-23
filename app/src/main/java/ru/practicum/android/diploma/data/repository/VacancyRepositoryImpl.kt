@@ -109,27 +109,15 @@ class VacancyRepositoryImpl(
     }
 
     private suspend fun saveVacanciesToDatabase(vacancies: List<Vacancy>) {
-        try {
-            val entities = vacancies.map { vacancyMapper.toEntity(it) }
-            Log.d(TAG, "Converting to ${entities.size} entities for DB")
-            vacancyDao.insertAll(entities)
-            Log.d(TAG, "Successfully saved ${entities.size} vacancies to DB")
-        } catch (exception: IOException) {
-            Log.w(TAG, ERROR_SAVING_TO_DATABASE, exception)
-        } catch (exception: IllegalStateException) {
-            Log.w(TAG, ERROR_DATABASE_STATE, exception)
-        }
+        val entities = vacancies.map { vacancyMapper.toEntity(it) }
+        Log.d(TAG, "Converting to ${entities.size} entities for DB")
+        vacancyDao.insertAll(entities)
+        Log.d(TAG, "Successfully saved ${entities.size} vacancies to DB")
     }
 
     private suspend fun saveVacancyToDatabase(vacancy: Vacancy) {
-        try {
-            vacancyDao.insertAll(listOf(vacancyMapper.toEntity(vacancy)))
-            Log.d(TAG, "Saved vacancy ${vacancy.id} to DB")
-        } catch (exception: IOException) {
-            Log.w(TAG, ERROR_SAVING_VACANCY, exception)
-        } catch (exception: IllegalStateException) {
-            Log.w(TAG, ERROR_DATABASE_STATE, exception)
-        }
+        vacancyDao.insertAll(listOf(vacancyMapper.toEntity(vacancy)))
+        Log.d(TAG, "Saved vacancy ${vacancy.id} to DB")
     }
 
     private fun handleHttpException(e: HttpException): ApiResponse.Error {
