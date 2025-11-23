@@ -46,11 +46,11 @@ class AreaRepositoryImpl(
             areaDao.clearAll()
             areaDao.insertAll(flatList)
         } catch (e: IOException) {
-            // Ошибка сохранения в БД не критична - продолжаем работу
             Log.w(TAG, "Error saving areas to database: ${e.message}", e)
+            return
         } catch (e: IllegalStateException) {
-            // Ошибка состояния БД не критична - продолжаем работу
             Log.w(TAG, "Database state error: ${e.message}", e)
+            return
         }
     }
 
