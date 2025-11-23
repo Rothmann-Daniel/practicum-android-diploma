@@ -74,23 +74,17 @@ class VacancyRepositoryImpl(
     }
 
     override suspend fun getLocalVacancies(): List<Vacancy> {
-        return runCatching {
+        return try {
             vacancyDao.getAll().map { vacancyMapper.toDomain(it) }
-        }.getOrElse { exception ->
-            when (exception) {
-                is IOException -> {
-                    Log.e(TAG, ERROR_LOADING_LOCAL_VACANCIES, exception)
-                    EMPTY_VACANCY_LIST
-                }
-                is IllegalStateException -> {
-                    Log.e(TAG, ERROR_DATABASE_STATE, exception)
-                    EMPTY_VACANCY_LIST
-                }
-                else -> {
-                    Log.e(TAG, "Unexpected error loading local vacancies", exception)
-                    EMPTY_VACANCY_LIST
-                }
-            }
+        } catch (exception: IOException) {
+            Log.e(TAG, ERROR_LOADING_LOCAL_VACANCIES, exception)
+            EMPTY_VACANCY_LIST
+        } catch (exception: IllegalStateException) {
+            Log.e(TAG, ERROR_DATABASE_STATE, exception)
+            EMPTY_VACANCY_LIST
+        } catch (exception: RuntimeException) {
+            Log.e(TAG, "Runtime error loading local vacancies", exception)
+            EMPTY_VACANCY_LIST
         }
     }
 
@@ -103,8 +97,8 @@ class VacancyRepositoryImpl(
         } catch (exception: IllegalStateException) {
             Log.e(TAG, "$ERROR_DATABASE_STATE_FOR_ID $id", exception)
             null
-        } catch (exception: Exception) {
-            Log.e(TAG, "Unexpected error loading local vacancy $id", exception)
+        } catch (exception: RuntimeException) {
+            Log.e(TAG, "Runtime error loading local vacancy $id", exception)
             null
         }
     }
