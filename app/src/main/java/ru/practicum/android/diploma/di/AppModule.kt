@@ -21,6 +21,11 @@ import ru.practicum.android.diploma.domain.repository.IIndustryRepository
 import ru.practicum.android.diploma.domain.repository.IVacancyRepository
 import java.util.concurrent.TimeUnit
 
+// Константы для таймаутов
+private const val CONNECT_TIMEOUT_SECONDS = 30L
+private const val READ_TIMEOUT_SECONDS = 30L
+private const val WRITE_TIMEOUT_SECONDS = 30L
+
 val appModule = module {
     // Database - ВАЖНО: добавлен fallbackToDestructiveMigration для пересоздания БД
     single {
@@ -62,9 +67,9 @@ val appModule = module {
                 chain.proceed(requestWithToken)
             }
             .addInterceptor(loggingInterceptor)
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
+            .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .readTimeout(READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .writeTimeout(WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .build()
 
         Retrofit.Builder()

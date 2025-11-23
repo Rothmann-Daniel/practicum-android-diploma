@@ -86,7 +86,10 @@ class VacancyRepositoryImpl(
                     Log.e(TAG, ERROR_DATABASE_STATE, exception)
                     EMPTY_VACANCY_LIST
                 }
-                else -> throw exception
+                else -> {
+                    Log.e(TAG, "Unexpected error loading local vacancies", exception)
+                    EMPTY_VACANCY_LIST
+                }
             }
         }
     }

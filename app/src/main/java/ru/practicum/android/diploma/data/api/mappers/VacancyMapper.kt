@@ -1,6 +1,5 @@
 package ru.practicum.android.diploma.data.api.mappers
 
-// Исправлено: заменены wildcard импорты на конкретные
 import ru.practicum.android.diploma.data.api.response.AddressResponse
 import ru.practicum.android.diploma.data.api.response.ContactsResponse
 import ru.practicum.android.diploma.data.api.response.EmployerResponse

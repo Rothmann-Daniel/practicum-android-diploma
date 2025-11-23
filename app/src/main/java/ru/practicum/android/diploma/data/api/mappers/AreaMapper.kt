@@ -57,26 +57,28 @@ class AreaMapper {
      * Восстанавливает иерархическую структуру из плоского списка
      */
     fun buildHierarchy(flatList: List<AreaEntity>): List<Area> {
-        val areaMap = flatList.associate { it.id to toDomain(it).toMutableArea() }
+        val areaMap = flatList.associate { it.id to toMutableArea(toDomain(it)) }
 
         areaMap.values.forEach { area ->
             area.parentId?.let { parentId ->
-                areaMap[parentId]?.areas?.add(area.toImmutable())
+                areaMap[parentId]?.areas?.add(toImmutableArea(area))
             }
         }
 
         return areaMap.values
             .filter { it.parentId == null }
-            .map { it.toImmutable() }
+            .map { toImmutableArea(it) }
     }
 
-    private fun Area.toMutableArea() = MutableArea(id, name, parentId, areas.toMutableList())
-    private data class MutableArea(
+    private fun toMutableArea(area: Area) = MutableArea(area.id, area.name, area.parentId, area.areas.toMutableList())
+
+    private fun toImmutableArea(mutableArea: MutableArea) =
+        Area(mutableArea.id, mutableArea.name, mutableArea.parentId, mutableArea.areas.toList())
+
+    private class MutableArea(
         val id: Int,
         val name: String,
         val parentId: Int?,
         val areas: MutableList<Area>
-    ) {
-        fun toImmutable() = Area(id, name, parentId, areas.toList())
-    }
+    )
 }
