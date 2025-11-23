@@ -15,7 +15,8 @@ class SearchFragment : Fragment() {
     private val binding get() = _binding!!
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentSerchBinding.inflate(inflater, container, false)
@@ -24,11 +25,18 @@ class SearchFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         binding.btnVacancies.setOnClickListener {
             findNavController().navigate(R.id.action_search_to_vacancy)
         }
+
         binding.btnFilters.setOnClickListener {
             findNavController().navigate(R.id.action_search_to_filters)
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

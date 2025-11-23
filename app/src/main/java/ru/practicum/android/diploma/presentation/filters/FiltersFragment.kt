@@ -10,11 +10,13 @@ import ru.practicum.android.diploma.databinding.FragmentFiltersBinding
 import ru.practicum.android.diploma.R
 
 class FiltersFragment : Fragment() {
+
     private var _binding: FragmentFiltersBinding? = null
     private val binding get() = _binding!!
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentFiltersBinding.inflate(inflater, container, false)
@@ -26,6 +28,10 @@ class FiltersFragment : Fragment() {
         binding.btnIndustries.setOnClickListener {
             findNavController().navigate(R.id.action_filters_to_industries)
         }
+    }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
