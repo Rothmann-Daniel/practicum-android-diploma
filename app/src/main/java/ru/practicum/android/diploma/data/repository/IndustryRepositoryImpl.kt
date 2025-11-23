@@ -43,9 +43,11 @@ class IndustryRepositoryImpl(
             industryDao.clearAll()
             industryDao.insertAll(industries.map { industryMapper.toEntity(it) })
         } catch (e: IOException) {
-            Log.e(TAG, "Error saving industries to database", e)
+            Log.w(TAG, "Error saving industries to database: ${e.message}", e)
+            // Не прерываем выполнение - БД опциональна для основного флоу
         } catch (e: IllegalStateException) {
-            Log.e(TAG, "Database state error", e)
+            Log.w(TAG, "Database state error: ${e.message}", e)
+            // Не прерываем выполнение - БД опциональна для основного флоу
         }
     }
 

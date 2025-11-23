@@ -77,10 +77,10 @@ class VacancyRepositoryImpl(
         return try {
             vacancyDao.getAll().map { vacancyMapper.toDomain(it) }
         } catch (e: IOException) {
-            Log.e(TAG, "Error loading local vacancies", e)
+            Log.e(TAG, "Error loading local vacancies: ${e.message}", e)
             emptyList()
         } catch (e: IllegalStateException) {
-            Log.e(TAG, "Database state error loading local vacancies", e)
+            Log.e(TAG, "Database state error loading local vacancies: ${e.message}", e)
             emptyList()
         }
     }
@@ -89,10 +89,10 @@ class VacancyRepositoryImpl(
         return try {
             vacancyDao.getById(id)?.let { vacancyMapper.toDomain(it) }
         } catch (e: IOException) {
-            Log.e(TAG, "Error loading local vacancy $id", e)
+            Log.e(TAG, "Error loading local vacancy $id: ${e.message}", e)
             null
         } catch (e: IllegalStateException) {
-            Log.e(TAG, "Database state error loading local vacancy $id", e)
+            Log.e(TAG, "Database state error loading local vacancy $id: ${e.message}", e)
             null
         }
     }
