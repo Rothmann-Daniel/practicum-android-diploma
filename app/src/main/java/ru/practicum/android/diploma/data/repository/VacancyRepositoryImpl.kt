@@ -74,34 +74,42 @@ class VacancyRepositoryImpl(
     }
 
     override suspend fun getLocalVacancies(): List<Vacancy> {
-        return getLocalVacanciesOrEmpty()
-    }
-
-    override suspend fun getLocalVacancyById(id: String): Vacancy? {
-        return getLocalVacancyByIdOrNull(id)
-    }
-
-    private suspend fun getLocalVacanciesOrEmpty(): List<Vacancy> {
-        return try {
+        val result = runCatching {
             vacancyDao.getAll().map { vacancyMapper.toDomain(it) }
-        } catch (e: IOException) {
-            Log.e(TAG, "Error loading local vacancies: ${e.message}", e)
-            return EMPTY_VACANCY_LIST
-        } catch (e: IllegalStateException) {
-            Log.e(TAG, "Database state error loading local vacancies: ${e.message}", e)
-            return EMPTY_VACANCY_LIST
+        }
+
+        return result.getOrElse { exception ->
+            when (exception) {
+                is IOException -> {
+                    Log.e(TAG, "Error loading local vacancies: ${exception.message}", exception)
+                    EMPTY_VACANCY_LIST
+                }
+                is IllegalStateException -> {
+                    Log.e(TAG, "Database state error: ${exception.message}", exception)
+                    EMPTY_VACANCY_LIST
+                }
+                else -> throw exception
+            }
         }
     }
 
-    private suspend fun getLocalVacancyByIdOrNull(id: String): Vacancy? {
-        return try {
+    override suspend fun getLocalVacancyById(id: String): Vacancy? {
+        val result = runCatching {
             vacancyDao.getById(id)?.let { vacancyMapper.toDomain(it) }
-        } catch (e: IOException) {
-            Log.e(TAG, "Error loading local vacancy $id: ${e.message}", e)
-            return null
-        } catch (e: IllegalStateException) {
-            Log.e(TAG, "Database state error loading local vacancy $id: ${e.message}", e)
-            return null
+        }
+
+        return result.getOrElse { exception ->
+            when (exception) {
+                is IOException -> {
+                    Log.e(TAG, "Error loading local vacancy $id: ${exception.message}", exception)
+                    null
+                }
+                is IllegalStateException -> {
+                    Log.e(TAG, "Database state error for $id: ${exception.message}", exception)
+                    null
+                }
+                else -> throw exception
+            }
         }
     }
 
@@ -132,34 +140,31 @@ class VacancyRepositoryImpl(
         }
     }
 
-    @Suppress("SwallowedException")
     private suspend fun saveVacanciesToDatabase(vacancies: List<Vacancy>) {
-        try {
+        runCatching {
             val entities = vacancies.map { vacancyMapper.toEntity(it) }
             Log.d(TAG, "Converting to ${entities.size} entities for DB")
-
             vacancyDao.insertAll(entities)
             Log.d(TAG, "Successfully saved ${entities.size} vacancies to DB")
-        } catch (e: IOException) {
-            Log.w(TAG, "Error saving to database: ${e.message}", e)
-            return
-        } catch (e: IllegalStateException) {
-            Log.w(TAG, "Database state error: ${e.message}", e)
-            return
+        }.onFailure { exception ->
+            when (exception) {
+                is IOException -> Log.w(TAG, "Error saving to database: ${exception.message}", exception)
+                is IllegalStateException -> Log.w(TAG, "Database state error: ${exception.message}", exception)
+                else -> throw exception
+            }
         }
     }
 
-    @Suppress("SwallowedException")
     private suspend fun saveVacancyToDatabase(vacancy: Vacancy) {
-        try {
+        runCatching {
             vacancyDao.insertAll(listOf(vacancyMapper.toEntity(vacancy)))
             Log.d(TAG, "Saved vacancy ${vacancy.id} to DB")
-        } catch (e: IOException) {
-            Log.w(TAG, "Error saving vacancy to database: ${e.message}", e)
-            return
-        } catch (e: IllegalStateException) {
-            Log.w(TAG, "Database state error: ${e.message}", e)
-            return
+        }.onFailure { exception ->
+            when (exception) {
+                is IOException -> Log.w(TAG, "Error saving vacancy: ${exception.message}", exception)
+                is IllegalStateException -> Log.w(TAG, "Database state error: ${exception.message}", exception)
+                else -> throw exception
+            }
         }
     }
 

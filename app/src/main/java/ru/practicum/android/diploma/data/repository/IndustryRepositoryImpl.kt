@@ -38,17 +38,16 @@ class IndustryRepositoryImpl(
         return industryDao.getAll().map { industryMapper.toDomain(it) }
     }
 
-    @Suppress("SwallowedException")
     private suspend fun saveIndustriesToDatabase(industries: List<Industry>) {
-        try {
+        runCatching {
             industryDao.clearAll()
             industryDao.insertAll(industries.map { industryMapper.toEntity(it) })
-        } catch (e: IOException) {
-            Log.w(TAG, "Error saving industries to database: ${e.message}", e)
-            return
-        } catch (e: IllegalStateException) {
-            Log.w(TAG, "Database state error: ${e.message}", e)
-            return
+        }.onFailure { exception ->
+            when (exception) {
+                is IOException -> Log.w(TAG, "Error saving industries: ${exception.message}", exception)
+                is IllegalStateException -> Log.w(TAG, "Database state error: ${exception.message}", exception)
+                else -> throw exception
+            }
         }
     }
 

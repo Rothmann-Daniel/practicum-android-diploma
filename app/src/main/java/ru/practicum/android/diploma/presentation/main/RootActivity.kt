@@ -15,7 +15,8 @@ import ru.practicum.android.diploma.domain.repository.IAreaRepository
 import ru.practicum.android.diploma.domain.repository.IIndustryRepository
 import ru.practicum.android.diploma.domain.repository.IVacancyRepository
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 class RootActivity : AppCompatActivity() {
     private val areaRepository: IAreaRepository by inject()
