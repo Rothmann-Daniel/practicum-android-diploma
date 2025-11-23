@@ -81,11 +81,11 @@ class VacancyRepositoryImpl(
         return result.getOrElse { exception ->
             when (exception) {
                 is IOException -> {
-                    Log.e(TAG, "Error loading local vacancies: ${exception.message}", exception)
+                    Log.e(TAG, ERROR_LOADING_LOCAL_VACANCIES, exception)
                     EMPTY_VACANCY_LIST
                 }
                 is IllegalStateException -> {
-                    Log.e(TAG, "Database state error: ${exception.message}", exception)
+                    Log.e(TAG, ERROR_DATABASE_STATE, exception)
                     EMPTY_VACANCY_LIST
                 }
                 else -> throw exception
@@ -101,11 +101,11 @@ class VacancyRepositoryImpl(
         return result.getOrElse { exception ->
             when (exception) {
                 is IOException -> {
-                    Log.e(TAG, "Error loading local vacancy $id: ${exception.message}", exception)
+                    Log.e(TAG, "$ERROR_LOADING_LOCAL_VACANCY $id", exception)
                     null
                 }
                 is IllegalStateException -> {
-                    Log.e(TAG, "Database state error for $id: ${exception.message}", exception)
+                    Log.e(TAG, "$ERROR_DATABASE_STATE_FOR_ID $id", exception)
                     null
                 }
                 else -> throw exception
@@ -131,10 +131,10 @@ class VacancyRepositoryImpl(
             try {
                 vacancyMapper.toDomain(vacancyDto)
             } catch (e: IllegalArgumentException) {
-                Log.e(TAG, "Error mapping vacancy ${vacancyDto.id}: ${e.message}", e)
+                Log.e(TAG, "$ERROR_MAPPING_VACANCY ${vacancyDto.id}", e)
                 throw e
             } catch (e: IllegalStateException) {
-                Log.e(TAG, "Error mapping vacancy ${vacancyDto.id}: ${e.message}", e)
+                Log.e(TAG, "$ERROR_MAPPING_VACANCY ${vacancyDto.id}", e)
                 throw e
             }
         }
@@ -148,8 +148,8 @@ class VacancyRepositoryImpl(
             Log.d(TAG, "Successfully saved ${entities.size} vacancies to DB")
         }.onFailure { exception ->
             when (exception) {
-                is IOException -> Log.w(TAG, "Error saving to database: ${exception.message}", exception)
-                is IllegalStateException -> Log.w(TAG, "Database state error: ${exception.message}", exception)
+                is IOException -> Log.w(TAG, ERROR_SAVING_TO_DATABASE, exception)
+                is IllegalStateException -> Log.w(TAG, ERROR_DATABASE_STATE, exception)
                 else -> throw exception
             }
         }
@@ -161,8 +161,8 @@ class VacancyRepositoryImpl(
             Log.d(TAG, "Saved vacancy ${vacancy.id} to DB")
         }.onFailure { exception ->
             when (exception) {
-                is IOException -> Log.w(TAG, "Error saving vacancy: ${exception.message}", exception)
-                is IllegalStateException -> Log.w(TAG, "Database state error: ${exception.message}", exception)
+                is IOException -> Log.w(TAG, ERROR_SAVING_VACANCY, exception)
+                is IllegalStateException -> Log.w(TAG, ERROR_DATABASE_STATE, exception)
                 else -> throw exception
             }
         }
@@ -173,7 +173,7 @@ class VacancyRepositoryImpl(
             HTTP_FORBIDDEN -> ERROR_ACCESS_DENIED
             HTTP_NOT_FOUND -> ERROR_NOT_FOUND
             HTTP_INTERNAL_ERROR -> ERROR_INTERNAL_SERVER
-            else -> "HTTP ошибка: ${e.code()}"
+            else -> "$ERROR_HTTP_PREFIX ${e.code()}"
         }
         Log.e(TAG, "HTTP error: $errorMessage", e)
         return ApiResponse.Error(errorMessage, e.code())
@@ -188,7 +188,7 @@ class VacancyRepositoryImpl(
 
     private fun handleNetworkException(e: IOException): ApiResponse.Error {
         Log.e(TAG, "Network error", e)
-        return ApiResponse.Error("Ошибка сети: ${e.message}", null)
+        return ApiResponse.Error("$ERROR_NETWORK_PREFIX ${e.message}", null)
     }
 
     private fun handleVacancyByIdHttpException(
@@ -199,7 +199,7 @@ class VacancyRepositoryImpl(
             HTTP_FORBIDDEN -> ERROR_ACCESS_DENIED
             HTTP_NOT_FOUND -> ERROR_VACANCY_NOT_FOUND
             HTTP_INTERNAL_ERROR -> ERROR_INTERNAL_SERVER
-            else -> "HTTP ошибка: ${e.code()}"
+            else -> "$ERROR_HTTP_PREFIX ${e.code()}"
         }
         Log.e(TAG, "HTTP error for vacancy $id: $errorMessage", e)
         return ApiResponse.Error(errorMessage, e.code())
@@ -217,7 +217,7 @@ class VacancyRepositoryImpl(
         e: IOException
     ): ApiResponse.Error {
         Log.e(TAG, "Network error for vacancy $id", e)
-        return ApiResponse.Error("Ошибка сети: ${e.message}", null)
+        return ApiResponse.Error("$ERROR_NETWORK_PREFIX ${e.message}", null)
     }
 
     companion object {
@@ -234,6 +234,17 @@ class VacancyRepositoryImpl(
         private const val ERROR_VACANCY_NOT_FOUND = "Вакансия не найдена"
         private const val ERROR_INTERNAL_SERVER = "Внутренняя ошибка сервера"
         private const val ERROR_TIMEOUT = "Превышено время ожидания ответа"
+        private const val ERROR_HTTP_PREFIX = "HTTP ошибка:"
+        private const val ERROR_NETWORK_PREFIX = "Ошибка сети:"
+
+        // Сообщения для логирования
+        private const val ERROR_LOADING_LOCAL_VACANCIES = "Error loading local vacancies"
+        private const val ERROR_LOADING_LOCAL_VACANCY = "Error loading local vacancy"
+        private const val ERROR_DATABASE_STATE = "Database state error"
+        private const val ERROR_DATABASE_STATE_FOR_ID = "Database state error for"
+        private const val ERROR_MAPPING_VACANCY = "Error mapping vacancy"
+        private const val ERROR_SAVING_TO_DATABASE = "Error saving to database"
+        private const val ERROR_SAVING_VACANCY = "Error saving vacancy"
 
         // Fallback значения
         private val EMPTY_VACANCY_LIST = emptyList<Vacancy>()
