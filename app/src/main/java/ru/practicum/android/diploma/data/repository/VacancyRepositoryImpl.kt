@@ -97,9 +97,6 @@ class VacancyRepositoryImpl(
         } catch (exception: IllegalStateException) {
             Log.e(TAG, "$ERROR_DATABASE_STATE_FOR_ID $id", exception)
             null
-        } catch (exception: SecurityException) {
-            Log.e(TAG, "Security exception loading local vacancy $id", exception)
-            null
         }
     }
 
