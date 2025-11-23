@@ -1,8 +1,6 @@
 package ru.practicum.android.diploma.data.repository
 
 import android.util.Log
-import java.io.IOException
-import java.net.SocketTimeoutException
 import retrofit2.HttpException
 import ru.practicum.android.diploma.data.api.ApiService
 import ru.practicum.android.diploma.data.api.mappers.IndustryMapper
@@ -10,6 +8,8 @@ import ru.practicum.android.diploma.data.api.response.ApiResponse
 import ru.practicum.android.diploma.data.local.dao.IndustryDao
 import ru.practicum.android.diploma.domain.models.Industry
 import ru.practicum.android.diploma.domain.repository.IIndustryRepository
+import java.io.IOException
+import java.net.SocketTimeoutException
 
 class IndustryRepositoryImpl(
     private val apiService: ApiService,

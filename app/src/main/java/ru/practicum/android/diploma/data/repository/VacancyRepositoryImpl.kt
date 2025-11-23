@@ -1,8 +1,6 @@
 package ru.practicum.android.diploma.data.repository
 
 import android.util.Log
-import java.io.IOException
-import java.net.SocketTimeoutException
 import retrofit2.HttpException
 import ru.practicum.android.diploma.data.api.ApiService
 import ru.practicum.android.diploma.data.api.mappers.VacancyMapper
@@ -12,6 +10,8 @@ import ru.practicum.android.diploma.data.local.dao.VacancyDao
 import ru.practicum.android.diploma.domain.models.Vacancy
 import ru.practicum.android.diploma.domain.models.VacancySearchResult
 import ru.practicum.android.diploma.domain.repository.IVacancyRepository
+import java.io.IOException
+import java.net.SocketTimeoutException
 
 class VacancyRepositoryImpl(
     private val apiService: ApiService,
