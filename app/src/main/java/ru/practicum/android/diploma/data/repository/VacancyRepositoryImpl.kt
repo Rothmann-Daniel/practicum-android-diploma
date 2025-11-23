@@ -82,9 +82,6 @@ class VacancyRepositoryImpl(
         } catch (exception: IllegalStateException) {
             Log.e(TAG, ERROR_DATABASE_STATE, exception)
             EMPTY_VACANCY_LIST
-        } catch (exception: RuntimeException) {
-            Log.e(TAG, "Runtime error loading local vacancies", exception)
-            EMPTY_VACANCY_LIST
         }
     }
 
@@ -96,9 +93,6 @@ class VacancyRepositoryImpl(
             null
         } catch (exception: IllegalStateException) {
             Log.e(TAG, "$ERROR_DATABASE_STATE_FOR_ID $id", exception)
-            null
-        } catch (exception: RuntimeException) {
-            Log.e(TAG, "Runtime error loading local vacancy $id", exception)
             null
         }
     }
@@ -131,30 +125,26 @@ class VacancyRepositoryImpl(
     }
 
     private suspend fun saveVacanciesToDatabase(vacancies: List<Vacancy>) {
-        runCatching {
+        try {
             val entities = vacancies.map { vacancyMapper.toEntity(it) }
             Log.d(TAG, "Converting to ${entities.size} entities for DB")
             vacancyDao.insertAll(entities)
             Log.d(TAG, "Successfully saved ${entities.size} vacancies to DB")
-        }.onFailure { exception ->
-            when (exception) {
-                is IOException -> Log.w(TAG, ERROR_SAVING_TO_DATABASE, exception)
-                is IllegalStateException -> Log.w(TAG, ERROR_DATABASE_STATE, exception)
-                else -> throw exception
-            }
+        } catch (exception: IOException) {
+            Log.w(TAG, ERROR_SAVING_TO_DATABASE, exception)
+        } catch (exception: IllegalStateException) {
+            Log.w(TAG, ERROR_DATABASE_STATE, exception)
         }
     }
 
     private suspend fun saveVacancyToDatabase(vacancy: Vacancy) {
-        runCatching {
+        try {
             vacancyDao.insertAll(listOf(vacancyMapper.toEntity(vacancy)))
             Log.d(TAG, "Saved vacancy ${vacancy.id} to DB")
-        }.onFailure { exception ->
-            when (exception) {
-                is IOException -> Log.w(TAG, ERROR_SAVING_VACANCY, exception)
-                is IllegalStateException -> Log.w(TAG, ERROR_DATABASE_STATE, exception)
-                else -> throw exception
-            }
+        } catch (exception: IOException) {
+            Log.w(TAG, ERROR_SAVING_VACANCY, exception)
+        } catch (exception: IllegalStateException) {
+            Log.w(TAG, ERROR_DATABASE_STATE, exception)
         }
     }
 
