@@ -14,7 +14,7 @@ data class Vacancy(
     val area: Area,
     val skills: List<String>,
     val url: String,
-    val industry: Industry
+    val industry: Industry?
 )
 
 data class Salary(
@@ -56,4 +56,12 @@ data class Employer(
     val id: String,
     val name: String,
     val logo: String
+)
+
+// Новая модель для результатов поиска
+data class VacancySearchResult(
+    val found: Int,
+    val pages: Int,
+    val page: Int,
+    val vacancies: List<Vacancy>
 )

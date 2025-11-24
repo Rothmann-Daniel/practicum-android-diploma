@@ -1,9 +1,11 @@
 package ru.practicum.android.diploma.presentation.main
 
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import ru.practicum.android.diploma.BuildConfig
 import ru.practicum.android.diploma.R
 import ru.practicum.android.diploma.databinding.ActivityRootBinding
@@ -51,11 +53,12 @@ class RootActivity : AppCompatActivity() {
     }
 
     // Функции расширения для показа/скрытия BottomNavigationView
-    private fun com.google.android.material.bottomnavigation.BottomNavigationView.showNav() {
-        this.visibility = android.view.View.VISIBLE
+    private fun BottomNavigationView.showNav() {
+        this.visibility = View.VISIBLE
     }
 
-    private fun com.google.android.material.bottomnavigation.BottomNavigationView.hideNav() {
-        this.visibility = android.view.View.GONE
+    private fun BottomNavigationView.hideNav() {
+        this.visibility = View.GONE
     }
 }
+
