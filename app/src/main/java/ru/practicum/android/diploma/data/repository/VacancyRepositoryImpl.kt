@@ -7,6 +7,7 @@ import ru.practicum.android.diploma.data.local.mapper.VacancyLocalMapper
 import ru.practicum.android.diploma.data.remote.api.ApiService
 import ru.practicum.android.diploma.data.remote.dto.request.VacancyRequestDto
 import ru.practicum.android.diploma.data.remote.dto.response.ApiResponse
+import ru.practicum.android.diploma.data.remote.dto.response.VacancyResponse
 import ru.practicum.android.diploma.data.remote.mapper.VacancyRemoteMapper
 import ru.practicum.android.diploma.domain.models.Vacancy
 import ru.practicum.android.diploma.domain.models.VacancySearchResult
@@ -36,26 +37,8 @@ class VacancyRepositoryImpl(
                 onlyWithSalary = request.onlyWithSalary
             )
 
-            Log.d(
-                TAG,
-                "API response: found=${response.found}, pages=${response.pages}, " +
-                    "items=${response.vacancies.size}"
-            )
-
-            val vacancies = response.vacancies.mapNotNull { vacancyDto ->
-                try {
-                    vacancyRemoteMapper.mapToDomain(vacancyDto)
-                } catch (e: IllegalArgumentException) {
-                    Log.e(TAG, "$ERROR_MAPPING_VACANCY ${vacancyDto.id}", e)
-                    null
-                } catch (e: IllegalStateException) {
-                    Log.e(TAG, "$ERROR_MAPPING_VACANCY ${vacancyDto.id}", e)
-                    null
-                }
-            }
-
-            Log.d(TAG, "Mapped ${vacancies.size} vacancies to domain models")
-
+            logApiResponse(response)
+            val vacancies = mapVacancies(response.vacancies)
             saveVacanciesToDatabase(vacancies)
 
             ApiResponse.Success(
@@ -100,6 +83,30 @@ class VacancyRepositoryImpl(
 
     override suspend fun getLocalVacancyById(id: String): Vacancy? {
         return vacancyDao.getById(id)?.let { vacancyLocalMapper.mapFromDb(it) }
+    }
+
+    private fun logApiResponse(response: VacancyResponse) {
+        Log.d(TAG, "API response: found=${response.found}, pages=${response.pages}, items=${response.vacancies.size}")
+    }
+
+    private fun mapVacancies(vacancyDtos: List<ru.practicum.android.diploma.data.remote.dto.response.VacancyDetailResponseDto>): List<Vacancy> {
+        val vacancies = vacancyDtos.mapNotNull { vacancyDto ->
+            try {
+                vacancyRemoteMapper.mapToDomain(vacancyDto)
+            } catch (e: IllegalArgumentException) {
+                logMappingError(vacancyDto.id, e)
+                null
+            } catch (e: IllegalStateException) {
+                logMappingError(vacancyDto.id, e)
+                null
+            }
+        }
+        Log.d(TAG, "Mapped ${vacancies.size} vacancies to domain models")
+        return vacancies
+    }
+
+    private fun logMappingError(vacancyId: String?, e: Exception) {
+        Log.e(TAG, "$ERROR_MAPPING_VACANCY $vacancyId", e)
     }
 
     private suspend fun saveVacanciesToDatabase(vacancies: List<Vacancy>) {
