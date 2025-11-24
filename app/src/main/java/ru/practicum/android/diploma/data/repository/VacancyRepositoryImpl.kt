@@ -7,6 +7,7 @@ import ru.practicum.android.diploma.data.local.mapper.VacancyLocalMapper
 import ru.practicum.android.diploma.data.remote.api.ApiService
 import ru.practicum.android.diploma.data.remote.dto.request.VacancyRequestDto
 import ru.practicum.android.diploma.data.remote.dto.response.ApiResponse
+import ru.practicum.android.diploma.data.remote.dto.response.VacancyDetailResponseDto
 import ru.practicum.android.diploma.data.remote.dto.response.VacancyResponse
 import ru.practicum.android.diploma.data.remote.mapper.VacancyRemoteMapper
 import ru.practicum.android.diploma.domain.models.Vacancy
@@ -89,7 +90,7 @@ class VacancyRepositoryImpl(
         Log.d(TAG, "API response: found=${response.found}, pages=${response.pages}, items=${response.vacancies.size}")
     }
 
-    private fun mapVacancies(vacancyDtos: List<ru.practicum.android.diploma.data.remote.dto.response.VacancyDetailResponseDto>): List<Vacancy> {
+    private fun mapVacancies(vacancyDtos: List<VacancyDetailResponseDto>): List<Vacancy> {
         val vacancies = vacancyDtos.mapNotNull { vacancyDto ->
             try {
                 vacancyRemoteMapper.mapToDomain(vacancyDto)
