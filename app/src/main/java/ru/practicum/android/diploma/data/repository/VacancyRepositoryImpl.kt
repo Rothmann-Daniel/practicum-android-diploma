@@ -2,11 +2,12 @@ package ru.practicum.android.diploma.data.repository
 
 import android.util.Log
 import retrofit2.HttpException
-import ru.practicum.android.diploma.data.api.mappers.VacancyMapper
-import ru.practicum.android.diploma.data.api.request.VacancyRequest
-import ru.practicum.android.diploma.data.api.response.ApiResponse
 import ru.practicum.android.diploma.data.local.dao.VacancyDao
+import ru.practicum.android.diploma.data.local.mapper.VacancyLocalMapper
 import ru.practicum.android.diploma.data.remote.api.ApiService
+import ru.practicum.android.diploma.data.remote.dto.request.VacancyRequestDto
+import ru.practicum.android.diploma.data.remote.dto.response.ApiResponse
+import ru.practicum.android.diploma.data.remote.mapper.VacancyRemoteMapper
 import ru.practicum.android.diploma.domain.models.Vacancy
 import ru.practicum.android.diploma.domain.models.VacancySearchResult
 import ru.practicum.android.diploma.domain.repository.IVacancyRepository
@@ -16,23 +17,43 @@ import java.net.SocketTimeoutException
 class VacancyRepositoryImpl(
     private val apiService: ApiService,
     private val vacancyDao: VacancyDao,
-    private val vacancyMapper: VacancyMapper
+    private val vacancyRemoteMapper: VacancyRemoteMapper,
+    private val vacancyLocalMapper: VacancyLocalMapper
 ) : IVacancyRepository {
 
     override suspend fun getVacancies(
-        request: VacancyRequest
+        request: VacancyRequestDto
     ): ApiResponse<VacancySearchResult> {
         return try {
             Log.d(TAG, "Fetching vacancies with request: $request")
 
-            val response = fetchVacanciesFromApi(request)
+            val response = apiService.getVacancies(
+                area = request.area,
+                industry = request.industry,
+                text = request.text,
+                salary = request.salary,
+                page = request.page,
+                onlyWithSalary = request.onlyWithSalary
+            )
+
             Log.d(
                 TAG,
                 "API response: found=${response.found}, pages=${response.pages}, " +
                     "items=${response.vacancies.size}"
             )
 
-            val vacancies = mapVacanciesResponse(response.vacancies)
+            val vacancies = response.vacancies.mapNotNull { vacancyDto ->
+                try {
+                    vacancyRemoteMapper.mapToDomain(vacancyDto)
+                } catch (e: IllegalArgumentException) {
+                    Log.e(TAG, "$ERROR_MAPPING_VACANCY ${vacancyDto.id}", e)
+                    null
+                } catch (e: IllegalStateException) {
+                    Log.e(TAG, "$ERROR_MAPPING_VACANCY ${vacancyDto.id}", e)
+                    null
+                }
+            }
+
             Log.d(TAG, "Mapped ${vacancies.size} vacancies to domain models")
 
             saveVacanciesToDatabase(vacancies)
@@ -59,7 +80,7 @@ class VacancyRepositoryImpl(
             Log.d(TAG, "Fetching vacancy by id: $id")
 
             val response = apiService.getVacancyById(id)
-            val vacancy = vacancyMapper.mapToDomain(response)
+            val vacancy = vacancyRemoteMapper.mapToDomain(response)
 
             saveVacancyToDatabase(vacancy)
 
@@ -74,49 +95,22 @@ class VacancyRepositoryImpl(
     }
 
     override suspend fun getLocalVacancies(): List<Vacancy> {
-        return vacancyDao.getAll().map { vacancyMapper.mapFromDb(it) }
+        return vacancyDao.getAll().map { vacancyLocalMapper.mapFromDb(it) }
     }
 
     override suspend fun getLocalVacancyById(id: String): Vacancy? {
-        return vacancyDao.getById(id)?.let { vacancyMapper.mapFromDb(it) }
-    }
-
-    private suspend fun fetchVacanciesFromApi(
-        request: VacancyRequest
-    ) = apiService.getVacancies(
-        area = request.area,
-        industry = request.industry,
-        text = request.text,
-        salary = request.salary,
-        page = request.page,
-        onlyWithSalary = request.onlyWithSalary
-    )
-
-    private fun mapVacanciesResponse(
-        vacanciesDto: List<ru.practicum.android.diploma.data.api.response.VacancyDetailResponse>
-    ): List<Vacancy> {
-        return vacanciesDto.mapNotNull { vacancyDto ->
-            try {
-                vacancyMapper.mapToDomain(vacancyDto)
-            } catch (e: IllegalArgumentException) {
-                Log.e(TAG, "$ERROR_MAPPING_VACANCY ${vacancyDto.id}", e)
-                null
-            } catch (e: IllegalStateException) {
-                Log.e(TAG, "$ERROR_MAPPING_VACANCY ${vacancyDto.id}", e)
-                null
-            }
-        }
+        return vacancyDao.getById(id)?.let { vacancyLocalMapper.mapFromDb(it) }
     }
 
     private suspend fun saveVacanciesToDatabase(vacancies: List<Vacancy>) {
-        val entities = vacancies.map { vacancyMapper.toEntity(it) }
+        val entities = vacancies.map { vacancyLocalMapper.toEntity(it) }
         Log.d(TAG, "Converting to ${entities.size} entities for DB")
         vacancyDao.insertAll(entities)
         Log.d(TAG, "Successfully saved ${entities.size} vacancies to DB")
     }
 
     private suspend fun saveVacancyToDatabase(vacancy: Vacancy) {
-        vacancyDao.insertAll(listOf(vacancyMapper.toEntity(vacancy)))
+        vacancyDao.insertAll(listOf(vacancyLocalMapper.toEntity(vacancy)))
         Log.d(TAG, "Saved vacancy ${vacancy.id} to DB")
     }
 
@@ -131,9 +125,7 @@ class VacancyRepositoryImpl(
         return ApiResponse.Error(errorMessage, e.code())
     }
 
-    private fun handleTimeoutException(
-        e: SocketTimeoutException
-    ): ApiResponse.Error {
+    private fun handleTimeoutException(e: SocketTimeoutException): ApiResponse.Error {
         Log.e(TAG, "Timeout error", e)
         return ApiResponse.Error(ERROR_TIMEOUT, null)
     }
@@ -175,13 +167,9 @@ class VacancyRepositoryImpl(
 
     companion object {
         private const val TAG = "VacancyRepository"
-
-        // HTTP коды ошибок
         private const val HTTP_FORBIDDEN = 403
         private const val HTTP_NOT_FOUND = 404
         private const val HTTP_INTERNAL_ERROR = 500
-
-        // Сообщения об ошибках
         private const val ERROR_ACCESS_DENIED = "Доступ запрещён. Проверьте токен авторизации"
         private const val ERROR_NOT_FOUND = "Ресурс не найден"
         private const val ERROR_VACANCY_NOT_FOUND = "Вакансия не найдена"
@@ -189,8 +177,6 @@ class VacancyRepositoryImpl(
         private const val ERROR_TIMEOUT = "Превышено время ожидания ответа"
         private const val ERROR_HTTP_PREFIX = "HTTP ошибка:"
         private const val ERROR_NETWORK_PREFIX = "Ошибка сети:"
-
-        // Сообщения для логирования
         private const val ERROR_MAPPING_VACANCY = "Error mapping vacancy"
     }
 }

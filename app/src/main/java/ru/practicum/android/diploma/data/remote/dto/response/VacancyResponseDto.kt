@@ -1,4 +1,4 @@
-package ru.practicum.android.diploma.data.api.response
+package ru.practicum.android.diploma.data.remote.dto.response
 
 import com.google.gson.annotations.SerializedName
 
@@ -8,33 +8,33 @@ data class VacancyResponse(
     val pages: Int,
     val page: Int,
     @SerializedName("items") // Аннотация для правильного маппинга
-    val vacancies: List<VacancyDetailResponse>
+    val vacancies: List<VacancyDetailResponseDto>
 )
 
-data class VacancyDetailResponse(
+data class VacancyDetailResponseDto(
     val id: String,
     val name: String,
     val description: String?,
-    val salary: SalaryResponse?,
-    val address: AddressResponse?,
-    val experience: ExperienceResponse?,
-    val schedule: ScheduleResponse?,
-    val employment: EmploymentResponse?,
-    val contacts: ContactsResponse?,
-    val employer: EmployerResponse,
-    val area: AreaResponse,
+    val salary: SalaryResponseDto?,
+    val address: AddressResponseDto?,
+    val experience: ExperienceResponseDto?,
+    val schedule: ScheduleResponseDto?,
+    val employment: EmploymentResponseDto?,
+    val contacts: ContactsResponseDto?,
+    val employer: EmployerResponseDto,
+    val area: AreaResponseDto,
     val skills: List<String>?,
     val url: String,
-    val industry: FilterIndustryResponse?
+    val industry: FilterIndustryResponseDto?
 )
 
-data class SalaryResponse(
+data class SalaryResponseDto(
     val from: Int?,
     val to: Int?,
     val currency: String?
 )
 
-data class AddressResponse(
+data class AddressResponseDto(
     @SerializedName("raw") // API возвращает "raw" для полного адреса
     val fullAddress: String?,
     val city: String?,
@@ -42,36 +42,35 @@ data class AddressResponse(
     val building: String?
 )
 
-data class ExperienceResponse(
+data class ExperienceResponseDto(
     val id: String,
     val name: String
 )
 
-data class ScheduleResponse(
+data class ScheduleResponseDto(
     val id: String,
     val name: String
 )
 
-data class EmploymentResponse(
+data class EmploymentResponseDto(
     val id: String,
     val name: String
 )
 
-data class ContactsResponse(
+data class ContactsResponseDto(
     val id: String,
     val name: String,
     val email: String?,
     @SerializedName("phones") // API возвращает массив объектов
-    val phone: List<PhoneResponse>?
+    val phone: List<PhoneResponseDto>?
 )
 
-// Новый класс для телефонов
-data class PhoneResponse(
+data class PhoneResponseDto(
     val formatted: String,
     val comment: String?
 )
 
-data class EmployerResponse(
+data class EmployerResponseDto(
     val id: String,
     val name: String,
     val logo: String?

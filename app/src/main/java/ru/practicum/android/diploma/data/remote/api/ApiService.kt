@@ -3,17 +3,17 @@ package ru.practicum.android.diploma.data.remote.api
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
-import ru.practicum.android.diploma.data.api.response.AreaResponse
-import ru.practicum.android.diploma.data.api.response.FilterIndustryResponse
-import ru.practicum.android.diploma.data.api.response.VacancyDetailResponse
-import ru.practicum.android.diploma.data.api.response.VacancyResponse
+import ru.practicum.android.diploma.data.remote.dto.response.AreaResponseDto
+import ru.practicum.android.diploma.data.remote.dto.response.FilterIndustryResponseDto
+import ru.practicum.android.diploma.data.remote.dto.response.VacancyDetailResponseDto
+import ru.practicum.android.diploma.data.remote.dto.response.VacancyResponse
 
 interface ApiService {
     @GET("areas")
-    suspend fun getAreas(): List<AreaResponse>
+    suspend fun getAreas(): List<AreaResponseDto>
 
     @GET("industries")
-    suspend fun getIndustries(): List<FilterIndustryResponse>
+    suspend fun getIndustries(): List<FilterIndustryResponseDto>
 
     @GET("vacancies")
     suspend fun getVacancies(
@@ -26,5 +26,5 @@ interface ApiService {
     ): VacancyResponse
 
     @GET("vacancies/{id}")
-    suspend fun getVacancyById(@Path("id") id: String): VacancyDetailResponse
+    suspend fun getVacancyById(@Path("id") id: String): VacancyDetailResponseDto
 }

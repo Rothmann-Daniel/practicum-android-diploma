@@ -1,6 +1,6 @@
-package ru.practicum.android.diploma.data.api.request
+package ru.practicum.android.diploma.data.remote.dto.request
 
-data class VacancyRequest(
+data class VacancyRequestDto(
     val area: Int? = null,
     val industry: Int? = null,
     val text: String? = null,

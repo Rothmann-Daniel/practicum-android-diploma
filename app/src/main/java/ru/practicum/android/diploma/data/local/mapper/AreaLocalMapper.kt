@@ -1,22 +1,9 @@
-package ru.practicum.android.diploma.data.api.mappers
+package ru.practicum.android.diploma.data.local.mapper
 
-import ru.practicum.android.diploma.data.api.response.AreaResponse
 import ru.practicum.android.diploma.data.local.entities.AreaEntity
 import ru.practicum.android.diploma.domain.models.Area
 
-class AreaMapper {
-    /**
-     * Преобразует ответ API в domain модель (включая вложенную структуру)
-     */
-    fun mapToDomain(response: AreaResponse): Area {
-        return Area(
-            id = response.id,
-            name = response.name,
-            parentId = response.parentId,
-            areas = response.areas.map { mapToDomain(it) }
-        )
-    }
-
+class AreaLocalMapper {
     /**
      * Преобразует domain модель в entity для БД (только верхний уровень)
      */
@@ -70,10 +57,19 @@ class AreaMapper {
             .map { toImmutableArea(it) }
     }
 
-    private fun toMutableArea(area: Area) = MutableArea(area.id, area.name, area.parentId, area.areas.toMutableList())
+    private fun toMutableArea(area: Area) = MutableArea(
+        area.id,
+        area.name,
+        area.parentId,
+        area.areas.toMutableList()
+    )
 
-    private fun toImmutableArea(mutableArea: MutableArea) =
-        Area(mutableArea.id, mutableArea.name, mutableArea.parentId, mutableArea.areas.toList())
+    private fun toImmutableArea(mutableArea: MutableArea) = Area(
+        mutableArea.id,
+        mutableArea.name,
+        mutableArea.parentId,
+        mutableArea.areas.toList()
+    )
 
     private class MutableArea(
         val id: Int,

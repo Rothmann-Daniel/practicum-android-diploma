@@ -1,4 +1,4 @@
-package ru.practicum.android.diploma.data.api.response
+package ru.practicum.android.diploma.data.remote.dto.response
 
 sealed class ApiResponse<out T> {
     data class Success<T>(val data: T) : ApiResponse<T>()

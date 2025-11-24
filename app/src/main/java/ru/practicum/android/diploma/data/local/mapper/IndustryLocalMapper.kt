@@ -1,17 +1,9 @@
-package ru.practicum.android.diploma.data.api.mappers
+package ru.practicum.android.diploma.data.local.mapper
 
-import ru.practicum.android.diploma.data.api.response.FilterIndustryResponse
 import ru.practicum.android.diploma.data.local.entities.IndustryEntity
 import ru.practicum.android.diploma.domain.models.Industry
 
-class IndustryMapper {
-    fun mapToDomain(response: FilterIndustryResponse): Industry {
-        return Industry(
-            id = response.id,
-            name = response.name
-        )
-    }
-
+class IndustryLocalMapper {
     fun toEntity(domain: Industry): IndustryEntity {
         return IndustryEntity(
             id = domain.id,

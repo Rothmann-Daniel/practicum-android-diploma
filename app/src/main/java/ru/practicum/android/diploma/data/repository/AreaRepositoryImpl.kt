@@ -2,10 +2,11 @@ package ru.practicum.android.diploma.data.repository
 
 import android.util.Log
 import retrofit2.HttpException
-import ru.practicum.android.diploma.data.api.mappers.AreaMapper
-import ru.practicum.android.diploma.data.api.response.ApiResponse
 import ru.practicum.android.diploma.data.local.dao.AreaDao
+import ru.practicum.android.diploma.data.local.mapper.AreaLocalMapper
 import ru.practicum.android.diploma.data.remote.api.ApiService
+import ru.practicum.android.diploma.data.remote.dto.response.ApiResponse
+import ru.practicum.android.diploma.data.remote.mapper.AreaRemoteMapper
 import ru.practicum.android.diploma.domain.models.Area
 import ru.practicum.android.diploma.domain.repository.IAreaRepository
 import java.io.IOException
@@ -14,13 +15,14 @@ import java.net.SocketTimeoutException
 class AreaRepositoryImpl(
     private val apiService: ApiService,
     private val areaDao: AreaDao,
-    private val areaMapper: AreaMapper
+    private val areaRemoteMapper: AreaRemoteMapper, // для API
+    private val areaLocalMapper: AreaLocalMapper // для БД
 ) : IAreaRepository {
 
     override suspend fun getAreas(): ApiResponse<List<Area>> {
         return try {
             val response = apiService.getAreas()
-            val areas = response.map { areaMapper.mapToDomain(it) }
+            val areas = response.map { areaRemoteMapper.mapToDomain(it) }
 
             saveAreasToDatabase(areas)
 
@@ -36,12 +38,12 @@ class AreaRepositoryImpl(
 
     override suspend fun getLocalAreas(): List<Area> {
         val flatList = areaDao.getAll()
-        return areaMapper.buildHierarchy(flatList)
+        return areaLocalMapper.buildHierarchy(flatList)
     }
 
     private suspend fun saveAreasToDatabase(areas: List<Area>) {
         runCatching {
-            val flatList = areas.flatMap { areaMapper.flattenHierarchy(it) }
+            val flatList = areas.flatMap { areaLocalMapper.flattenHierarchy(it) }
             areaDao.clearAll()
             areaDao.insertAll(flatList)
         }.onFailure { exception ->
@@ -76,21 +78,15 @@ class AreaRepositoryImpl(
 
     companion object {
         private const val TAG = "AreaRepository"
-
-        // HTTP коды ошибок
         private const val HTTP_FORBIDDEN = 403
         private const val HTTP_NOT_FOUND = 404
         private const val HTTP_INTERNAL_ERROR = 500
-
-        // Сообщения об ошибках
         private const val ERROR_ACCESS_DENIED = "Доступ запрещён. Проверьте токен авторизации"
         private const val ERROR_NOT_FOUND = "Ресурс не найден"
         private const val ERROR_INTERNAL_SERVER = "Внутренняя ошибка сервера"
         private const val ERROR_TIMEOUT = "Превышено время ожидания ответа"
         private const val ERROR_HTTP_PREFIX = "HTTP ошибка:"
         private const val ERROR_NETWORK_PREFIX = "Ошибка сети:"
-
-        // Сообщения для логирования
         private const val ERROR_SAVING_AREAS = "Error saving areas"
         private const val ERROR_DATABASE_STATE = "Database state error"
     }

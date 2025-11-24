@@ -1,17 +1,8 @@
-package ru.practicum.android.diploma.data.api.mappers
+package ru.practicum.android.diploma.data.local.mapper
 
-import ru.practicum.android.diploma.data.api.response.AddressResponse
-import ru.practicum.android.diploma.data.api.response.ContactsResponse
-import ru.practicum.android.diploma.data.api.response.EmployerResponse
-import ru.practicum.android.diploma.data.api.response.EmploymentResponse
-import ru.practicum.android.diploma.data.api.response.ExperienceResponse
-import ru.practicum.android.diploma.data.api.response.SalaryResponse
-import ru.practicum.android.diploma.data.api.response.ScheduleResponse
-import ru.practicum.android.diploma.data.api.response.VacancyDetailResponse
 import ru.practicum.android.diploma.data.local.entities.VacancyEntity
 import ru.practicum.android.diploma.domain.models.Address
 import ru.practicum.android.diploma.domain.models.Area
-import ru.practicum.android.diploma.domain.models.Contacts
 import ru.practicum.android.diploma.domain.models.Employer
 import ru.practicum.android.diploma.domain.models.Employment
 import ru.practicum.android.diploma.domain.models.Experience
@@ -20,32 +11,7 @@ import ru.practicum.android.diploma.domain.models.Salary
 import ru.practicum.android.diploma.domain.models.Schedule
 import ru.practicum.android.diploma.domain.models.Vacancy
 
-class VacancyMapper(
-    private val areaMapper: AreaMapper,
-    private val industryMapper: IndustryMapper
-) {
-    /**
-     * Преобразует детальный ответ вакансии из API в domain модель
-     */
-    fun mapToDomain(response: VacancyDetailResponse): Vacancy {
-        return Vacancy(
-            id = response.id,
-            name = response.name,
-            description = response.description.orEmpty(),
-            salary = response.salary?.toDomain(),
-            address = response.address?.toDomain(),
-            experience = response.experience?.toDomain(),
-            schedule = response.schedule?.toDomain(),
-            employment = response.employment?.toDomain(),
-            contacts = response.contacts?.toDomain(),
-            employer = response.employer.toDomain(),
-            area = areaMapper.mapToDomain(response.area),
-            skills = response.skills.orEmpty(),
-            url = response.url,
-            industry = response.industry?.let { industryMapper.mapToDomain(it) }
-        )
-    }
-
+class VacancyLocalMapper {
     /**
      * Преобразует domain модель вакансии в entity для БД
      */
@@ -78,7 +44,6 @@ class VacancyMapper(
 
     /**
      * Преобразует entity из БД в domain модель вакансии
-     * Разбито на несколько методов для снижения сложности
      */
     fun mapFromDb(entity: VacancyEntity): Vacancy {
         return Vacancy(
@@ -183,62 +148,5 @@ class VacancyMapper(
         } else {
             null
         }
-    }
-
-    private fun SalaryResponse.toDomain(): Salary {
-        return Salary(
-            from = from,
-            to = to,
-            currency = currency
-        )
-    }
-
-    private fun AddressResponse.toDomain(): Address {
-        return Address(
-            city = city.orEmpty(),
-            street = street.orEmpty(),
-            building = building.orEmpty(),
-            fullAddress = fullAddress.orEmpty()
-        )
-    }
-
-    private fun ExperienceResponse.toDomain(): Experience {
-        return Experience(
-            id = id,
-            name = name
-        )
-    }
-
-    private fun ScheduleResponse.toDomain(): Schedule {
-        return Schedule(
-            id = id,
-            name = name
-        )
-    }
-
-    private fun EmploymentResponse.toDomain(): Employment {
-        return Employment(
-            id = id,
-            name = name
-        )
-    }
-
-    private fun ContactsResponse.toDomain(): Contacts {
-        val phoneNumbers = phone?.map { it.formatted }.orEmpty()
-
-        return Contacts(
-            id = id,
-            name = name,
-            email = email.orEmpty(),
-            phone = phoneNumbers
-        )
-    }
-
-    private fun EmployerResponse.toDomain(): Employer {
-        return Employer(
-            id = id,
-            name = name,
-            logo = logo.orEmpty()
-        )
     }
 }

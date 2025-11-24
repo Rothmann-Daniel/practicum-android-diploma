@@ -1,6 +1,6 @@
 package ru.practicum.android.diploma.domain.repository
 
-import ru.practicum.android.diploma.data.api.response.ApiResponse
+import ru.practicum.android.diploma.data.remote.dto.response.ApiResponse
 import ru.practicum.android.diploma.domain.models.Area
 
 interface IAreaRepository {

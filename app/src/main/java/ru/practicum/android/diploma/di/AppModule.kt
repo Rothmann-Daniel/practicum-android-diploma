@@ -8,11 +8,14 @@ import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import ru.practicum.android.diploma.BuildConfig
-import ru.practicum.android.diploma.data.api.mappers.AreaMapper
-import ru.practicum.android.diploma.data.api.mappers.IndustryMapper
-import ru.practicum.android.diploma.data.api.mappers.VacancyMapper
 import ru.practicum.android.diploma.data.local.database.AppDatabase
+import ru.practicum.android.diploma.data.local.mapper.AreaLocalMapper
+import ru.practicum.android.diploma.data.local.mapper.IndustryLocalMapper
+import ru.practicum.android.diploma.data.local.mapper.VacancyLocalMapper
 import ru.practicum.android.diploma.data.remote.api.ApiService
+import ru.practicum.android.diploma.data.remote.mapper.AreaRemoteMapper
+import ru.practicum.android.diploma.data.remote.mapper.IndustryRemoteMapper
+import ru.practicum.android.diploma.data.remote.mapper.VacancyRemoteMapper
 import ru.practicum.android.diploma.data.repository.AreaRepositoryImpl
 import ru.practicum.android.diploma.data.repository.IndustryRepositoryImpl
 import ru.practicum.android.diploma.data.repository.VacancyRepositoryImpl
@@ -43,10 +46,15 @@ val appModule = module {
     single { get<AppDatabase>().industryDao() }
     single { get<AppDatabase>().vacancyDao() }
 
-    // Mappers
-    single { AreaMapper() }
-    single { IndustryMapper() }
-    single { VacancyMapper(get(), get()) }
+    // Remote Mappers
+    single { AreaRemoteMapper() }
+    single { IndustryRemoteMapper() }
+    single { VacancyRemoteMapper(get(), get()) }
+
+    // Local Mappers
+    single { AreaLocalMapper() }
+    single { IndustryLocalMapper() }
+    single { VacancyLocalMapper() }
 
     // API
     single {
@@ -81,7 +89,7 @@ val appModule = module {
     }
 
     // Repositories
-    single<IAreaRepository> { AreaRepositoryImpl(get(), get(), get()) }
-    single<IIndustryRepository> { IndustryRepositoryImpl(get(), get(), get()) }
-    single<IVacancyRepository> { VacancyRepositoryImpl(get(), get(), get()) }
+    single<IAreaRepository> { AreaRepositoryImpl(get(), get(), get(), get()) }
+    single<IIndustryRepository> { IndustryRepositoryImpl(get(), get(), get(), get()) }
+    single<IVacancyRepository> { VacancyRepositoryImpl(get(), get(), get(), get()) }
 }
