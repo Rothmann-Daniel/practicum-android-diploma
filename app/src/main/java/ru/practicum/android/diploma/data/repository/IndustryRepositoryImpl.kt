@@ -2,10 +2,10 @@ package ru.practicum.android.diploma.data.repository
 
 import android.util.Log
 import retrofit2.HttpException
-import ru.practicum.android.diploma.data.remote.api.ApiService
 import ru.practicum.android.diploma.data.api.mappers.IndustryMapper
 import ru.practicum.android.diploma.data.api.response.ApiResponse
 import ru.practicum.android.diploma.data.local.dao.IndustryDao
+import ru.practicum.android.diploma.data.remote.api.ApiService
 import ru.practicum.android.diploma.domain.models.Industry
 import ru.practicum.android.diploma.domain.repository.IIndustryRepository
 import java.io.IOException

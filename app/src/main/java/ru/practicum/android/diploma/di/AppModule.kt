@@ -8,11 +8,11 @@ import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import ru.practicum.android.diploma.BuildConfig
-import ru.practicum.android.diploma.data.remote.api.ApiService
 import ru.practicum.android.diploma.data.api.mappers.AreaMapper
 import ru.practicum.android.diploma.data.api.mappers.IndustryMapper
 import ru.practicum.android.diploma.data.api.mappers.VacancyMapper
 import ru.practicum.android.diploma.data.local.database.AppDatabase
+import ru.practicum.android.diploma.data.remote.api.ApiService
 import ru.practicum.android.diploma.data.repository.AreaRepositoryImpl
 import ru.practicum.android.diploma.data.repository.IndustryRepositoryImpl
 import ru.practicum.android.diploma.data.repository.VacancyRepositoryImpl
