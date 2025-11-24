@@ -2,7 +2,7 @@ package ru.practicum.android.diploma.data.repository
 
 import android.util.Log
 import retrofit2.HttpException
-import ru.practicum.android.diploma.data.api.ApiService
+import ru.practicum.android.diploma.data.remote.api.ApiService
 import ru.practicum.android.diploma.data.api.mappers.AreaMapper
 import ru.practicum.android.diploma.data.api.response.ApiResponse
 import ru.practicum.android.diploma.data.local.dao.AreaDao
@@ -20,7 +20,7 @@ class AreaRepositoryImpl(
     override suspend fun getAreas(): ApiResponse<List<Area>> {
         return try {
             val response = apiService.getAreas()
-            val areas = response.map { areaMapper.toDomain(it) }
+            val areas = response.map { areaMapper.mapToDomain(it) }
 
             saveAreasToDatabase(areas)
 

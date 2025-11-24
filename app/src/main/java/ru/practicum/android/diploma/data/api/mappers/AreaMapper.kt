@@ -8,12 +8,12 @@ class AreaMapper {
     /**
      * Преобразует ответ API в domain модель (включая вложенную структуру)
      */
-    fun toDomain(response: AreaResponse): Area {
+    fun mapToDomain(response: AreaResponse): Area {
         return Area(
             id = response.id,
             name = response.name,
             parentId = response.parentId,
-            areas = response.areas.map { toDomain(it) }
+            areas = response.areas.map { mapToDomain(it) }
         )
     }
 
@@ -32,7 +32,7 @@ class AreaMapper {
      * Преобразует entity из БД в domain модель (без вложенных areas)
      * ВАЖНО: Для восстановления иерархии используем buildHierarchy()
      */
-    fun toDomain(entity: AreaEntity): Area {
+    fun mapFromDb(entity: AreaEntity): Area {
         return Area(
             id = entity.id,
             name = entity.name,
@@ -57,7 +57,7 @@ class AreaMapper {
      * Восстанавливает иерархическую структуру из плоского списка
      */
     fun buildHierarchy(flatList: List<AreaEntity>): List<Area> {
-        val areaMap = flatList.associate { it.id to toMutableArea(toDomain(it)) }
+        val areaMap = flatList.associate { it.id to toMutableArea(mapFromDb(it)) }
 
         areaMap.values.forEach { area ->
             area.parentId?.let { parentId ->

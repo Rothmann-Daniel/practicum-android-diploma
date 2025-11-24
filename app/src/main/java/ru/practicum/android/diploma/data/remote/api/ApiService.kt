@@ -1,4 +1,4 @@
-package ru.practicum.android.diploma.data.api
+package ru.practicum.android.diploma.data.remote.api
 
 import retrofit2.http.GET
 import retrofit2.http.Path

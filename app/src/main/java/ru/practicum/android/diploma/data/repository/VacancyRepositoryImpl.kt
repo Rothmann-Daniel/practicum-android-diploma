@@ -2,7 +2,7 @@ package ru.practicum.android.diploma.data.repository
 
 import android.util.Log
 import retrofit2.HttpException
-import ru.practicum.android.diploma.data.api.ApiService
+import ru.practicum.android.diploma.data.remote.api.ApiService
 import ru.practicum.android.diploma.data.api.mappers.VacancyMapper
 import ru.practicum.android.diploma.data.api.request.VacancyRequest
 import ru.practicum.android.diploma.data.api.response.ApiResponse
@@ -59,7 +59,7 @@ class VacancyRepositoryImpl(
             Log.d(TAG, "Fetching vacancy by id: $id")
 
             val response = apiService.getVacancyById(id)
-            val vacancy = vacancyMapper.toDomain(response)
+            val vacancy = vacancyMapper.mapToDomain(response)
 
             saveVacancyToDatabase(vacancy)
 
@@ -74,11 +74,11 @@ class VacancyRepositoryImpl(
     }
 
     override suspend fun getLocalVacancies(): List<Vacancy> {
-        return vacancyDao.getAll().map { vacancyMapper.toDomain(it) }
+        return vacancyDao.getAll().map { vacancyMapper.mapFromDb(it) }
     }
 
     override suspend fun getLocalVacancyById(id: String): Vacancy? {
-        return vacancyDao.getById(id)?.let { vacancyMapper.toDomain(it) }
+        return vacancyDao.getById(id)?.let { vacancyMapper.mapFromDb(it) }
     }
 
     private suspend fun fetchVacanciesFromApi(
@@ -97,7 +97,7 @@ class VacancyRepositoryImpl(
     ): List<Vacancy> {
         return vacanciesDto.mapNotNull { vacancyDto ->
             try {
-                vacancyMapper.toDomain(vacancyDto)
+                vacancyMapper.mapToDomain(vacancyDto)
             } catch (e: IllegalArgumentException) {
                 Log.e(TAG, "$ERROR_MAPPING_VACANCY ${vacancyDto.id}", e)
                 null

@@ -2,7 +2,7 @@ package ru.practicum.android.diploma.data.repository
 
 import android.util.Log
 import retrofit2.HttpException
-import ru.practicum.android.diploma.data.api.ApiService
+import ru.practicum.android.diploma.data.remote.api.ApiService
 import ru.practicum.android.diploma.data.api.mappers.IndustryMapper
 import ru.practicum.android.diploma.data.api.response.ApiResponse
 import ru.practicum.android.diploma.data.local.dao.IndustryDao
@@ -20,7 +20,7 @@ class IndustryRepositoryImpl(
     override suspend fun getIndustries(): ApiResponse<List<Industry>> {
         return try {
             val response = apiService.getIndustries()
-            val industries = response.map { industryMapper.toDomain(it) }
+            val industries = response.map { industryMapper.mapToDomain(it) }
 
             saveIndustriesToDatabase(industries)
 
@@ -35,7 +35,7 @@ class IndustryRepositoryImpl(
     }
 
     override suspend fun getLocalIndustries(): List<Industry> {
-        return industryDao.getAll().map { industryMapper.toDomain(it) }
+        return industryDao.getAll().map { industryMapper.mapFromDb(it) }
     }
 
     private suspend fun saveIndustriesToDatabase(industries: List<Industry>) {

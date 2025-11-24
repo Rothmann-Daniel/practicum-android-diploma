@@ -27,7 +27,7 @@ class VacancyMapper(
     /**
      * Преобразует детальный ответ вакансии из API в domain модель
      */
-    fun toDomain(response: VacancyDetailResponse): Vacancy {
+    fun mapToDomain(response: VacancyDetailResponse): Vacancy {
         return Vacancy(
             id = response.id,
             name = response.name,
@@ -39,10 +39,10 @@ class VacancyMapper(
             employment = response.employment?.toDomain(),
             contacts = response.contacts?.toDomain(),
             employer = response.employer.toDomain(),
-            area = areaMapper.toDomain(response.area),
+            area = areaMapper.mapToDomain(response.area),
             skills = response.skills.orEmpty(),
             url = response.url,
-            industry = response.industry?.let { industryMapper.toDomain(it) }
+            industry = response.industry?.let { industryMapper.mapToDomain(it) }
         )
     }
 
@@ -80,7 +80,7 @@ class VacancyMapper(
      * Преобразует entity из БД в domain модель вакансии
      * Разбито на несколько методов для снижения сложности
      */
-    fun toDomain(entity: VacancyEntity): Vacancy {
+    fun mapFromDb(entity: VacancyEntity): Vacancy {
         return Vacancy(
             id = entity.id,
             name = entity.name,

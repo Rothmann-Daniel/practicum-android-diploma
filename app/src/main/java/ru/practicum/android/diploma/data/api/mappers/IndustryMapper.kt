@@ -5,7 +5,7 @@ import ru.practicum.android.diploma.data.local.entities.IndustryEntity
 import ru.practicum.android.diploma.domain.models.Industry
 
 class IndustryMapper {
-    fun toDomain(response: FilterIndustryResponse): Industry {
+    fun mapToDomain(response: FilterIndustryResponse): Industry {
         return Industry(
             id = response.id,
             name = response.name
@@ -19,7 +19,7 @@ class IndustryMapper {
         )
     }
 
-    fun toDomain(entity: IndustryEntity): Industry {
+    fun mapFromDb(entity: IndustryEntity): Industry {
         return Industry(
             id = entity.id,
             name = entity.name
