@@ -20,7 +20,7 @@
             android:layout_marginStart="16dp"
             android:textSize="@dimen/bigTextSize"
             android:fontFamily="@font/ys_display_medium"
-            android:text="Поиск вакансий"/>
+            android:text="@string/vacancy_search"/>
 
         <ImageView
             android:id="@+id/btnFilters"
@@ -51,7 +51,7 @@
             android:textCursorDrawable="@drawable/blue_cursor"
             android:textColorHint="?attr/colorOnSurfaceVariant"
             android:textColor="@color/black"
-            android:hint="Введите запрос"/>
+            android:hint="@string/enter_query"/>
 
         <ImageView
             android:id="@+id/btnVacancies"
@@ -91,7 +91,7 @@
             android:paddingHorizontal="12dp"
             android:background="@drawable/small_blue_button_shape"
             android:textColor="@color/white"
-            android:text="Найдено ... вакансий"/>
+            tools:text="Найдено ... вакансий"/>
 
         <!-- Картинка и сообщение -->
         <LinearLayout
@@ -120,7 +120,7 @@
                 android:gravity="center_horizontal"
                 android:textSize="@dimen/bigTextSize"
                 android:fontFamily="@font/ys_display_medium"
-                android:text="Нет интернета"/>
+                tools:text="Нет интернета"/>
 
         </LinearLayout>
 
@@ -135,44 +135,3 @@
     </FrameLayout>
 
 </LinearLayout>
-
-
-
-
-
-    <!--
-    <LinearLayout
-        android:id="@+id/centerLayout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/tvTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="Поиск вакансий"
-            android:textSize="25sp"
-            android:textStyle="bold" />
-
-
-        <Button
-            android:id="@+id/btnVacancies"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Вакансия" />
-
-
-        <Button
-            android:id="@+id/btnFilters"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Настройка фильтров" />
-    </LinearLayout>
-
-    -->
-
