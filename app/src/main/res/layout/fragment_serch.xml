@@ -38,7 +38,8 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:layout_marginVertical="8dp"
-        android:layout_marginHorizontal="16dp">
+        android:layout_marginHorizontal="16dp"
+        android:background="@drawable/search_query_shape">
 
         <EditText
             android:id="@+id/searchQuery"
@@ -46,12 +47,18 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="16dp"
+            android:background="@null"
+            android:textCursorDrawable="@drawable/blue_cursor"
+            android:textColorHint="?attr/colorOnSurfaceVariant"
+            android:textColor="@color/black"
             android:hint="Введите запрос"/>
+
         <ImageView
             android:id="@+id/btnVacancies"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
+            app:tint="@color/black"
             android:src="@drawable/search"/>
 
     </LinearLayout>
@@ -59,16 +66,6 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-
-        <!-- Синяя кнопочка-сообщение -->
-        <TextView
-            android:id="@+id/btnMessage"
-            android:visibility="visible"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="3dp"
-            android:text="Найдено ... вакансий"/>
 
         <!-- Вакансии -->
         <androidx.recyclerview.widget.RecyclerView
@@ -81,6 +78,20 @@
             android:orientation="vertical"
             tools:listitem="@layout/item_vacancy_list"
             tools:itemCount="5"/>
+
+        <!-- Синяя кнопочка-сообщение -->
+        <TextView
+            android:id="@+id/btnMessage"
+            android:visibility="visible"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="3dp"
+            android:paddingVertical="4dp"
+            android:paddingHorizontal="12dp"
+            android:background="@drawable/small_blue_button_shape"
+            android:textColor="@color/white"
+            android:text="Найдено ... вакансий"/>
 
         <!-- Картинка и сообщение -->
         <LinearLayout
