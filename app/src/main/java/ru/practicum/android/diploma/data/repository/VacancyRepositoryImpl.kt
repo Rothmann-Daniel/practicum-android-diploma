@@ -5,12 +5,13 @@ import retrofit2.HttpException
 import ru.practicum.android.diploma.data.local.dao.VacancyDao
 import ru.practicum.android.diploma.data.local.mapper.VacancyLocalMapper
 import ru.practicum.android.diploma.data.remote.api.ApiService
-import ru.practicum.android.diploma.data.remote.dto.request.VacancyRequestDto
 import ru.practicum.android.diploma.data.remote.dto.response.ApiResponse
 import ru.practicum.android.diploma.data.remote.dto.response.VacancyDetailResponseDto
 import ru.practicum.android.diploma.data.remote.dto.response.VacancyResponse
 import ru.practicum.android.diploma.data.remote.mapper.VacancyRemoteMapper
+import ru.practicum.android.diploma.data.remote.mapper.VacancyRequestMapper
 import ru.practicum.android.diploma.domain.models.Vacancy
+import ru.practicum.android.diploma.domain.models.VacancySearchRequest
 import ru.practicum.android.diploma.domain.models.VacancySearchResult
 import ru.practicum.android.diploma.domain.repository.IVacancyRepository
 import java.io.IOException
@@ -20,24 +21,22 @@ class VacancyRepositoryImpl(
     private val apiService: ApiService,
     private val vacancyDao: VacancyDao,
     private val vacancyRemoteMapper: VacancyRemoteMapper,
-    private val vacancyLocalMapper: VacancyLocalMapper
+    private val vacancyLocalMapper: VacancyLocalMapper,
+    private val vacancyRequestMapper: VacancyRequestMapper
 ) : IVacancyRepository {
 
-    override suspend fun getVacancies(
-        request: VacancyRequestDto
-    ): ApiResponse<VacancySearchResult> {
-        return try {
-            Log.d(TAG, "Fetching vacancies with request: $request")
-
-            val response = apiService.getVacancies(
-                area = request.area,
-                industry = request.industry,
-                text = request.text,
-                salary = request.salary,
-                page = request.page,
-                onlyWithSalary = request.onlyWithSalary
-            )
-
+    override suspend fun getVacancies( request: VacancySearchRequest )
+    : ApiResponse<VacancySearchResult>
+    { return try { Log.d(TAG, "Fetching vacancies with request: $request")
+        // Маппим доменную модель в DTO val dtoRequest = vacancyRequestMapper.toDto(request)
+        val response = apiService.getVacancies(
+            area = request.area,
+            industry = request.industry,
+            text = request.text,
+            salary = request.salary,
+            page = request.page,
+            onlyWithSalary = request.onlyWithSalary
+        )
             logApiResponse(response)
             val vacancies = mapVacancies(response.vacancies)
             saveVacanciesToDatabase(vacancies)

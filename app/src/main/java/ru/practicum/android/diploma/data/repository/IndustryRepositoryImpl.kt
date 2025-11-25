@@ -7,6 +7,7 @@ import ru.practicum.android.diploma.data.local.mapper.IndustryLocalMapper
 import ru.practicum.android.diploma.data.remote.api.ApiService
 import ru.practicum.android.diploma.data.remote.dto.response.ApiResponse
 import ru.practicum.android.diploma.data.remote.mapper.IndustryRemoteMapper
+import ru.practicum.android.diploma.data.remote.mapper.VacancyRequestMapper
 import ru.practicum.android.diploma.domain.models.Industry
 import ru.practicum.android.diploma.domain.repository.IIndustryRepository
 import java.io.IOException

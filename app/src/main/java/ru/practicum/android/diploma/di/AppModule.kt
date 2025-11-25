@@ -22,6 +22,9 @@ import ru.practicum.android.diploma.data.repository.VacancyRepositoryImpl
 import ru.practicum.android.diploma.domain.repository.IAreaRepository
 import ru.practicum.android.diploma.domain.repository.IIndustryRepository
 import ru.practicum.android.diploma.domain.repository.IVacancyRepository
+import ru.practicum.android.diploma.domain.usecases.GetCachedVacanciesUseCase
+import ru.practicum.android.diploma.domain.usecases.GetVacancyDetailsUseCase
+import ru.practicum.android.diploma.domain.usecases.SearchVacanciesUseCase
 import java.util.concurrent.TimeUnit
 
 // Константы для таймаутов
@@ -91,5 +94,11 @@ val appModule = module {
     // Repositories
     single<IAreaRepository> { AreaRepositoryImpl(get(), get(), get(), get()) }
     single<IIndustryRepository> { IndustryRepositoryImpl(get(), get(), get(), get()) }
-    single<IVacancyRepository> { VacancyRepositoryImpl(get(), get(), get(), get()) }
+    single<IVacancyRepository> { VacancyRepositoryImpl(get(), get(), get(), get(), get()) }
+
+    // Use Cases
+    single { SearchVacanciesUseCase(get()) }
+    single { GetVacancyDetailsUseCase(get()) }
+    single { GetCachedVacanciesUseCase(get()) }
+
 }
