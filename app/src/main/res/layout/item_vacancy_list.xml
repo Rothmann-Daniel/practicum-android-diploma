@@ -1,0 +1,110 @@
+<androidx.constraintlayout.widget.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="12dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Лого компании -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/logo_company"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        app:cardCornerRadius="12dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/image_logo_company"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/ic_list_item"
+            android:scaleType="centerCrop" />
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- Контейнер для названия вакансии и города -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/title_container"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/logo_company"
+        app:layout_constraintTop_toTopOf="@id/logo_company">
+
+        <!--
+            ВАЖНО: Город всегда приклеен к концу последней строки названия вакансии
+            Не менять констрейнты без понимания логики расположения!
+        -->
+
+        <!-- Название вакансии -->
+        <TextView
+            android:id="@+id/job_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:gravity="start"
+            android:text="Очень длинное наименование вакансии, которое может занимать несколько строк"
+            android:fontFamily="@font/ys_display_medium"
+            android:textSize="22sp"
+            android:textColor="@color/black"
+            android:ellipsize="end"
+            android:maxLines="3"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/city_title"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Город (в конце последней строки названия) -->
+        <TextView
+            android:id="@+id/city_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:gravity="start"
+            android:text="Санкт-Петербург"
+            android:fontFamily="@font/ys_display_medium"
+            android:textSize="22sp"
+            android:textColor="@color/black"
+            android:ellipsize="end"
+            android:maxLines="1"
+            app:layout_constraintBottom_toBottomOf="@id/job_title"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/job_title"
+            app:layout_constraintTop_toTopOf="@id/job_title" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Название компании -->
+    <TextView
+        android:id="@+id/company_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="4dp"
+        android:gravity="start"
+        android:text="Наименование компании"
+        android:fontFamily="@font/ys_display_regular"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/logo_company"
+        app:layout_constraintTop_toBottomOf="@id/title_container" />
+
+    <!-- Зарплата -->
+    <TextView
+        android:id="@+id/salary_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="4dp"
+        android:gravity="start"
+        android:text="от 150 000 до бесконечности"
+        android:fontFamily="@font/ys_display_regular"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/logo_company"
+        app:layout_constraintTop_toBottomOf="@id/company_title" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

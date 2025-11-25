@@ -1,19 +1,133 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical">
 
+    <!-- Тулбар -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="16dp"
+            android:textSize="@dimen/bigTextSize"
+            android:fontFamily="@font/ys_display_medium"
+            android:text="Поиск вакансий"/>
+
+        <ImageView
+            android:id="@+id/btnFilters"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="20dp"
+            android:src="@drawable/filter_off"/>
+
+    </LinearLayout>
+
+    <!-- Окно поиска -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:layout_marginVertical="8dp"
+        android:layout_marginHorizontal="16dp">
+
+        <EditText
+            android:id="@+id/searchQuery"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="16dp"
+            android:hint="Введите запрос"/>
+        <ImageView
+            android:id="@+id/btnVacancies"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:src="@drawable/search"/>
+
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- Синяя кнопочка-сообщение -->
+        <TextView
+            android:id="@+id/btnMessage"
+            android:visibility="visible"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="3dp"
+            android:text="Найдено ... вакансий"/>
+
+        <!-- Вакансии -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:visibility="visible"
+            android:layout_marginTop="38dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            android:orientation="vertical"
+            tools:listitem="@layout/item_vacancy_list"
+            tools:itemCount="5"/>
+
+        <!-- Картинка и сообщение -->
+        <LinearLayout
+            android:id="@+id/message"
+            android:visibility="visible"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:layout_marginHorizontal="16dp">
+
+            <ImageView
+                android:id="@+id/messageImage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="true"
+                android:src="@drawable/start_search"/>
+
+            <TextView
+                android:id="@+id/messageText"
+                android:visibility="visible"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginHorizontal="30dp"
+                android:gravity="center_horizontal"
+                android:textSize="@dimen/bigTextSize"
+                android:fontFamily="@font/ys_display_medium"
+                android:text="Нет интернета"/>
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+</LinearLayout>
+
+
+
+
+
+    <!--
     <LinearLayout
         android:id="@+id/centerLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/tvTitle"
@@ -24,7 +138,7 @@
             android:textSize="25sp"
             android:textStyle="bold" />
 
-        <!-- тестовая кнопка перехода на экран вакансий -->
+
         <Button
             android:id="@+id/btnVacancies"
             android:layout_width="wrap_content"
@@ -32,7 +146,7 @@
             android:layout_marginTop="16dp"
             android:text="Вакансия" />
 
-        <!-- тестовая кнопка перехода на экран настроек фильтров -->
+
         <Button
             android:id="@+id/btnFilters"
             android:layout_width="wrap_content"
@@ -41,4 +155,5 @@
             android:text="Настройка фильтров" />
     </LinearLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    -->
+
