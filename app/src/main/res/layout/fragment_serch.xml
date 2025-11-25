@@ -124,6 +124,14 @@
 
         </LinearLayout>
 
+        <!-- Progress Bar (крутящееся колечко загрузки) -->
+        <ProgressBar android:id="@+id/progressBar"
+            android:visibility="visible"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
+            android:indeterminateTint="@color/blue"/>
+
     </FrameLayout>
 
 </LinearLayout>
