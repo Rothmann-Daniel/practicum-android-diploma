@@ -3,4 +3,6 @@
     <string name="menu_main_title">Главная</string>
     <string name="menu_favorites_title">Избранное</string>
     <string name="menu_team_title">Команда</string>
+    <string name="vacancy_search">Поиск вакансий</string>
+    <string name="enter_query">Введите запрос</string>
 </resources>
