@@ -29,6 +29,7 @@ class VacancyRepositoryImpl(
     : ApiResponse<VacancySearchResult>
     { return try { Log.d(TAG, "Fetching vacancies with request: $request")
         // Маппим доменную модель в DTO val dtoRequest = vacancyRequestMapper.toDto(request)
+        val dtoRequest = vacancyRequestMapper.toDto(request)
         val response = apiService.getVacancies(
             area = request.area,
             industry = request.industry,
