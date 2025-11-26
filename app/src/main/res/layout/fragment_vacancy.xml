@@ -27,7 +27,7 @@
             android:background="@android:color/transparent"
             android:scaleType="centerInside"
             android:contentDescription="@string/back_button_description"
-            app:srcCompat="@drawable/ic_back" />
+            app:srcCompat="@drawable/ic_arrow_back" />
 
         <!-- Заголовок -->
         <TextView
