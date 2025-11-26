@@ -3,4 +3,29 @@
     <string name="menu_main_title">Главная</string>
     <string name="menu_favorites_title">Избранное</string>
     <string name="menu_team_title">Команда</string>
+    <string name="vacancy_not_found">Вакансия не найдена или\nудалена</string>
+    <string name="details_title">Вакансия</string>
+    <string name="city">Город</string>
+    <string name="company_title">Компания</string>
+    <string name="experience_title">Требуемый опыт</string>
+    <string name="responsibilities">Обязанности</string>
+    <string name="job_description">Описание вакансии</string>
+    <string name="requirements">Требования</string>
+    <string name="conditions">Условия</string>
+    <string name="skills">Ключевые навыки</string>
+
+    <string name="back_button_description">Назад</string>
+    <string name="share_button_description">Поделиться</string>
+    <string name="favorite_button_description">Избранное</string>
+    <string name="vacancy_search">Поиск вакансий</string>
+    <string name="enter_query">Введите запрос</string>
+
+    <!-- Примеры текстов для заполнения -->
+    <string name="example_of_experience_text">От 1 года до 3 лет</string>
+    <string name="example_of_schedule_text">Полная занятость, Удаленная работа</string>
+    <string name="example_of_skills_text">• Знание классических алгоритмов и структуры данных\n•  Программирование для Android больше одного года\n•  Знание WebRTC</string>
+    <string name="example_of_responsibilities_text">• Разрабатывать новую функциональность приложения\n• Помогать с интеграцией нашего SDK в другие приложения\n• Проектировать большие новые модули\n• Писать UI- и unit-тесты\n• Следить за работоспособностью сервиса и устранять технический долг</string>
+    <string name="example_of_requirements_text">• 100% Kotlin\n• WebRTC\n• CI по модели Trunk Based Development</string>
+    <string name="example_of_conditions_text">• сильная команда, с которой можно расти\n• возможность влиять на процесс и результат\n• расширенная программа ДМС: стоматология, обследования, вызов врача на дом и многое другое</string>
+
 </resources>

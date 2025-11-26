@@ -61,4 +61,3 @@ class RootActivity : AppCompatActivity() {
         this.visibility = View.GONE
     }
 }
-
