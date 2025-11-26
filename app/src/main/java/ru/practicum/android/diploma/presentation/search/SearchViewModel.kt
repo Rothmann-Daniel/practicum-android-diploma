@@ -4,6 +4,7 @@ import androidx.lifecycle.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import ru.practicum.android.diploma.core.utils.debounce
 import ru.practicum.android.diploma.data.remote.dto.response.ApiResponse
 import ru.practicum.android.diploma.domain.models.Vacancy
 import ru.practicum.android.diploma.domain.models.VacancySearchRequest
@@ -15,7 +16,7 @@ class SearchViewModel(
     private val getCachedVacanciesUseCase: GetCachedVacanciesUseCase
 ) : ViewModel() {
 
-    /** Состояния UI для экрана поиска вакансий */
+    // Состояния UI для экрана поиска вакансий
     sealed class SearchUiState {
         object Loading : SearchUiState()
         object EmptyQuery : SearchUiState()
@@ -34,11 +35,27 @@ class SearchViewModel(
     private var searchJob: Job? = null
     private var lastQuery: String = ""
 
+    // Создаем функцию debounce для поиска
+    private val debouncedSearch = debounce<String>(
+        delayMillis = DEBOUNCE_DELAY_MS,
+        coroutineScope = viewModelScope,
+        useLastParam = true
+    ) { query ->
+        if (query.isBlank()) {
+            loadedVacancies.clear()
+            currentPage = 0
+            totalPages = 1
+            _uiState.value = SearchUiState.EmptyQuery
+        } else {
+            searchVacancies(query, page = 0)
+        }
+    }
+
     init {
         loadCachedVacancies()
     }
 
-    /** Загружаем кэшированные вакансии при старте */
+    // Загружаем кэшированные вакансии при старте
     private fun loadCachedVacancies() {
         viewModelScope.launch {
             val cached = getCachedVacanciesUseCase()
@@ -50,24 +67,13 @@ class SearchViewModel(
         }
     }
 
-    /** Вызывается при изменении текста в поисковом поле */
+    // Вызывается при изменении текста в поисковом поле
     fun onSearchQueryChanged(query: String) {
         lastQuery = query
-        searchJob?.cancel()
-        searchJob = viewModelScope.launch {
-            delay(2000) // debounce 2 секунды
-            if (query.isBlank()) {
-                loadedVacancies.clear()
-                currentPage = 0
-                totalPages = 1
-                _uiState.value = SearchUiState.EmptyQuery
-            } else {
-                searchVacancies(query, page = 0)
-            }
-        }
+        debouncedSearch(query)
     }
 
-    /** Основная логика поиска и пагинации */
+    // Основная логика поиска и пагинации
     private fun searchVacancies(query: String, page: Int) {
         if (isLoadingPage || page >= totalPages) return
 
@@ -106,10 +112,14 @@ class SearchViewModel(
         }
     }
 
-    /** Загружаем следующую страницу при скролле списка */
+    // Загружаем следующую страницу при скролле списка
     fun loadNextPage() {
         if (currentPage + 1 < totalPages && !isLoadingPage) {
             searchVacancies(lastQuery, currentPage + 1)
         }
+    }
+
+    companion object {
+        private const val DEBOUNCE_DELAY_MS = 2000L
     }
 }
