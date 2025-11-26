@@ -106,7 +106,6 @@ class SearchViewModel(
         }
     }
 
-
     /** Загружаем следующую страницу при скролле списка */
     fun loadNextPage() {
         if (currentPage + 1 < totalPages && !isLoadingPage) {

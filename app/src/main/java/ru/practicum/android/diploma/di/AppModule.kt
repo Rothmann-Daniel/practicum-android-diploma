@@ -112,5 +112,4 @@ val appModule = module {
             getCachedVacanciesUseCase = get<GetCachedVacanciesUseCase>()
         )
     }
-
 }

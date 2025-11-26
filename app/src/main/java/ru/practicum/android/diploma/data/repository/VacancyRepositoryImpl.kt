@@ -16,7 +16,6 @@ import ru.practicum.android.diploma.domain.models.VacancySearchResult
 import ru.practicum.android.diploma.domain.repository.IVacancyRepository
 import java.io.IOException
 import java.net.SocketTimeoutException
-
 class VacancyRepositoryImpl(
     private val apiService: ApiService,
     private val vacancyDao: VacancyDao,
@@ -30,13 +29,14 @@ class VacancyRepositoryImpl(
     { return try { Log.d(TAG, "Fetching vacancies with request: $request")
         // Маппим доменную модель в DTO val dtoRequest = vacancyRequestMapper.toDto(request)
         val dtoRequest = vacancyRequestMapper.toDto(request)
+
         val response = apiService.getVacancies(
-            area = request.area,
-            industry = request.industry,
-            text = request.text,
-            salary = request.salary,
-            page = request.page,
-            onlyWithSalary = request.onlyWithSalary
+            area = dtoRequest.area,
+            industry = dtoRequest.industry,
+            text = dtoRequest.text,
+            salary = dtoRequest.salary,
+            page = dtoRequest.page,
+            onlyWithSalary = dtoRequest.onlyWithSalary
         )
             logApiResponse(response)
             val vacancies = mapVacancies(response.vacancies)
