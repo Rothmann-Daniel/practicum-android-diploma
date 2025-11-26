@@ -1,17 +1,102 @@
 [versions]
-
+# Java
 java = "VERSION_1_8"
 
 # Build constants
 minSdk = "26"
 compileSdk = "34"
-targetSdk = "33"
+targetSdk = "34"
+
+# AndroidX
+androidxCore = "1.12.0"
+appcompat = "1.6.1"
+
+# UI
+material = "1.10.0"
+constraintlayout = "2.1.4"
+activityKtx = "1.8.2"
+fragmentKtx = "1.6.2"
+viewpager2 = "1.0.0"
+
+# Lifecycle
+lifecycle = "2.7.0"
+
+# Navigation
+navigation = "2.7.7"
+
+# Network
+retrofit = "2.9.0"
+okhttp = "4.12.0"
+gson = "2.10.1"
+
+# Database
+room = "2.6.1"
+
+# DI
+koin = "3.5.0"
+
+# Image Loading
+glide = "4.16.0"
+coil = "2.5.0"
+
+# Tests
+junit = "4.13.2"
+junitExt = "1.1.5"
+espresso = "3.5.1"
 
 # Detekt
 detekt = "1.23.3"
-detektTwitterComposeRules ="0.0.26"
+detektTwitterComposeRules = "0.0.26"
 
 [libraries]
+# AndroidX Core
+androidX-core = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
+androidX-appCompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+
+# UI layer libraries
+ui-material = { module = "com.google.android.material:material", version.ref = "material" }
+ui-constraintLayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
+ui-activityKtx = { module = "androidx.activity:activity-ktx", version.ref = "activityKtx" }
+ui-fragmentKtx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragmentKtx" }
+ui-viewpager2 = { module = "androidx.viewpager2:viewpager2", version.ref = "viewpager2" }
+
+# Lifecycle
+lifecycle-viewmodelKtx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
+lifecycle-livedataKtx = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "lifecycle" }
+lifecycle-runtimeKtx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle" }
+lifecycle-viewmodelSavedstate = { module = "androidx.lifecycle:lifecycle-viewmodel-savedstate", version.ref = "lifecycle" }
+
+# Navigation
+navigation-fragmentKtx = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "navigation" }
+navigation-uiKtx = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "navigation" }
+
+# Network
+network-retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+network-converterGson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
+network-okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+network-loggingInterceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "okhttp" }
+network-gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+
+# Database
+database-roomRuntime = { module = "androidx.room:room-runtime", version.ref = "room" }
+database-roomKtx = { module = "androidx.room:room-ktx", version.ref = "room" }
+database-roomCompiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+
+# DI
+di-koinCore = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+di-koinAndroid = { module = "io.insert-koin:koin-android", version.ref = "koin" }
+
+# Image Loading
+imageLoading-glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
+imageLoading-glideCompiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide" }
+imageLoading-coil = { module = "io.coil-kt:coil", version.ref = "coil" }
+
+# Unit tests
+unitTests-junit = { module = "junit:junit", version.ref = "junit" }
+
+# UI tests
+uiTests-junitExt = { module = "androidx.test.ext:junit", version.ref = "junitExt" }
+uiTests-espressoCore = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso" }
 
 # Detekt
 staticAnalysis-detektPlugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
@@ -22,19 +107,11 @@ staticAnalysis-detektFormatting = { module = "io.gitlab.arturbosch.detekt:detekt
 staticAnalysis-detektLibraries = { module = "io.gitlab.arturbosch.detekt:detekt-rules-libraries", version.ref = "detekt" }
 staticAnalysis-detektTwitterComposeRules = { module = "com.twitter.compose.rules:detekt", version.ref = "detektTwitterComposeRules" }
 
-# AndroidX
-androidX-core = "androidx.core:core-ktx:1.12.0"
-androidX-appCompat = "androidx.appcompat:appcompat:1.6.1"
-
-# UI layer libraries
-ui-material = "com.google.android.material:material:1.10.0"
-ui-constraintLayout = "androidx.constraintlayout:constraintlayout:2.1.4"
-
-# Unit tests
-unitTests-junit = "junit:junit:4.13.2"
-
-# UI tests
-uiTests-junitExt = "androidx.test.ext:junit:1.1.5"
-uiTests-espressoCore = "androidx.test.espresso:espresso-core:3.5.1"
-
 [bundles]
+
+[plugins]
+android-application = { id = "com.android.application", version = "8.2.0" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version = "1.9.20" }
+kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version = "1.9.20" }
+kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version = "1.9.20" }
+navigation-safeargs = { id = "androidx.navigation.safeargs.kotlin", version.ref = "navigation" }
