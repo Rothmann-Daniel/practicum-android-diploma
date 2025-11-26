@@ -134,14 +134,14 @@
             android:layout_width="328dp"
             android:layout_height="223dp"
             android:layout_marginBottom="16dp"
-            android:src="@drawable/img_error_server" />
+            android:src="@drawable/img_error_server_1" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:fontFamily="@font/ys_display_medium"
-            android:text="Ошибка сервера"
+            android:text="@string/error_server"
             android:textColor="@color/black"
             android:textSize="22sp" />
     </LinearLayout>
@@ -192,7 +192,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="80dp"
                 android:layout_marginBottom="16dp"
-                android:background="@drawable/img_shape_details"
+                android:background="@drawable/shape_details"
                 android:orientation="horizontal">
 
                 <!-- Лого компании -->
