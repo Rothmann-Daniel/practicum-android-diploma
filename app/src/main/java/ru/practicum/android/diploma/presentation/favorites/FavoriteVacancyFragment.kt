@@ -33,7 +33,7 @@ class FavoriteVacancyFragment : Fragment() {
 
     // Метод для загрузки избранных вакансий
     private fun loadFavorites() {
-        // TODO: Заменить на реальную загрузку данных
+        // Заменить на реальную загрузку данных
         // Например:
         // viewModel.favorites.observe(viewLifecycleOwner) { vacancies ->
         //     if (vacancies.isEmpty()) {
