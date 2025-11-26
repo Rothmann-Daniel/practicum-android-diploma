@@ -5,12 +5,13 @@ import retrofit2.HttpException
 import ru.practicum.android.diploma.data.local.dao.VacancyDao
 import ru.practicum.android.diploma.data.local.mapper.VacancyLocalMapper
 import ru.practicum.android.diploma.data.remote.api.ApiService
-import ru.practicum.android.diploma.data.remote.dto.request.VacancyRequestDto
 import ru.practicum.android.diploma.data.remote.dto.response.ApiResponse
 import ru.practicum.android.diploma.data.remote.dto.response.VacancyDetailResponseDto
 import ru.practicum.android.diploma.data.remote.dto.response.VacancyResponse
 import ru.practicum.android.diploma.data.remote.mapper.VacancyRemoteMapper
+import ru.practicum.android.diploma.data.remote.mapper.VacancyRequestMapper
 import ru.practicum.android.diploma.domain.models.Vacancy
+import ru.practicum.android.diploma.domain.models.VacancySearchRequest
 import ru.practicum.android.diploma.domain.models.VacancySearchResult
 import ru.practicum.android.diploma.domain.repository.IVacancyRepository
 import java.io.IOException
@@ -20,25 +21,25 @@ class VacancyRepositoryImpl(
     private val apiService: ApiService,
     private val vacancyDao: VacancyDao,
     private val vacancyRemoteMapper: VacancyRemoteMapper,
-    private val vacancyLocalMapper: VacancyLocalMapper
+    private val vacancyLocalMapper: VacancyLocalMapper,
+    private val vacancyRequestMapper: VacancyRequestMapper
 ) : IVacancyRepository {
 
-    override suspend fun getVacancies(
-        request: VacancyRequestDto
-    ): ApiResponse<VacancySearchResult> {
+    override suspend fun getVacancies(request: VacancySearchRequest): ApiResponse<VacancySearchResult> {
         return try {
             Log.d(TAG, "Fetching vacancies with request: $request")
+            val dtoRequest = vacancyRequestMapper.toDto(request)
 
             val response = apiService.getVacancies(
-                area = request.area,
-                industry = request.industry,
-                text = request.text,
-                salary = request.salary,
-                page = request.page,
-                onlyWithSalary = request.onlyWithSalary
+                area = dtoRequest.area,
+                industry = dtoRequest.industry,
+                text = dtoRequest.text,
+                salary = dtoRequest.salary,
+                page = dtoRequest.page,
+                onlyWithSalary = dtoRequest.onlyWithSalary
             )
-
             logApiResponse(response)
+
             val vacancies = mapVacancies(response.vacancies)
             saveVacanciesToDatabase(vacancies)
 
@@ -67,7 +68,6 @@ class VacancyRepositoryImpl(
             val vacancy = vacancyRemoteMapper.mapToDomain(response)
 
             saveVacancyToDatabase(vacancy)
-
             ApiResponse.Success(vacancy)
         } catch (e: HttpException) {
             handleVacancyByIdHttpException(id, e)
@@ -143,10 +143,7 @@ class VacancyRepositoryImpl(
         return ApiResponse.Error("$ERROR_NETWORK_PREFIX ${e.message}", null)
     }
 
-    private fun handleVacancyByIdHttpException(
-        id: String,
-        e: HttpException
-    ): ApiResponse.Error {
+    private fun handleVacancyByIdHttpException(id: String, e: HttpException): ApiResponse.Error {
         val errorMessage = when (e.code()) {
             HTTP_FORBIDDEN -> ERROR_ACCESS_DENIED
             HTTP_NOT_FOUND -> ERROR_VACANCY_NOT_FOUND
@@ -157,18 +154,12 @@ class VacancyRepositoryImpl(
         return ApiResponse.Error(errorMessage, e.code())
     }
 
-    private fun handleVacancyByIdTimeoutException(
-        id: String,
-        e: SocketTimeoutException
-    ): ApiResponse.Error {
+    private fun handleVacancyByIdTimeoutException(id: String, e: SocketTimeoutException): ApiResponse.Error {
         Log.e(TAG, "Timeout error for vacancy $id", e)
         return ApiResponse.Error(ERROR_TIMEOUT, null)
     }
 
-    private fun handleVacancyByIdNetworkException(
-        id: String,
-        e: IOException
-    ): ApiResponse.Error {
+    private fun handleVacancyByIdNetworkException(id: String, e: IOException): ApiResponse.Error {
         Log.e(TAG, "Network error for vacancy $id", e)
         return ApiResponse.Error("$ERROR_NETWORK_PREFIX ${e.message}", null)
     }

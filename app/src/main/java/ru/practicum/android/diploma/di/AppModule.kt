@@ -4,6 +4,7 @@ import androidx.room.Room
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidContext
+import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -22,6 +23,10 @@ import ru.practicum.android.diploma.data.repository.VacancyRepositoryImpl
 import ru.practicum.android.diploma.domain.repository.IAreaRepository
 import ru.practicum.android.diploma.domain.repository.IIndustryRepository
 import ru.practicum.android.diploma.domain.repository.IVacancyRepository
+import ru.practicum.android.diploma.domain.usecases.GetCachedVacanciesUseCase
+import ru.practicum.android.diploma.domain.usecases.GetVacancyDetailsUseCase
+import ru.practicum.android.diploma.domain.usecases.SearchVacanciesUseCase
+import ru.practicum.android.diploma.presentation.search.SearchViewModel
 import java.util.concurrent.TimeUnit
 
 // Константы для таймаутов
@@ -91,5 +96,18 @@ val appModule = module {
     // Repositories
     single<IAreaRepository> { AreaRepositoryImpl(get(), get(), get(), get()) }
     single<IIndustryRepository> { IndustryRepositoryImpl(get(), get(), get(), get()) }
-    single<IVacancyRepository> { VacancyRepositoryImpl(get(), get(), get(), get()) }
+    single<IVacancyRepository> { VacancyRepositoryImpl(get(), get(), get(), get(), get()) }
+
+    // Use Cases
+    single { SearchVacanciesUseCase(get()) }
+    single { GetVacancyDetailsUseCase(get()) }
+    single { GetCachedVacanciesUseCase(get()) }
+
+    // ViewModels
+    viewModel {
+        SearchViewModel(
+            searchUseCase = get<SearchVacanciesUseCase>(),
+            getCachedVacanciesUseCase = get<GetCachedVacanciesUseCase>()
+        )
+    }
 }
