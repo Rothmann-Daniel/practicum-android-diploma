@@ -1,8 +1,10 @@
 package ru.practicum.android.diploma.presentation.search
 
-import androidx.lifecycle.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import ru.practicum.android.diploma.core.utils.debounce
 import ru.practicum.android.diploma.data.remote.dto.response.ApiResponse
@@ -100,9 +102,11 @@ class SearchViewModel(
                         )
                     }
                 }
+
                 is ApiResponse.Error -> {
                     _uiState.value = SearchUiState.Error(result.message)
                 }
+
                 else -> {
                     // На всякий случай, если появятся новые типы ApiResponse
                     _uiState.value = SearchUiState.Error("Неизвестная ошибка при получении вакансий")

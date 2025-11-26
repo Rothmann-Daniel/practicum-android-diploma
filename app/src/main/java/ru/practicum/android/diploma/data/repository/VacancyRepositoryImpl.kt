@@ -16,6 +16,7 @@ import ru.practicum.android.diploma.domain.models.VacancySearchResult
 import ru.practicum.android.diploma.domain.repository.IVacancyRepository
 import java.io.IOException
 import java.net.SocketTimeoutException
+
 class VacancyRepositoryImpl(
     private val apiService: ApiService,
     private val vacancyDao: VacancyDao,
@@ -24,21 +25,21 @@ class VacancyRepositoryImpl(
     private val vacancyRequestMapper: VacancyRequestMapper
 ) : IVacancyRepository {
 
-    override suspend fun getVacancies( request: VacancySearchRequest )
-    : ApiResponse<VacancySearchResult>
-    { return try { Log.d(TAG, "Fetching vacancies with request: $request")
-        // Маппим доменную модель в DTO val dtoRequest = vacancyRequestMapper.toDto(request)
-        val dtoRequest = vacancyRequestMapper.toDto(request)
+    override suspend fun getVacancies(request: VacancySearchRequest): ApiResponse<VacancySearchResult> {
+        return try {
+            Log.d(TAG, "Fetching vacancies with request: $request")
+            val dtoRequest = vacancyRequestMapper.toDto(request)
 
-        val response = apiService.getVacancies(
-            area = dtoRequest.area,
-            industry = dtoRequest.industry,
-            text = dtoRequest.text,
-            salary = dtoRequest.salary,
-            page = dtoRequest.page,
-            onlyWithSalary = dtoRequest.onlyWithSalary
-        )
+            val response = apiService.getVacancies(
+                area = dtoRequest.area,
+                industry = dtoRequest.industry,
+                text = dtoRequest.text,
+                salary = dtoRequest.salary,
+                page = dtoRequest.page,
+                onlyWithSalary = dtoRequest.onlyWithSalary
+            )
             logApiResponse(response)
+
             val vacancies = mapVacancies(response.vacancies)
             saveVacanciesToDatabase(vacancies)
 
@@ -67,7 +68,6 @@ class VacancyRepositoryImpl(
             val vacancy = vacancyRemoteMapper.mapToDomain(response)
 
             saveVacancyToDatabase(vacancy)
-
             ApiResponse.Success(vacancy)
         } catch (e: HttpException) {
             handleVacancyByIdHttpException(id, e)
@@ -143,10 +143,7 @@ class VacancyRepositoryImpl(
         return ApiResponse.Error("$ERROR_NETWORK_PREFIX ${e.message}", null)
     }
 
-    private fun handleVacancyByIdHttpException(
-        id: String,
-        e: HttpException
-    ): ApiResponse.Error {
+    private fun handleVacancyByIdHttpException(id: String, e: HttpException): ApiResponse.Error {
         val errorMessage = when (e.code()) {
             HTTP_FORBIDDEN -> ERROR_ACCESS_DENIED
             HTTP_NOT_FOUND -> ERROR_VACANCY_NOT_FOUND
@@ -157,18 +154,12 @@ class VacancyRepositoryImpl(
         return ApiResponse.Error(errorMessage, e.code())
     }
 
-    private fun handleVacancyByIdTimeoutException(
-        id: String,
-        e: SocketTimeoutException
-    ): ApiResponse.Error {
+    private fun handleVacancyByIdTimeoutException(id: String, e: SocketTimeoutException): ApiResponse.Error {
         Log.e(TAG, "Timeout error for vacancy $id", e)
         return ApiResponse.Error(ERROR_TIMEOUT, null)
     }
 
-    private fun handleVacancyByIdNetworkException(
-        id: String,
-        e: IOException
-    ): ApiResponse.Error {
+    private fun handleVacancyByIdNetworkException(id: String, e: IOException): ApiResponse.Error {
         Log.e(TAG, "Network error for vacancy $id", e)
         return ApiResponse.Error("$ERROR_NETWORK_PREFIX ${e.message}", null)
     }

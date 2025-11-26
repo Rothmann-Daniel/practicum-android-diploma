@@ -28,7 +28,6 @@ import ru.practicum.android.diploma.domain.usecases.GetVacancyDetailsUseCase
 import ru.practicum.android.diploma.domain.usecases.SearchVacanciesUseCase
 import ru.practicum.android.diploma.presentation.search.SearchViewModel
 
-
 import java.util.concurrent.TimeUnit
 
 // Константы для таймаутов
