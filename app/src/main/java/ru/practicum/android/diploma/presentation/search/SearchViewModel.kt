@@ -4,7 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import ru.practicum.android.diploma.core.utils.debounce
 import ru.practicum.android.diploma.data.remote.dto.response.ApiResponse
@@ -34,14 +33,11 @@ class SearchViewModel(
     private var currentPage = 0
     private var totalPages = 1
     private var isLoadingPage = false
-    private var searchJob: Job? = null
     private var lastQuery: String = ""
 
-    // Создаем функцию debounce для поиска
     private val debouncedSearch = debounce<String>(
         delayMillis = DEBOUNCE_DELAY_MS,
-        coroutineScope = viewModelScope,
-        useLastParam = true
+        coroutineScope = viewModelScope
     ) { query ->
         if (query.isBlank()) {
             loadedVacancies.clear()
@@ -57,7 +53,6 @@ class SearchViewModel(
         loadCachedVacancies()
     }
 
-    // Загружаем кэшированные вакансии при старте
     private fun loadCachedVacancies() {
         viewModelScope.launch {
             val cached = getCachedVacanciesUseCase()
@@ -69,13 +64,11 @@ class SearchViewModel(
         }
     }
 
-    // Вызывается при изменении текста в поисковом поле
     fun onSearchQueryChanged(query: String) {
         lastQuery = query
         debouncedSearch(query)
     }
 
-    // Основная логика поиска и пагинации
     private fun searchVacancies(query: String, page: Int) {
         if (isLoadingPage || page >= totalPages) return
 
@@ -89,9 +82,15 @@ class SearchViewModel(
                     totalPages = result.data.pages
                     currentPage = result.data.page
 
-                    // Убираем дубли
-                    val newVacancies = result.data.vacancies.filterNot { loadedVacancies.contains(it) }
-                    loadedVacancies.addAll(newVacancies)
+                    if (page == 0) {
+                        loadedVacancies.clear()
+                        loadedVacancies.addAll(result.data.vacancies)
+                    } else {
+                        val existingIds = loadedVacancies.map { it.id }.toSet()
+                        val uniqueNewVacancies =
+                            result.data.vacancies.filter { it.id !in existingIds }
+                        loadedVacancies.addAll(uniqueNewVacancies)
+                    }
 
                     _uiState.value = if (loadedVacancies.isEmpty()) {
                         SearchUiState.EmptyResult
@@ -108,15 +107,14 @@ class SearchViewModel(
                 }
 
                 else -> {
-                    // На всякий случай, если появятся новые типы ApiResponse
-                    _uiState.value = SearchUiState.Error("Неизвестная ошибка при получении вакансий")
+                    _uiState.value =
+                        SearchUiState.Error("Неизвестная ошибка при получении вакансий")
                 }
             }
             isLoadingPage = false
         }
     }
 
-    // Загружаем следующую страницу при скролле списка
     fun loadNextPage() {
         if (currentPage + 1 < totalPages && !isLoadingPage) {
             searchVacancies(lastQuery, currentPage + 1)
