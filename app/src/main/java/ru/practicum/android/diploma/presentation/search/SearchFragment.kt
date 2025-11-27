@@ -42,7 +42,7 @@ class SearchFragment : Fragment() {
 
     private fun navigateToVacancyDetails() {
         //  тестовый ID вакансии
-        val testVacancyId = "0001b24b-da81-48cd-a420-91e3fbfc5ef0"
+        val testVacancyId = "00035b7b-7e50-423f-af5d-5e1d8dfe341d"
 
 
         // Создаем действие навигации с передачей vacancyId

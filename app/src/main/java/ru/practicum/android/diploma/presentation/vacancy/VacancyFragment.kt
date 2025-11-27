@@ -18,6 +18,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import ru.practicum.android.diploma.R
 import ru.practicum.android.diploma.databinding.FragmentVacancyBinding
 import ru.practicum.android.diploma.domain.models.Vacancy
+import java.util.Locale
 
 class VacancyFragment : Fragment() {
 
@@ -42,8 +43,8 @@ class VacancyFragment : Fragment() {
         setupClickListeners()
         observeViewModel()
 
-       // получаем с экрана поиска через аргумент
-         viewModel.loadVacancyDetails(args.vacancyId)
+        // получаем с экрана поиска через аргумент
+        viewModel.loadVacancyDetails(args.vacancyId)
     }
 
     private fun setupClickListeners() {
@@ -104,6 +105,13 @@ class VacancyFragment : Fragment() {
     }
 
     private fun bindVacancyData(vacancy: Vacancy) {
+        bindBasicInfo(vacancy)
+        bindExperienceAndSchedule(vacancy)
+        bindDescriptionAndSkills(vacancy)
+        setupContactsActions(vacancy)
+    }
+
+    private fun bindBasicInfo(vacancy: Vacancy) {
         // Заголовок
         binding.vacancyTitle.text = vacancy.name
 
@@ -122,7 +130,9 @@ class VacancyFragment : Fragment() {
         } else {
             vacancy.area.name
         }
+    }
 
+    private fun bindExperienceAndSchedule(vacancy: Vacancy) {
         // Опыт работы
         if (vacancy.experience != null) {
             binding.experienceTitle.isVisible = true
@@ -148,7 +158,9 @@ class VacancyFragment : Fragment() {
         } else {
             binding.scheduleText.isVisible = false
         }
+    }
 
+    private fun bindDescriptionAndSkills(vacancy: Vacancy) {
         // Описание вакансии (HTML)
         if (vacancy.description.isNotEmpty()) {
             binding.jobDescriptionTitle.isVisible = true
@@ -183,9 +195,6 @@ class VacancyFragment : Fragment() {
             binding.skillsTitle.isVisible = false
             binding.skillsText.isVisible = false
         }
-
-        // Контакты (для email и телефона)
-        setupContactsActions(vacancy)
     }
 
     private fun formatSalary(vacancy: Vacancy): String {
@@ -212,7 +221,7 @@ class VacancyFragment : Fragment() {
     }
 
     private fun formatNumber(number: Int): String {
-        return String.format("%,d", number).replace(',', ' ')
+        return String.format(Locale.getDefault(), "%,d", number).replace(',', ' ')
     }
 
     private fun loadCompanyLogo(logoUrl: String?) {
@@ -229,79 +238,85 @@ class VacancyFragment : Fragment() {
 
     private fun setupContactsActions(vacancy: Vacancy) {
         vacancy.contacts?.let { contacts ->
-            // Имя контакта
-            if (contacts.name.isNotBlank()) {
-                binding.contactsName.isVisible = true
-                binding.contactsName.text = contacts.name
-            } else {
-                binding.contactsName.isVisible = false
-            }
-
-            // Email - autoLink с проверкой наличия приложения
-            if (contacts.email.isNotEmpty()) {
-                binding.contactsEmail.isVisible = true
-                binding.contactsEmail.text = contacts.email
-
-                //  Добавляем дополнительный обработчик для проверки
-                binding.contactsEmail.setOnClickListener {
-                    val intent = Intent(Intent.ACTION_SENDTO).apply {
-                        data = Uri.parse("mailto:${contacts.email}")
-                    }
-
-                    if (intent.resolveActivity(requireActivity().packageManager) != null) {
-                        startActivity(intent)
-                    } else {
-                        Toast.makeText(
-                            requireContext(),
-                            getString(R.string.no_email_app),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
-            } else {
-                binding.contactsEmail.isVisible = false
-            }
-
-            // Телефоны - autoLink с проверкой наличия приложения
-            if (contacts.phones.isNotEmpty()) {
-                binding.contactsPhones.isVisible = true
-
-                val phonesText = contacts.phones.joinToString("\n") { phone ->
-                    phone.comment?.let { "$it: ${phone.number}" } ?: phone.number
-                }
-                binding.contactsPhones.text = phonesText
-
-                //  Добавляем дополнительный обработчик для проверки
-                binding.contactsPhones.setOnClickListener {
-                    val phoneNumber = contacts.phones.first().number
-                    val intent = Intent(Intent.ACTION_DIAL).apply {
-                        data = Uri.parse("tel:$phoneNumber")
-                    }
-
-                    if (intent.resolveActivity(requireActivity().packageManager) != null) {
-                        startActivity(intent)
-                    } else {
-                        Toast.makeText(
-                            requireContext(),
-                            getString(R.string.no_phone_app),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
-            } else {
-                binding.contactsPhones.isVisible = false
-            }
-
-            // Показываем блок контактов
-            binding.contactsLayout.isVisible =
-                contacts.email.isNotEmpty() ||
-                    contacts.phones.isNotEmpty() ||
-                    contacts.name.isNotBlank()
+            bindContactInfo(contacts)
+            setupContactVisibility(contacts)
         } ?: run {
             binding.contactsLayout.isVisible = false
         }
     }
 
+    private fun bindContactInfo(contacts: ru.practicum.android.diploma.domain.models.Contacts) {
+        // Имя контакта
+        if (contacts.name.isNotBlank()) {
+            binding.contactsName.isVisible = true
+            binding.contactsName.text = contacts.name
+        } else {
+            binding.contactsName.isVisible = false
+        }
+
+        // Email
+        if (contacts.email.isNotEmpty()) {
+            setupEmailContact(contacts.email)
+        } else {
+            binding.contactsEmail.isVisible = false
+        }
+
+        // Телефоны
+        if (contacts.phones.isNotEmpty()) {
+            setupPhoneContacts(contacts.phones)
+        } else {
+            binding.contactsPhones.isVisible = false
+        }
+    }
+
+    private fun setupEmailContact(email: String) {
+        binding.contactsEmail.isVisible = true
+        binding.contactsEmail.text = email
+
+        binding.contactsEmail.setOnClickListener {
+            val intent = Intent(Intent.ACTION_SENDTO).apply {
+                data = Uri.parse("mailto:$email")
+            }
+
+            if (intent.resolveActivity(requireActivity().packageManager) != null) {
+                startActivity(intent)
+            } else {
+                showToast(getString(R.string.no_email_app))
+            }
+        }
+    }
+
+    private fun setupPhoneContacts(phones: List<ru.practicum.android.diploma.domain.models.Phone>) {
+        binding.contactsPhones.isVisible = true
+
+        val phonesText = phones.joinToString("\n") { phone ->
+            phone.comment?.let { "$it: ${phone.number}" } ?: phone.number
+        }
+        binding.contactsPhones.text = phonesText
+
+        binding.contactsPhones.setOnClickListener {
+            val phoneNumber = phones.first().number
+            val intent = Intent(Intent.ACTION_DIAL).apply {
+                data = Uri.parse("tel:$phoneNumber")
+            }
+
+            if (intent.resolveActivity(requireActivity().packageManager) != null) {
+                startActivity(intent)
+            } else {
+                showToast(getString(R.string.no_phone_app))
+            }
+        }
+    }
+
+    private fun setupContactVisibility(contacts: ru.practicum.android.diploma.domain.models.Contacts) {
+        binding.contactsLayout.isVisible = contacts.email.isNotEmpty() ||
+            contacts.phones.isNotEmpty() ||
+            contacts.name.isNotBlank()
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+    }
 
     private fun shareVacancy() {
         viewModel.vacancyState.value?.let { state ->
