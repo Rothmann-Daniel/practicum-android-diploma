@@ -26,7 +26,7 @@ class VacancyViewModel(
                 }
                 is ApiResponse.Error -> {
                     val errorType = when {
-                        response.code == 404 -> ErrorType.VACANCY_NOT_FOUND
+                        response.code == HTTP_NOT_FOUND -> ErrorType.VACANCY_NOT_FOUND
                         response.message.contains("Ошибка сети") ||
                             response.message.contains("Превышено время") -> ErrorType.NETWORK_ERROR
                         else -> ErrorType.SERVER_ERROR
@@ -50,5 +50,9 @@ class VacancyViewModel(
         VACANCY_NOT_FOUND,
         NETWORK_ERROR,
         SERVER_ERROR
+    }
+
+    companion object {
+        private const val HTTP_NOT_FOUND = 404
     }
 }

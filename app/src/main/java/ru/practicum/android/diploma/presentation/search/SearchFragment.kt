@@ -44,7 +44,6 @@ class SearchFragment : Fragment() {
         //  тестовый ID вакансии
         val testVacancyId = "00035b7b-7e50-423f-af5d-5e1d8dfe341d"
 
-
         // Создаем действие навигации с передачей vacancyId
         val action = SearchFragmentDirections.actionSearchToVacancy(testVacancyId)
         findNavController().navigate(action)
