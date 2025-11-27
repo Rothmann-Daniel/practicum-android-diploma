@@ -1,11 +1,21 @@
 package ru.practicum.android.diploma.presentation.search
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
+import android.widget.Toast
+import androidx.core.content.ContextCompat
+import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import ru.practicum.android.diploma.R
 import ru.practicum.android.diploma.databinding.FragmentSerchBinding
 
@@ -13,6 +23,9 @@ class SearchFragment : Fragment() {
 
     private var _binding: FragmentSerchBinding? = null
     private val binding get() = _binding!!
+    private val viewModel: SearchViewModel by viewModel()
+
+    private var adapter: VacanciesAdapter? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -26,17 +39,194 @@ class SearchFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.btnVacancies.setOnClickListener {
+        setupAdapter()
+        setupRecyclerView()
+        setupSearch()
+        setupObservers()
+        setupFilters()
+    }
+
+    private fun resetSearchState() {
+        // Очистка строки поиска
+        binding.searchQuery.setText("")
+
+        // Очистка UI
+        binding.recyclerView.visibility = View.GONE
+        binding.btnMessage.visibility = View.GONE
+        binding.progressBarBottom.visibility = View.GONE
+        binding.messageText.visibility = View.GONE
+        showMessageImage(R.drawable.start_search)
+
+        // Принудительная очистка ViewModel
+        viewModel.clearSearchState()
+
+    }
+
+    private fun setupAdapter() {
+        adapter = VacanciesAdapter { vacancy ->
+            viewModel.markRestoreForNavigation()
             findNavController().navigate(R.id.action_search_to_vacancy)
         }
+        binding.recyclerView.adapter = adapter
+    }
 
+    private fun setupRecyclerView() {
+        val layoutManager = LinearLayoutManager(requireContext())
+        binding.recyclerView.layoutManager = layoutManager
+        binding.recyclerView.adapter = adapter
+
+        binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(rv: androidx.recyclerview.widget.RecyclerView, dx: Int, dy: Int) {
+                val visibleItemCount = layoutManager.childCount
+                val totalItemCount = layoutManager.itemCount
+                val firstVisibleItem = layoutManager.findFirstVisibleItemPosition()
+
+                if ((visibleItemCount + firstVisibleItem) >= totalItemCount && firstVisibleItem >= 0) {
+                    viewModel.loadNextPage()
+                }
+            }
+        })
+    }
+
+    private fun setupSearch() {
+        val searchIcon = R.drawable.search
+        val clearIcon = R.drawable.close
+
+        binding.btnClear.setImageResource(searchIcon)
+
+        binding.searchQuery.doOnTextChanged { text, _, _, _ ->
+            val query = text?.toString().orEmpty()
+            viewModel.onSearchQueryChanged(query)
+            binding.btnClear.setImageResource(if (query.isEmpty()) searchIcon else clearIcon)
+        }
+
+        binding.btnClear.setOnClickListener {
+            binding.searchQuery.text?.clear()
+            binding.btnClear.setImageResource(searchIcon)
+            binding.recyclerView.visibility = View.GONE
+            showMessageImage(R.drawable.start_search)
+            binding.btnMessage.visibility = View.GONE
+            binding.messageText.visibility = View.GONE
+        }
+
+        binding.searchQuery.setOnFocusChangeListener { v, hasFocus ->
+            if (hasFocus) showKeyboard(v)
+            binding.messageImage.visibility = View.GONE
+        }
+
+        binding.searchQuery.setOnEditorActionListener { v, _, _ ->
+            hideKeyboard(v)
+            v.clearFocus()
+            true
+        }
+    }
+
+    private fun setupObservers() {
+        viewModel.uiState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is SearchViewModel.SearchUiState.Loading -> {
+                    binding.progressBar.visibility = View.VISIBLE
+                    binding.recyclerView.visibility = View.GONE
+                    binding.progressBarBottom.visibility = View.GONE
+                }
+
+                is SearchViewModel.SearchUiState.EmptyQuery -> {
+                    binding.progressBar.visibility = View.GONE
+                    binding.recyclerView.visibility = View.GONE
+                    showMessageImage(R.drawable.start_search)
+                    binding.messageText.visibility = View.GONE
+                    binding.btnMessage.visibility = View.GONE
+                    binding.progressBarBottom.visibility = View.GONE
+                }
+
+                is SearchViewModel.SearchUiState.EmptyResult -> {
+                    binding.progressBar.visibility = View.GONE
+                    binding.recyclerView.visibility = View.GONE
+                    showMessageImage(R.drawable.cat)
+                    binding.messageText.visibility = View.VISIBLE
+                    binding.messageText.text = getString(R.string.empty_result)
+                    binding.btnMessage.visibility = View.VISIBLE
+                    binding.btnMessage.text = getString(R.string.no_vacancy)
+                    binding.progressBarBottom.visibility = View.GONE
+                }
+
+                is SearchViewModel.SearchUiState.Success -> {
+                    binding.progressBar.visibility = View.GONE
+                    binding.messageImage.visibility = View.GONE
+                    binding.messageText.visibility = View.GONE
+                    binding.recyclerView.visibility = View.VISIBLE
+                    adapter?.submitList(state.vacancies)
+                    val resultText = resources.getQuantityString(R.plurals.found_vacancies, state.found, state.found)
+                    binding.btnMessage.apply {
+                        visibility = View.VISIBLE
+                        text = resultText
+                    }
+                    binding.progressBarBottom.visibility = if (state.isLastPage) View.GONE else View.VISIBLE
+                }
+
+                is SearchViewModel.SearchUiState.Error -> {
+                    binding.progressBar.visibility = View.GONE
+                    binding.recyclerView.visibility = View.GONE
+                    binding.progressBarBottom.visibility = View.GONE
+
+                    if (state.isNetworkError) {
+                        showMessageImage(R.drawable.no_internet)
+                        binding.messageText.visibility = View.VISIBLE
+                        binding.messageText.text = getString(R.string.error_no_internetConnection)
+                        binding.btnMessage.visibility = View.GONE
+                    } else {
+                        binding.messageText.visibility = View.GONE
+                        binding.btnMessage.visibility = View.GONE
+                        Toast.makeText(requireContext(), state.message, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun setupFilters() {
         binding.btnFilters.setOnClickListener {
+            viewModel.markRestoreForNavigation()
             findNavController().navigate(R.id.action_search_to_filters)
         }
+    }
+
+    private fun showKeyboard(view: View) {
+        val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
+    }
+
+    private fun hideKeyboard(view: View) {
+        val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(view.windowToken, 0)
+    }
+
+    private fun showMessageImage(drawableRes: Int) {
+        binding.messageImage.setImageDrawable(ContextCompat.getDrawable(requireContext(), drawableRes))
+        binding.messageImage.visibility = View.VISIBLE
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private val activityObserver = object : DefaultLifecycleObserver {
+        override fun onPause(owner: LifecycleOwner) {
+            super.onPause(owner)
+
+            //  Каждый раз при создании фрагмента сбрасываем ViewModel и строку поиска
+            resetSearchState()
+        }
+    }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        activity?.lifecycle?.addObserver(activityObserver)
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        activity?.lifecycle?.removeObserver(activityObserver)
     }
 }

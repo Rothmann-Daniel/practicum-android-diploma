@@ -8,6 +8,7 @@ import ru.practicum.android.diploma.di.appModule
 class App : Application() {
     override fun onCreate() {
         super.onCreate()
+
         startKoin {
             androidContext(this@App)
             modules(appModule)

@@ -1,5 +1,6 @@
 package ru.practicum.android.diploma.di
 
+
 import androidx.room.Room
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -17,6 +18,7 @@ import ru.practicum.android.diploma.data.remote.api.ApiService
 import ru.practicum.android.diploma.data.remote.mapper.AreaRemoteMapper
 import ru.practicum.android.diploma.data.remote.mapper.IndustryRemoteMapper
 import ru.practicum.android.diploma.data.remote.mapper.VacancyRemoteMapper
+import ru.practicum.android.diploma.data.remote.mapper.VacancyRequestMapper
 import ru.practicum.android.diploma.data.repository.AreaRepositoryImpl
 import ru.practicum.android.diploma.data.repository.IndustryRepositoryImpl
 import ru.practicum.android.diploma.data.repository.VacancyRepositoryImpl
@@ -56,6 +58,7 @@ val appModule = module {
     single { AreaRemoteMapper() }
     single { IndustryRemoteMapper() }
     single { VacancyRemoteMapper(get(), get()) }
+    single { VacancyRequestMapper() }
 
     // Local Mappers
     single { AreaLocalMapper() }
@@ -75,6 +78,7 @@ val appModule = module {
         val okHttpClient = OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val originalRequest = chain.request()
+
                 val requestWithToken = originalRequest.newBuilder()
                     .header("Authorization", "Bearer ${BuildConfig.API_ACCESS_TOKEN}")
                     .build()
