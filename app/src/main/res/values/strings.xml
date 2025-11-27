@@ -33,9 +33,7 @@
     <string name="error_no_internetConnection">Нет интернета</string>
 
 
-
     <!-- Ошибки-->
     <string name="error_get_list_of_vacancies">Не удалось получить\n список вакансий</string>
-    <string name="vacancy_not_found">Вакансия не найдена или\nудалена</string>
     <string name="error_server">Ошибка сервера</string>
 </resources>

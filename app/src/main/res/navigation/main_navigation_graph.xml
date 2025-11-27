@@ -10,7 +10,7 @@
         android:id="@+id/searchFragment"
         android:name="ru.practicum.android.diploma.presentation.search.SearchFragment"
         android:label="SearchFragment"
-        tools:layout="@layout/fragment_serch">
+        tools:layout="@layout/fragment_search">
 
         <!-- Action для перехода на просмотр вакансии -->
         <action

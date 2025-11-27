@@ -62,11 +62,6 @@ class SearchViewModel(
         }
     }
 
-    // Внешний вызов для разрешения подтягивания кэша при навигации
-    fun enableRestoreFromCache() {
-        allowRestoreFromCache = true
-    }
-
     private fun loadCachedVacancies() {
         // Подтягиваем кэш только если разрешено
         if (!allowRestoreFromCache) return
@@ -142,7 +137,6 @@ class SearchViewModel(
         isLoadingPage = false
     }
 
-
     fun loadNextPage() {
         if (currentPage + 1 < totalPages && !isLoadingPage) {
             searchVacancies(lastQuery, currentPage + 1)
@@ -165,7 +159,6 @@ class SearchViewModel(
         restorePreviousResults = true
         allowRestoreFromCache = true
     }
-
 
     companion object {
         private const val DEBOUNCE_DELAY_MS = 2000L

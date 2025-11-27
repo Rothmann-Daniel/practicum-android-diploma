@@ -17,11 +17,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import ru.practicum.android.diploma.R
-import ru.practicum.android.diploma.databinding.FragmentSerchBinding
+import ru.practicum.android.diploma.databinding.FragmentSearchBinding
 
 class SearchFragment : Fragment() {
 
-    private var _binding: FragmentSerchBinding? = null
+    private var _binding: FragmentSearchBinding? = null
     private val binding get() = _binding!!
     private val viewModel: SearchViewModel by viewModel()
 
@@ -32,7 +32,7 @@ class SearchFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentSerchBinding.inflate(inflater, container, false)
+        _binding = FragmentSearchBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -55,11 +55,10 @@ class SearchFragment : Fragment() {
         binding.btnMessage.visibility = View.GONE
         binding.progressBarBottom.visibility = View.GONE
         binding.messageText.visibility = View.GONE
-        showMessageImage(R.drawable.start_search)
+        showMessageImage(R.drawable.img_start_search)
 
         // Принудительная очистка ViewModel
         viewModel.clearSearchState()
-
     }
 
     private fun setupAdapter() {
@@ -89,11 +88,10 @@ class SearchFragment : Fragment() {
     }
 
     private fun setupSearch() {
-        val searchIcon = R.drawable.search
-        val clearIcon = R.drawable.close
+        val searchIcon = R.drawable.ic_search
+        val clearIcon = R.drawable.ic_close
 
         binding.btnClear.setImageResource(searchIcon)
-
         binding.searchQuery.doOnTextChanged { text, _, _, _ ->
             val query = text?.toString().orEmpty()
             viewModel.onSearchQueryChanged(query)
@@ -104,9 +102,11 @@ class SearchFragment : Fragment() {
             binding.searchQuery.text?.clear()
             binding.btnClear.setImageResource(searchIcon)
             binding.recyclerView.visibility = View.GONE
-            showMessageImage(R.drawable.start_search)
+            showMessageImage(R.drawable.img_start_search)
             binding.btnMessage.visibility = View.GONE
             binding.messageText.visibility = View.GONE
+            binding.progressBar.visibility = View.GONE
+            binding.progressBarBottom.visibility = View.GONE
         }
 
         binding.searchQuery.setOnFocusChangeListener { v, hasFocus ->
@@ -133,7 +133,7 @@ class SearchFragment : Fragment() {
                 is SearchViewModel.SearchUiState.EmptyQuery -> {
                     binding.progressBar.visibility = View.GONE
                     binding.recyclerView.visibility = View.GONE
-                    showMessageImage(R.drawable.start_search)
+                    showMessageImage(R.drawable.img_start_search)
                     binding.messageText.visibility = View.GONE
                     binding.btnMessage.visibility = View.GONE
                     binding.progressBarBottom.visibility = View.GONE
@@ -142,7 +142,7 @@ class SearchFragment : Fragment() {
                 is SearchViewModel.SearchUiState.EmptyResult -> {
                     binding.progressBar.visibility = View.GONE
                     binding.recyclerView.visibility = View.GONE
-                    showMessageImage(R.drawable.cat)
+                    showMessageImage(R.drawable.img_error_get_list_cat)
                     binding.messageText.visibility = View.VISIBLE
                     binding.messageText.text = getString(R.string.empty_result)
                     binding.btnMessage.visibility = View.VISIBLE
@@ -170,7 +170,7 @@ class SearchFragment : Fragment() {
                     binding.progressBarBottom.visibility = View.GONE
 
                     if (state.isNetworkError) {
-                        showMessageImage(R.drawable.no_internet)
+                        showMessageImage(R.drawable.img_no_internet)
                         binding.messageText.visibility = View.VISIBLE
                         binding.messageText.text = getString(R.string.error_no_internetConnection)
                         binding.btnMessage.visibility = View.GONE
@@ -214,7 +214,6 @@ class SearchFragment : Fragment() {
     private val activityObserver = object : DefaultLifecycleObserver {
         override fun onPause(owner: LifecycleOwner) {
             super.onPause(owner)
-
             //  Каждый раз при создании фрагмента сбрасываем ViewModel и строку поиска
             resetSearchState()
         }
