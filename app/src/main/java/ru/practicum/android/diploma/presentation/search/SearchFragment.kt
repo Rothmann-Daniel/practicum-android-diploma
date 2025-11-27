@@ -38,7 +38,6 @@ class SearchFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setupAdapter()
         setupRecyclerView()
         setupSearch()
@@ -47,17 +46,12 @@ class SearchFragment : Fragment() {
     }
 
     private fun resetSearchState() {
-        // Очистка строки поиска
         binding.searchQuery.setText("")
-
-        // Очистка UI
         binding.recyclerView.visibility = View.GONE
         binding.btnMessage.visibility = View.GONE
         binding.progressBarBottom.visibility = View.GONE
         binding.messageText.visibility = View.GONE
         showMessageImage(R.drawable.img_start_search)
-
-        // Принудительная очистка ViewModel
         viewModel.clearSearchState()
     }
 
@@ -74,17 +68,23 @@ class SearchFragment : Fragment() {
         binding.recyclerView.layoutManager = layoutManager
         binding.recyclerView.adapter = adapter
 
-        binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(rv: androidx.recyclerview.widget.RecyclerView, dx: Int, dy: Int) {
-                val visibleItemCount = layoutManager.childCount
-                val totalItemCount = layoutManager.itemCount
-                val firstVisibleItem = layoutManager.findFirstVisibleItemPosition()
+        binding.recyclerView.addOnScrollListener(
+            object : RecyclerView.OnScrollListener() {
+                override fun onScrolled(
+                    rv: RecyclerView,
+                    dx: Int,
+                    dy: Int
+                ) {
+                    val visibleItemCount = layoutManager.childCount
+                    val totalItemCount = layoutManager.itemCount
+                    val firstVisibleItem = layoutManager.findFirstVisibleItemPosition()
 
-                if ((visibleItemCount + firstVisibleItem) >= totalItemCount && firstVisibleItem >= 0) {
-                    viewModel.loadNextPage()
+                    if (visibleItemCount + firstVisibleItem >= totalItemCount && firstVisibleItem >= 0) {
+                        viewModel.loadNextPage()
+                    }
                 }
             }
-        })
+        )
     }
 
     private fun setupSearch() {
@@ -92,10 +92,13 @@ class SearchFragment : Fragment() {
         val clearIcon = R.drawable.ic_close
 
         binding.btnClear.setImageResource(searchIcon)
+
         binding.searchQuery.doOnTextChanged { text, _, _, _ ->
             val query = text?.toString().orEmpty()
             viewModel.onSearchQueryChanged(query)
-            binding.btnClear.setImageResource(if (query.isEmpty()) searchIcon else clearIcon)
+            binding.btnClear.setImageResource(
+                if (query.isEmpty()) searchIcon else clearIcon
+            )
         }
 
         binding.btnClear.setOnClickListener {
@@ -124,63 +127,78 @@ class SearchFragment : Fragment() {
     private fun setupObservers() {
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
             when (state) {
-                is SearchViewModel.SearchUiState.Loading -> {
-                    binding.progressBar.visibility = View.VISIBLE
-                    binding.recyclerView.visibility = View.GONE
-                    binding.progressBarBottom.visibility = View.GONE
-                }
-
-                is SearchViewModel.SearchUiState.EmptyQuery -> {
-                    binding.progressBar.visibility = View.GONE
-                    binding.recyclerView.visibility = View.GONE
-                    showMessageImage(R.drawable.img_start_search)
-                    binding.messageText.visibility = View.GONE
-                    binding.btnMessage.visibility = View.GONE
-                    binding.progressBarBottom.visibility = View.GONE
-                }
-
-                is SearchViewModel.SearchUiState.EmptyResult -> {
-                    binding.progressBar.visibility = View.GONE
-                    binding.recyclerView.visibility = View.GONE
-                    showMessageImage(R.drawable.img_error_get_list_cat)
-                    binding.messageText.visibility = View.VISIBLE
-                    binding.messageText.text = getString(R.string.empty_result)
-                    binding.btnMessage.visibility = View.VISIBLE
-                    binding.btnMessage.text = getString(R.string.no_vacancy)
-                    binding.progressBarBottom.visibility = View.GONE
-                }
-
-                is SearchViewModel.SearchUiState.Success -> {
-                    binding.progressBar.visibility = View.GONE
-                    binding.messageImage.visibility = View.GONE
-                    binding.messageText.visibility = View.GONE
-                    binding.recyclerView.visibility = View.VISIBLE
-                    adapter?.submitList(state.vacancies)
-                    val resultText = resources.getQuantityString(R.plurals.found_vacancies, state.found, state.found)
-                    binding.btnMessage.apply {
-                        visibility = View.VISIBLE
-                        text = resultText
-                    }
-                    binding.progressBarBottom.visibility = if (state.isLastPage) View.GONE else View.VISIBLE
-                }
-
-                is SearchViewModel.SearchUiState.Error -> {
-                    binding.progressBar.visibility = View.GONE
-                    binding.recyclerView.visibility = View.GONE
-                    binding.progressBarBottom.visibility = View.GONE
-
-                    if (state.isNetworkError) {
-                        showMessageImage(R.drawable.img_no_internet)
-                        binding.messageText.visibility = View.VISIBLE
-                        binding.messageText.text = getString(R.string.error_no_internetConnection)
-                        binding.btnMessage.visibility = View.GONE
-                    } else {
-                        binding.messageText.visibility = View.GONE
-                        binding.btnMessage.visibility = View.GONE
-                        Toast.makeText(requireContext(), state.message, Toast.LENGTH_SHORT).show()
-                    }
-                }
+                is SearchViewModel.SearchUiState.Loading -> handleLoading()
+                is SearchViewModel.SearchUiState.EmptyQuery -> handleEmptyQuery()
+                is SearchViewModel.SearchUiState.EmptyResult -> handleEmptyResult()
+                is SearchViewModel.SearchUiState.Success -> handleSuccess(state)
+                is SearchViewModel.SearchUiState.Error -> handleError(state)
             }
+        }
+    }
+
+    private fun handleLoading() {
+        binding.progressBar.visibility = View.VISIBLE
+        binding.recyclerView.visibility = View.GONE
+        binding.progressBarBottom.visibility = View.GONE
+    }
+
+    private fun handleEmptyQuery() {
+        binding.progressBar.visibility = View.GONE
+        binding.recyclerView.visibility = View.GONE
+        showMessageImage(R.drawable.img_start_search)
+        binding.messageText.visibility = View.GONE
+        binding.btnMessage.visibility = View.GONE
+        binding.progressBarBottom.visibility = View.GONE
+    }
+
+    private fun handleEmptyResult() {
+        binding.progressBar.visibility = View.GONE
+        binding.recyclerView.visibility = View.GONE
+        showMessageImage(R.drawable.img_error_get_list_cat)
+        binding.messageText.visibility = View.VISIBLE
+        binding.messageText.text = getString(R.string.empty_result)
+        binding.btnMessage.visibility = View.VISIBLE
+        binding.btnMessage.text = getString(R.string.no_vacancy)
+        binding.progressBarBottom.visibility = View.GONE
+    }
+
+    private fun handleSuccess(state: SearchViewModel.SearchUiState.Success) {
+        binding.progressBar.visibility = View.GONE
+        binding.messageImage.visibility = View.GONE
+        binding.messageText.visibility = View.GONE
+        binding.recyclerView.visibility = View.VISIBLE
+
+        adapter?.submitList(state.vacancies)
+
+        val resultText = resources.getQuantityString(
+            R.plurals.found_vacancies,
+            state.found,
+            state.found
+        )
+
+        binding.btnMessage.apply {
+            visibility = View.VISIBLE
+            text = resultText
+        }
+
+        binding.progressBarBottom.visibility =
+            if (state.isLastPage) View.GONE else View.VISIBLE
+    }
+
+    private fun handleError(state: SearchViewModel.SearchUiState.Error) {
+        binding.progressBar.visibility = View.GONE
+        binding.recyclerView.visibility = View.GONE
+        binding.progressBarBottom.visibility = View.GONE
+
+        if (state.isNetworkError) {
+            showMessageImage(R.drawable.img_no_internet)
+            binding.messageText.visibility = View.VISIBLE
+            binding.messageText.text = getString(R.string.error_no_internetConnection)
+            binding.btnMessage.visibility = View.GONE
+        } else {
+            binding.messageText.visibility = View.GONE
+            binding.btnMessage.visibility = View.GONE
+            Toast.makeText(requireContext(), state.message, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -202,7 +220,9 @@ class SearchFragment : Fragment() {
     }
 
     private fun showMessageImage(drawableRes: Int) {
-        binding.messageImage.setImageDrawable(ContextCompat.getDrawable(requireContext(), drawableRes))
+        binding.messageImage.setImageDrawable(
+            ContextCompat.getDrawable(requireContext(), drawableRes)
+        )
         binding.messageImage.visibility = View.VISIBLE
     }
 
@@ -214,7 +234,6 @@ class SearchFragment : Fragment() {
     private val activityObserver = object : DefaultLifecycleObserver {
         override fun onPause(owner: LifecycleOwner) {
             super.onPause(owner)
-            //  Каждый раз при создании фрагмента сбрасываем ViewModel и строку поиска
             resetSearchState()
         }
     }
