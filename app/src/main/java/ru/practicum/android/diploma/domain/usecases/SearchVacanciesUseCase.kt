@@ -11,4 +11,3 @@ class SearchVacanciesUseCase(private val repository: IVacancyRepository) {
         return repository.getVacancies(request)
     }
 }
-

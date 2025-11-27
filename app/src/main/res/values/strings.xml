@@ -20,6 +20,7 @@
     <string name="vacancy_search">Поиск вакансий</string>
     <string name="enter_query">Введите запрос</string>
     <string name="no_vacancy">Таких вакансий нет</string>
+    <string name="empty_list">Список пуст</string>
 
     <!-- Примеры текстов для заполнения -->
     <string name="example_of_experience_text">От 1 года до 3 лет</string>
@@ -32,4 +33,9 @@
     <string name="error_no_internetConnection">Нет интернета</string>
 
 
+
+    <!-- Ошибки-->
+    <string name="error_get_list_of_vacancies">Не удалось получить\n список вакансий</string>
+    <string name="vacancy_not_found">Вакансия не найдена или\nудалена</string>
+    <string name="error_server">Ошибка сервера</string>
 </resources>
