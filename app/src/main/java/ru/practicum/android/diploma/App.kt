@@ -14,3 +14,4 @@ class App : Application() {
         }
     }
 }
+// init epic2_adapter_vm
