@@ -17,6 +17,7 @@ import ru.practicum.android.diploma.data.remote.api.ApiService
 import ru.practicum.android.diploma.data.remote.mapper.AreaRemoteMapper
 import ru.practicum.android.diploma.data.remote.mapper.IndustryRemoteMapper
 import ru.practicum.android.diploma.data.remote.mapper.VacancyRemoteMapper
+import ru.practicum.android.diploma.data.remote.mapper.VacancyRequestMapper
 import ru.practicum.android.diploma.data.repository.AreaRepositoryImpl
 import ru.practicum.android.diploma.data.repository.IndustryRepositoryImpl
 import ru.practicum.android.diploma.data.repository.VacancyRepositoryImpl
@@ -27,6 +28,7 @@ import ru.practicum.android.diploma.domain.usecases.GetCachedVacanciesUseCase
 import ru.practicum.android.diploma.domain.usecases.GetVacancyDetailsUseCase
 import ru.practicum.android.diploma.domain.usecases.SearchVacanciesUseCase
 import ru.practicum.android.diploma.presentation.search.SearchViewModel
+import ru.practicum.android.diploma.presentation.vacancy.VacancyViewModel
 import java.util.concurrent.TimeUnit
 
 // Константы для таймаутов
@@ -35,14 +37,14 @@ private const val READ_TIMEOUT_SECONDS = 30L
 private const val WRITE_TIMEOUT_SECONDS = 30L
 
 val appModule = module {
-    // Database - ВАЖНО: добавлен fallbackToDestructiveMigration для пересоздания БД
+    // Database
     single {
         Room.databaseBuilder(
             androidContext(),
             AppDatabase::class.java,
             AppDatabase.DATABASE_NAME
         )
-            .fallbackToDestructiveMigration() // Пересоздаёт БД при изменении схемы
+            .fallbackToDestructiveMigration()
             .build()
     }
 
@@ -55,6 +57,7 @@ val appModule = module {
     single { AreaRemoteMapper() }
     single { IndustryRemoteMapper() }
     single { VacancyRemoteMapper(get(), get()) }
+    single { VacancyRequestMapper() }
 
     // Local Mappers
     single { AreaLocalMapper() }
@@ -108,6 +111,12 @@ val appModule = module {
         SearchViewModel(
             searchUseCase = get<SearchVacanciesUseCase>(),
             getCachedVacanciesUseCase = get<GetCachedVacanciesUseCase>()
+        )
+    }
+
+    viewModel {
+        VacancyViewModel(
+            getVacancyDetailsUseCase = get<GetVacancyDetailsUseCase>()
         )
     }
 }

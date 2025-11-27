@@ -26,13 +26,28 @@ class SearchFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+//        binding.btnVacancies.setOnClickListener {
+//            findNavController().navigate(R.id.action_search_to_vacancy)
+//        }
+
         binding.btnVacancies.setOnClickListener {
-            findNavController().navigate(R.id.action_search_to_vacancy)
+            // ВРЕМЕННО: при нажатии на поиск открываем детали вакансии
+            navigateToVacancyDetails()
         }
 
         binding.btnFilters.setOnClickListener {
             findNavController().navigate(R.id.action_search_to_filters)
         }
+    }
+
+    private fun navigateToVacancyDetails() {
+        //  тестовый ID вакансии
+        val testVacancyId = "0001b24b-da81-48cd-a420-91e3fbfc5ef0"
+
+
+        // Создаем действие навигации с передачей vacancyId
+        val action = SearchFragmentDirections.actionSearchToVacancy(testVacancyId)
+        findNavController().navigate(action)
     }
 
     override fun onDestroyView() {
