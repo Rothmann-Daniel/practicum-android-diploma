@@ -20,8 +20,8 @@ class VacancyFragment : Fragment() {
     private val viewModel: VacancyViewModel by viewModel()
     private val args: VacancyFragmentArgs by navArgs()
 
-    private lateinit var vacancyBinder: VacancyDataBinder
-    private lateinit var vacancyShareHelper: VacancyShareHelper
+    private var vacancyBinder: VacancyDataBinder? = null
+    private var vacancyShareHelper: VacancyShareHelper? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -80,7 +80,7 @@ class VacancyFragment : Fragment() {
         binding.errorVacancyNotFound.isVisible = false
         binding.serverErrorLayout.isVisible = false
 
-        vacancyBinder.bindVacancyData(vacancy)
+        vacancyBinder?.bindVacancyData(vacancy)
     }
 
     private fun showError(errorType: VacancyViewModel.ErrorType) {
@@ -103,13 +103,15 @@ class VacancyFragment : Fragment() {
     private fun shareVacancy() {
         viewModel.vacancyState.value?.let { state ->
             if (state is VacancyViewModel.VacancyState.Content) {
-                vacancyShareHelper.shareVacancy(state.vacancy.url)
+                vacancyShareHelper?.shareVacancy(state.vacancy.url)
             }
         }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        vacancyBinder = null
+        vacancyShareHelper = null
         _binding = null
     }
 }
