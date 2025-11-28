@@ -1,24 +1,16 @@
 package ru.practicum.android.diploma.presentation.vacancy
 
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
-import android.text.Html
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import ru.practicum.android.diploma.R
 import ru.practicum.android.diploma.databinding.FragmentVacancyBinding
 import ru.practicum.android.diploma.domain.models.Vacancy
-import java.util.Locale
 
 class VacancyFragment : Fragment() {
 
@@ -27,6 +19,9 @@ class VacancyFragment : Fragment() {
 
     private val viewModel: VacancyViewModel by viewModel()
     private val args: VacancyFragmentArgs by navArgs()
+
+    private lateinit var vacancyBinder: VacancyDataBinder
+    private lateinit var vacancyShareHelper: VacancyShareHelper
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -40,10 +35,11 @@ class VacancyFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        vacancyBinder = VacancyDataBinder(binding, requireContext())
+        vacancyShareHelper = VacancyShareHelper(requireContext())
+
         setupClickListeners()
         observeViewModel()
-
-        // получаем с экрана поиска через аргумент
         viewModel.loadVacancyDetails(args.vacancyId)
     }
 
@@ -84,7 +80,7 @@ class VacancyFragment : Fragment() {
         binding.errorVacancyNotFound.isVisible = false
         binding.serverErrorLayout.isVisible = false
 
-        bindVacancyData(vacancy)
+        vacancyBinder.bindVacancyData(vacancy)
     }
 
     private fun showError(errorType: VacancyViewModel.ErrorType) {
@@ -104,228 +100,10 @@ class VacancyFragment : Fragment() {
         }
     }
 
-    private fun bindVacancyData(vacancy: Vacancy) {
-        bindBasicInfo(vacancy)
-        bindExperienceAndSchedule(vacancy)
-        bindDescriptionAndSkills(vacancy)
-        setupContactsActions(vacancy)
-    }
-
-    private fun bindBasicInfo(vacancy: Vacancy) {
-        // Заголовок
-        binding.vacancyTitle.text = vacancy.name
-
-        // Зарплата
-        binding.salaryText.text = formatSalary(vacancy)
-
-        // Лого компании
-        loadCompanyLogo(vacancy.employer.logo)
-
-        // Название компании
-        binding.companyName.text = vacancy.employer.name
-
-        // Город/адрес
-        binding.cityText.text = if (!vacancy.address?.fullAddress.isNullOrEmpty()) {
-            vacancy.address?.fullAddress
-        } else {
-            vacancy.area.name
-        }
-    }
-
-    private fun bindExperienceAndSchedule(vacancy: Vacancy) {
-        // Опыт работы
-        if (vacancy.experience != null) {
-            binding.experienceTitle.isVisible = true
-            binding.experienceText.isVisible = true
-            binding.experienceText.text = vacancy.experience.name
-        } else {
-            binding.experienceTitle.isVisible = false
-            binding.experienceText.isVisible = false
-        }
-
-        // График работы
-        val scheduleText = buildString {
-            vacancy.schedule?.let { append(it.name) }
-            if (vacancy.schedule != null && vacancy.employment != null) {
-                append(", ")
-            }
-            vacancy.employment?.let { append(it.name) }
-        }
-
-        if (scheduleText.isNotEmpty()) {
-            binding.scheduleText.isVisible = true
-            binding.scheduleText.text = scheduleText
-        } else {
-            binding.scheduleText.isVisible = false
-        }
-    }
-
-    private fun bindDescriptionAndSkills(vacancy: Vacancy) {
-        // Описание вакансии (HTML)
-        if (vacancy.description.isNotEmpty()) {
-            binding.jobDescriptionTitle.isVisible = true
-            binding.responsibilitiesTitle.isVisible = false
-            binding.responsibilitiesText.isVisible = true
-            binding.responsibilitiesText.text = Html.fromHtml(
-                vacancy.description,
-                Html.FROM_HTML_MODE_COMPACT
-            )
-
-            // Скрываем остальные секции, так как description содержит всё
-            binding.requirementsTitle.isVisible = false
-            binding.requirementsText.isVisible = false
-            binding.conditionsTitle.isVisible = false
-            binding.conditionsText.isVisible = false
-        } else {
-            binding.jobDescriptionTitle.isVisible = false
-            binding.responsibilitiesTitle.isVisible = false
-            binding.responsibilitiesText.isVisible = false
-            binding.requirementsTitle.isVisible = false
-            binding.requirementsText.isVisible = false
-            binding.conditionsTitle.isVisible = false
-            binding.conditionsText.isVisible = false
-        }
-
-        // Ключевые навыки
-        if (vacancy.skills.isNotEmpty()) {
-            binding.skillsTitle.isVisible = true
-            binding.skillsText.isVisible = true
-            binding.skillsText.text = vacancy.skills.joinToString("\n• ", prefix = "• ")
-        } else {
-            binding.skillsTitle.isVisible = false
-            binding.skillsText.isVisible = false
-        }
-    }
-
-    private fun formatSalary(vacancy: Vacancy): String {
-        val salary = vacancy.salary ?: return getString(R.string.salary_not_specified)
-
-        val currencySymbol = when (salary.currency) {
-            "RUR", "RUB" -> "₽"
-            "USD" -> "$"
-            "EUR" -> "€"
-            "GBP" -> "£"
-            else -> salary.currency ?: ""
-        }
-
-        return when {
-            salary.from != null && salary.to != null ->
-                "от ${formatNumber(salary.from)} до ${formatNumber(salary.to)} $currencySymbol"
-            salary.from != null ->
-                "от ${formatNumber(salary.from)} $currencySymbol"
-            salary.to != null ->
-                "до ${formatNumber(salary.to)} $currencySymbol"
-            else ->
-                getString(R.string.salary_not_specified)
-        }
-    }
-
-    private fun formatNumber(number: Int): String {
-        return String.format(Locale.getDefault(), "%,d", number).replace(',', ' ')
-    }
-
-    private fun loadCompanyLogo(logoUrl: String?) {
-        val cornerRadius = resources.getDimensionPixelSize(R.dimen.corner_radius_12)
-
-        Glide.with(this)
-            .load(logoUrl.takeIf { !it.isNullOrBlank() })
-            .placeholder(R.drawable.ic_list_item)
-            .error(R.drawable.ic_list_item)
-            .fallback(R.drawable.ic_list_item)
-            .transform(RoundedCorners(cornerRadius))
-            .into(binding.imageLogoCompany)
-    }
-
-    private fun setupContactsActions(vacancy: Vacancy) {
-        vacancy.contacts?.let { contacts ->
-            bindContactInfo(contacts)
-            setupContactVisibility(contacts)
-        } ?: run {
-            binding.contactsLayout.isVisible = false
-        }
-    }
-
-    private fun bindContactInfo(contacts: ru.practicum.android.diploma.domain.models.Contacts) {
-        // Имя контакта
-        if (contacts.name.isNotBlank()) {
-            binding.contactsName.isVisible = true
-            binding.contactsName.text = contacts.name
-        } else {
-            binding.contactsName.isVisible = false
-        }
-
-        // Email
-        if (contacts.email.isNotEmpty()) {
-            setupEmailContact(contacts.email)
-        } else {
-            binding.contactsEmail.isVisible = false
-        }
-
-        // Телефоны
-        if (contacts.phones.isNotEmpty()) {
-            setupPhoneContacts(contacts.phones)
-        } else {
-            binding.contactsPhones.isVisible = false
-        }
-    }
-
-    private fun setupEmailContact(email: String) {
-        binding.contactsEmail.isVisible = true
-        binding.contactsEmail.text = email
-
-        binding.contactsEmail.setOnClickListener {
-            val intent = Intent(Intent.ACTION_SENDTO).apply {
-                data = Uri.parse("mailto:$email")
-            }
-
-            if (intent.resolveActivity(requireActivity().packageManager) != null) {
-                startActivity(intent)
-            } else {
-                showToast(getString(R.string.no_email_app))
-            }
-        }
-    }
-
-    private fun setupPhoneContacts(phones: List<ru.practicum.android.diploma.domain.models.Phone>) {
-        binding.contactsPhones.isVisible = true
-
-        val phonesText = phones.joinToString("\n") { phone ->
-            phone.comment?.let { "$it: ${phone.number}" } ?: phone.number
-        }
-        binding.contactsPhones.text = phonesText
-
-        binding.contactsPhones.setOnClickListener {
-            val phoneNumber = phones.first().number
-            val intent = Intent(Intent.ACTION_DIAL).apply {
-                data = Uri.parse("tel:$phoneNumber")
-            }
-
-            if (intent.resolveActivity(requireActivity().packageManager) != null) {
-                startActivity(intent)
-            } else {
-                showToast(getString(R.string.no_phone_app))
-            }
-        }
-    }
-
-    private fun setupContactVisibility(contacts: ru.practicum.android.diploma.domain.models.Contacts) {
-        binding.contactsLayout.isVisible = contacts.email.isNotEmpty() ||
-            contacts.phones.isNotEmpty() ||
-            contacts.name.isNotBlank()
-    }
-
-    private fun showToast(message: String) {
-        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-    }
-
     private fun shareVacancy() {
         viewModel.vacancyState.value?.let { state ->
             if (state is VacancyViewModel.VacancyState.Content) {
-                val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                    type = "text/plain"
-                    putExtra(Intent.EXTRA_TEXT, state.vacancy.url)
-                }
-                startActivity(Intent.createChooser(shareIntent, getString(R.string.share_vacancy)))
+                vacancyShareHelper.shareVacancy(state.vacancy.url)
             }
         }
     }

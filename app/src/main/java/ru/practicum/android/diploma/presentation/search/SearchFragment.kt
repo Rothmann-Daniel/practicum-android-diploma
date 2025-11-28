@@ -238,7 +238,9 @@ class SearchFragment : Fragment() {
     private val activityObserver = object : DefaultLifecycleObserver {
         override fun onPause(owner: LifecycleOwner) {
             super.onPause(owner)
-            resetSearchState()
+            _binding?.let {
+                resetSearchState()
+            }
         }
     }
 
