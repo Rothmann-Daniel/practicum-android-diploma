@@ -66,7 +66,6 @@ class SearchFragment : Fragment() {
         binding.recyclerView.adapter = adapter
     }
 
-
     private fun setupRecyclerView() {
         val layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerView.layoutManager = layoutManager
