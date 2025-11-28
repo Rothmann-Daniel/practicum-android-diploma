@@ -82,8 +82,28 @@ class SearchViewModel(
     }
 
     fun onSearchQueryChanged(query: String) {
+        // Если до этого была ошибка или пустой результат — сбрасываем блокировку
+        val state = _uiState.value
+        if (state is SearchUiState.Error || state is SearchUiState.EmptyResult) {
+            loadedVacancies.clear()
+            currentPage = 0
+            totalPages = 1
+        }
         lastQuery = query
         debouncedSearch(query)
+    }
+
+    fun forceSearch(query: String) {
+        lastQuery = query
+
+        // Сбросим состояние предыдущей ошибки / пустого результата
+        loadedVacancies.clear()
+        currentPage = 0
+        totalPages = 1
+        _uiState.value = SearchUiState.Loading
+
+        // Запускаем моментальный поиск — БЕЗ debounce
+        searchVacancies(query, page = 0)
     }
 
     private fun searchVacancies(query: String, page: Int) {
@@ -133,8 +153,9 @@ class SearchViewModel(
                     _uiState.value = SearchUiState.Loading
                 }
             }
+            isLoadingPage = false
         }
-        isLoadingPage = false
+
     }
 
     fun loadNextPage() {

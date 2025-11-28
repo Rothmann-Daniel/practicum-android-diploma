@@ -58,7 +58,11 @@
             android:hint="@string/enter_query"
             android:textColor="@color/black"
             android:textColorHint="?attr/colorOnSurfaceVariant"
-            android:textCursorDrawable="@drawable/custom_blue_cursor" />
+            android:textCursorDrawable="@drawable/custom_blue_cursor"
+            android:imeOptions="actionSearch"
+            android:inputType="text"
+            android:maxLines="1"
+            android:singleLine="true" />
 
         <ImageView
             android:id="@+id/btnClear"

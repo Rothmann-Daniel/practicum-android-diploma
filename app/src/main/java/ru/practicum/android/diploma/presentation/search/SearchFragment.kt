@@ -58,10 +58,14 @@ class SearchFragment : Fragment() {
     private fun setupAdapter() {
         adapter = VacanciesAdapter { vacancy ->
             viewModel.markRestoreForNavigation()
-            findNavController().navigate(R.id.action_search_to_vacancy)
+            val action = SearchFragmentDirections.actionSearchToVacancy(
+                vacancyId = vacancy.id
+            )
+            findNavController().navigate(action)
         }
         binding.recyclerView.adapter = adapter
     }
+
 
     private fun setupRecyclerView() {
         val layoutManager = LinearLayoutManager(requireContext())
@@ -118,6 +122,7 @@ class SearchFragment : Fragment() {
         }
 
         binding.searchQuery.setOnEditorActionListener { v, _, _ ->
+            viewModel.forceSearch(v.text.toString())
             hideKeyboard(v)
             v.clearFocus()
             true
