@@ -13,7 +13,6 @@ import ru.practicum.android.diploma.databinding.FragmentVacancyBinding
 import ru.practicum.android.diploma.domain.models.Contacts
 import ru.practicum.android.diploma.domain.models.Phone
 import ru.practicum.android.diploma.domain.models.Vacancy
-import java.util.Locale
 
 class VacancyDataBinder(
     private val binding: FragmentVacancyBinding,
