@@ -28,6 +28,7 @@ import ru.practicum.android.diploma.domain.usecases.GetCachedVacanciesUseCase
 import ru.practicum.android.diploma.domain.usecases.GetVacancyDetailsUseCase
 import ru.practicum.android.diploma.domain.usecases.SearchVacanciesUseCase
 import ru.practicum.android.diploma.presentation.search.SearchViewModel
+import ru.practicum.android.diploma.presentation.vacancy.VacancyViewModel
 import java.util.concurrent.TimeUnit
 
 // Константы для таймаутов
@@ -36,14 +37,14 @@ private const val READ_TIMEOUT_SECONDS = 30L
 private const val WRITE_TIMEOUT_SECONDS = 30L
 
 val appModule = module {
-    // Database - ВАЖНО: добавлен fallbackToDestructiveMigration для пересоздания БД
+    // Database
     single {
         Room.databaseBuilder(
             androidContext(),
             AppDatabase::class.java,
             AppDatabase.DATABASE_NAME
         )
-            .fallbackToDestructiveMigration() // Пересоздаёт БД при изменении схемы
+            .fallbackToDestructiveMigration()
             .build()
     }
 
@@ -110,6 +111,12 @@ val appModule = module {
     viewModel {
         SearchViewModel(
             searchUseCase = get<SearchVacanciesUseCase>()
+        )
+    }
+
+    viewModel {
+        VacancyViewModel(
+            getVacancyDetailsUseCase = get<GetVacancyDetailsUseCase>()
         )
     }
 }

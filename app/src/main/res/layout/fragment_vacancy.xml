@@ -25,8 +25,8 @@
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"
             android:background="@android:color/transparent"
-            android:scaleType="centerInside"
             android:contentDescription="@string/back_button_description"
+            android:scaleType="centerInside"
             app:srcCompat="@drawable/ic_arrow_back" />
 
         <!-- Заголовок -->
@@ -48,8 +48,8 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="4dp"
             android:background="@android:color/transparent"
-            android:scaleType="centerInside"
             android:contentDescription="@string/share_button_description"
+            android:scaleType="centerInside"
             app:srcCompat="@drawable/ic_share" />
 
         <!-- Кнопка избранного -->
@@ -58,9 +58,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@android:color/transparent"
+            android:contentDescription="@string/favorite_button_description"
             android:padding="12dp"
             android:scaleType="centerInside"
-            android:contentDescription="@string/favorite_button_description"
             app:srcCompat="@drawable/ic_favourites" />
     </LinearLayout>
 
@@ -203,6 +203,7 @@
                     android:layout_marginStart="16dp"
                     android:layout_marginTop="16dp"
                     android:layout_marginBottom="16dp"
+                    app:cardBackgroundColor="@color/white"
                     app:cardCornerRadius="12dp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -212,8 +213,8 @@
                         android:id="@+id/image_logo_company"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:background="@drawable/ic_list_item"
-                        android:scaleType="centerCrop" />
+                        android:scaleType="centerInside"
+                        android:padding="2dp" />
 
                 </androidx.cardview.widget.CardView>
 
@@ -262,10 +263,10 @@
             <!-- Опыт работы -->
             <TextView
                 android:id="@+id/experience_title"
+                style="@style/Vacancy_title_content"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                style="@style/Vacancy_title_content"
-                android:text="@string/experience_title"/>
+                android:text="@string/experience_title" />
 
             <TextView
                 android:id="@+id/experience_text"
@@ -280,17 +281,17 @@
             <!-- График работы -->
             <TextView
                 android:id="@+id/schedule_text"
+                style="@style/Vacancy_text_content"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                style="@style/Vacancy_text_content"
                 android:layout_marginBottom="24dp"
-                android:text="@string/example_of_schedule_text"/>
+                android:text="@string/example_of_schedule_text" />
 
             <!-- Разделитель -->
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_marginBottom="16dp"/>
+                android:layout_marginBottom="16dp" />
 
             <!-- Описание вакансии -->
             <TextView
@@ -306,53 +307,53 @@
             <!-- Обязанности -->
             <TextView
                 android:id="@+id/responsibilities_title"
+                style="@style/Vacancy_title_content"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                style="@style/Vacancy_title_content"
-                android:text="@string/responsibilities"/>
+                android:text="@string/responsibilities" />
 
             <TextView
                 android:id="@+id/responsibilities_text"
+                style="@style/Vacancy_text_content"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                style="@style/Vacancy_text_content"
-                android:text="@string/example_of_responsibilities_text"/>
+                android:text="@string/example_of_responsibilities_text" />
 
             <!-- Требования -->
             <TextView
                 android:id="@+id/requirements_title"
+                style="@style/Vacancy_title_content"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                style="@style/Vacancy_title_content"
-                android:text="@string/requirements"/>
+                android:text="@string/requirements" />
 
             <TextView
                 android:id="@+id/requirements_text"
+                style="@style/Vacancy_text_content"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                style="@style/Vacancy_text_content"
-                android:text="@string/example_of_requirements_text"/>
+                android:text="@string/example_of_requirements_text" />
 
             <!-- Условия -->
             <TextView
                 android:id="@+id/conditions_title"
+                style="@style/Vacancy_title_content"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                style="@style/Vacancy_title_content"
                 android:text="@string/conditions" />
 
             <TextView
                 android:id="@+id/conditions_text"
+                style="@style/Vacancy_text_content"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                style="@style/Vacancy_text_content"
-                android:text="@string/example_of_conditions_text"/>
+                android:text="@string/example_of_conditions_text" />
 
             <!-- Разделитель -->
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_marginBottom="16dp"/>
+                android:layout_marginBottom="16dp" />
 
             <!-- Ключевые навыки -->
 
@@ -368,11 +369,56 @@
 
             <TextView
                 android:id="@+id/skills_text"
+                style="@style/Vacancy_text_content"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                style="@style/Vacancy_text_content"
-                android:text="@string/example_of_responsibilities_text"/>
+                android:text="@string/example_of_responsibilities_text" />
 
+            <!-- Блок контакты -->
+            <LinearLayout
+                android:id="@+id/contacts_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/contacts_title"
+                    style="@style/Vacancy_title_content"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:layout_marginBottom="16dp"
+                    android:text="@string/contacts"
+                    android:textSize="22sp" />
+
+                <TextView
+                    android:id="@+id/contacts_name"
+                    style="@style/Vacancy_text_content"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/contacts_phones"
+                    style="@style/Vacancy_text_content"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:autoLink="phone"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/contacts_email"
+                    style="@style/Vacancy_text_content"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:autoLink="email"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:visibility="gone" />
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 

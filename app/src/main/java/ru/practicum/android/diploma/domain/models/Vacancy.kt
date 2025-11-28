@@ -49,7 +49,12 @@ data class Contacts(
     val id: String,
     val name: String,
     val email: String,
-    val phone: List<String>
+    val phones: List<Phone> // Изменено на List<Phone>
+)
+
+data class Phone(
+    val number: String,
+    val comment: String?
 )
 
 data class Employer(

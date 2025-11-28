@@ -18,8 +18,8 @@
             android:id="@+id/image_logo_company"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@drawable/ic_list_item"
-            android:scaleType="centerCrop" />
+            android:scaleType="centerInside"
+            android:padding="2dp"/>
 
     </androidx.cardview.widget.CardView>
 

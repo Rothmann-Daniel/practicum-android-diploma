@@ -29,6 +29,8 @@
         android:name="ru.practicum.android.diploma.presentation.vacancy.VacancyFragment"
         android:label="VacancyFragment"
         tools:layout="@layout/fragment_vacancy">
+
+        <!-- ДОБАВЛЕН АРГУМЕНТ: ID вакансии -->
         <argument
             android:name="vacancyId"
             app:argType="string" />
