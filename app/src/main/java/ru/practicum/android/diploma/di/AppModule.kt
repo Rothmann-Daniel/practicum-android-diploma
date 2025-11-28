@@ -109,8 +109,7 @@ val appModule = module {
     // ViewModels
     viewModel {
         SearchViewModel(
-            searchUseCase = get<SearchVacanciesUseCase>(),
-            getCachedVacanciesUseCase = get<GetCachedVacanciesUseCase>()
+            searchUseCase = get<SearchVacanciesUseCase>()
         )
     }
 }

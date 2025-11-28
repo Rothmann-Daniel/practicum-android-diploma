@@ -9,12 +9,10 @@ import ru.practicum.android.diploma.core.utils.debounce
 import ru.practicum.android.diploma.data.remote.dto.response.ApiResponse
 import ru.practicum.android.diploma.domain.models.Vacancy
 import ru.practicum.android.diploma.domain.models.VacancySearchRequest
-import ru.practicum.android.diploma.domain.usecases.GetCachedVacanciesUseCase
 import ru.practicum.android.diploma.domain.usecases.SearchVacanciesUseCase
 
 class SearchViewModel(
-    private val searchUseCase: SearchVacanciesUseCase,
-    private val getCachedVacanciesUseCase: GetCachedVacanciesUseCase
+    private val searchUseCase: SearchVacanciesUseCase
 ) : ViewModel() {
 
     // Флаг для восстановления предыдущих результатов только при навигации
@@ -59,25 +57,6 @@ class SearchViewModel(
             _uiState.value = SearchUiState.EmptyQuery
         } else {
             searchVacancies(query, page = 0)
-        }
-    }
-
-    private fun loadCachedVacancies() {
-        // Подтягиваем кэш только если разрешено
-        if (!allowRestoreFromCache) return
-
-        viewModelScope.launch {
-            val cached = getCachedVacanciesUseCase()
-            if (cached.isNotEmpty()) {
-                loadedVacancies.clear()
-                loadedVacancies.addAll(cached)
-                _uiState.value = SearchUiState.Success(
-                    vacancies = loadedVacancies.toList(),
-                    isLastPage = true,
-                    found = cached.size
-                )
-            }
-            allowRestoreFromCache = false
         }
     }
 
