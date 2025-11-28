@@ -46,6 +46,9 @@ class SearchViewModel(
     private var isLoadingPage = false
     private var lastQuery: String = ""
 
+    /**
+     * Отложенный поиск с задержкой для уменьшения количества запросов при вводе текста
+     */
     private val debouncedSearch = debounce<String>(
         delayMillis = DEBOUNCE_DELAY_MS,
         coroutineScope = viewModelScope
@@ -60,6 +63,10 @@ class SearchViewModel(
         }
     }
 
+    /**
+     * Обрабатывает изменение поискового запроса с отложенным поиском
+     * @param query поисковый запрос
+     */
     fun onSearchQueryChanged(query: String) {
         // Если до этого была ошибка или пустой результат — сбрасываем блокировку
         val state = _uiState.value
@@ -72,6 +79,10 @@ class SearchViewModel(
         debouncedSearch(query)
     }
 
+    /**
+     * Выполняет немедленный поиск без задержки
+     * @param query поисковый запрос
+     */
     fun forceSearch(query: String) {
         lastQuery = query
 
@@ -85,6 +96,11 @@ class SearchViewModel(
         searchVacancies(query, page = 0)
     }
 
+    /**
+     * Выполняет поиск вакансий по запросу и странице
+     * @param query поисковый запрос
+     * @param page номер страницы для пагинации
+     */
     private fun searchVacancies(query: String, page: Int) {
         if (isLoadingPage || page >= totalPages) return
 
@@ -97,52 +113,72 @@ class SearchViewModel(
                 is ApiResponse.Success -> {
                     totalPages = result.data.pages
                     currentPage = result.data.page
-
-                    if (page == 0) {
-                        loadedVacancies.clear()
-                        loadedVacancies.addAll(result.data.vacancies)
-                    } else {
-                        val existingIds = loadedVacancies.map { it.id }.toSet()
-                        val uniqueNewVacancies =
-                            result.data.vacancies.filter { it.id !in existingIds }
-                        loadedVacancies.addAll(uniqueNewVacancies)
-                    }
-
-                    _uiState.value = if (loadedVacancies.isEmpty()) {
-                        SearchUiState.EmptyResult
-                    } else {
-                        SearchUiState.Success(
-                            vacancies = loadedVacancies.toList(),
-                            isLastPage = currentPage >= totalPages - 1,
-                            found = result.data.found
-                        )
-                    }
+                    updateVacanciesList(result.data.vacancies, page)
+                    updateUiState(result.data.found)
                 }
-
-                is ApiResponse.Error -> {
-                    val isNetworkError = result.code == null // если нет кода — это сетевая ошибка
-                    _uiState.value = SearchUiState.Error(
-                        message = result.message,
-                        isNetworkError = isNetworkError
-                    )
-                }
-
-                is ApiResponse.Loading -> {
-                    // Можно показать прогресс, если нужно
-                    _uiState.value = SearchUiState.Loading
-                }
+                is ApiResponse.Error -> handleErrorResult(result)
+                is ApiResponse.Loading -> _uiState.value = SearchUiState.Loading
             }
             isLoadingPage = false
         }
-
     }
 
+    /**
+     * Обновляет список вакансий с учетом пагинации и устранения дубликатов
+     * @param vacancies список новых вакансий
+     * @param page номер страницы
+     */
+    private fun updateVacanciesList(vacancies: List<Vacancy>, page: Int) {
+        if (page == 0) {
+            loadedVacancies.clear()
+            loadedVacancies.addAll(vacancies)
+        } else {
+            val existingIds = loadedVacancies.map { it.id }.toSet()
+            val uniqueNewVacancies = vacancies.filter { it.id !in existingIds }
+            loadedVacancies.addAll(uniqueNewVacancies)
+        }
+    }
+
+    /**
+     * Обновляет состояние UI на основе текущего списка вакансий
+     * @param found общее количество найденных вакансий
+     */
+    private fun updateUiState(found: Int) {
+        _uiState.value = if (loadedVacancies.isEmpty()) {
+            SearchUiState.EmptyResult
+        } else {
+            SearchUiState.Success(
+                vacancies = loadedVacancies.toList(),
+                isLastPage = currentPage >= totalPages - 1,
+                found = found
+            )
+        }
+    }
+
+    /**
+     * Обрабатывает ошибки при поиске вакансий
+     * @param result объект ошибки от API
+     */
+    private fun handleErrorResult(result: ApiResponse.Error) {
+        val isNetworkError = result.code == null
+        _uiState.value = SearchUiState.Error(
+            message = result.message,
+            isNetworkError = isNetworkError
+        )
+    }
+
+    /**
+     * Загружает следующую страницу результатов, если доступна
+     */
     fun loadNextPage() {
         if (currentPage + 1 < totalPages && !isLoadingPage) {
             searchVacancies(lastQuery, currentPage + 1)
         }
     }
 
+    /**
+     * Очищает состояние поиска и сбрасывает все данные
+     */
     fun clearSearchState() {
         loadedVacancies.clear()
         lastQuery = ""
@@ -154,7 +190,9 @@ class SearchViewModel(
         restorePreviousResults = false
     }
 
-    // Внешний вызов при переходе на другой экран, чтобы подготовиться к возврату
+    /**
+     * Помечает состояние для восстановления результатов при навигации назад
+     */
     fun markRestoreForNavigation() {
         restorePreviousResults = true
         allowRestoreFromCache = true
