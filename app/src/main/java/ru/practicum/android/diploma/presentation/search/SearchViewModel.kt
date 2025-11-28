@@ -17,13 +17,26 @@ class SearchViewModel(
     private val getCachedVacanciesUseCase: GetCachedVacanciesUseCase
 ) : ViewModel() {
 
+    // Флаг для восстановления предыдущих результатов только при навигации
+    var restorePreviousResults: Boolean = false
+
+    private var allowRestoreFromCache: Boolean = false
+
     // Состояния UI для экрана поиска вакансий
     sealed class SearchUiState {
         object Loading : SearchUiState()
         object EmptyQuery : SearchUiState()
         object EmptyResult : SearchUiState()
-        data class Success(val vacancies: List<Vacancy>, val isLastPage: Boolean) : SearchUiState()
-        data class Error(val message: String) : SearchUiState()
+        data class Success(
+            val vacancies: List<Vacancy>,
+            val isLastPage: Boolean,
+            val found: Int
+        ) : SearchUiState()
+
+        data class Error(
+            val message: String,
+            val isNetworkError: Boolean = false
+        ) : SearchUiState()
     }
 
     private val _uiState = MutableLiveData<SearchUiState>(SearchUiState.EmptyQuery)
@@ -49,24 +62,48 @@ class SearchViewModel(
         }
     }
 
-    init {
-        loadCachedVacancies()
-    }
-
     private fun loadCachedVacancies() {
+        // Подтягиваем кэш только если разрешено
+        if (!allowRestoreFromCache) return
+
         viewModelScope.launch {
             val cached = getCachedVacanciesUseCase()
             if (cached.isNotEmpty()) {
                 loadedVacancies.clear()
                 loadedVacancies.addAll(cached)
-                _uiState.value = SearchUiState.Success(loadedVacancies.toList(), isLastPage = true)
+                _uiState.value = SearchUiState.Success(
+                    vacancies = loadedVacancies.toList(),
+                    isLastPage = true,
+                    found = cached.size
+                )
             }
+            allowRestoreFromCache = false
         }
     }
 
     fun onSearchQueryChanged(query: String) {
+        // Если до этого была ошибка или пустой результат — сбрасываем блокировку
+        val state = _uiState.value
+        if (state is SearchUiState.Error || state is SearchUiState.EmptyResult) {
+            loadedVacancies.clear()
+            currentPage = 0
+            totalPages = 1
+        }
         lastQuery = query
         debouncedSearch(query)
+    }
+
+    fun forceSearch(query: String) {
+        lastQuery = query
+
+        // Сбросим состояние предыдущей ошибки / пустого результата
+        loadedVacancies.clear()
+        currentPage = 0
+        totalPages = 1
+        _uiState.value = SearchUiState.Loading
+
+        // Запускаем моментальный поиск — БЕЗ debounce
+        searchVacancies(query, page = 0)
     }
 
     private fun searchVacancies(query: String, page: Int) {
@@ -97,28 +134,51 @@ class SearchViewModel(
                     } else {
                         SearchUiState.Success(
                             vacancies = loadedVacancies.toList(),
-                            isLastPage = currentPage >= totalPages - 1
+                            isLastPage = currentPage >= totalPages - 1,
+                            found = result.data.found
                         )
                     }
                 }
 
                 is ApiResponse.Error -> {
-                    _uiState.value = SearchUiState.Error(result.message)
+                    val isNetworkError = result.code == null // если нет кода — это сетевая ошибка
+                    _uiState.value = SearchUiState.Error(
+                        message = result.message,
+                        isNetworkError = isNetworkError
+                    )
                 }
 
-                else -> {
-                    _uiState.value =
-                        SearchUiState.Error("Неизвестная ошибка при получении вакансий")
+                is ApiResponse.Loading -> {
+                    // Можно показать прогресс, если нужно
+                    _uiState.value = SearchUiState.Loading
                 }
             }
             isLoadingPage = false
         }
+
     }
 
     fun loadNextPage() {
         if (currentPage + 1 < totalPages && !isLoadingPage) {
             searchVacancies(lastQuery, currentPage + 1)
         }
+    }
+
+    fun clearSearchState() {
+        loadedVacancies.clear()
+        lastQuery = ""
+        currentPage = 0
+        totalPages = 1
+        _uiState.value = SearchUiState.EmptyQuery
+        // Сброс флагов
+        allowRestoreFromCache = false
+        restorePreviousResults = false
+    }
+
+    // Внешний вызов при переходе на другой экран, чтобы подготовиться к возврату
+    fun markRestoreForNavigation() {
+        restorePreviousResults = true
+        allowRestoreFromCache = true
     }
 
     companion object {

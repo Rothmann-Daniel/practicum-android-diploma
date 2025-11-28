@@ -10,7 +10,7 @@
         android:id="@+id/searchFragment"
         android:name="ru.practicum.android.diploma.presentation.search.SearchFragment"
         android:label="SearchFragment"
-        tools:layout="@layout/fragment_serch">
+        tools:layout="@layout/fragment_search">
 
         <!-- Action для перехода на просмотр вакансии -->
         <action
@@ -28,7 +28,11 @@
         android:id="@+id/vacancyFragment"
         android:name="ru.practicum.android.diploma.presentation.vacancy.VacancyFragment"
         android:label="VacancyFragment"
-        tools:layout="@layout/fragment_vacancy" />
+        tools:layout="@layout/fragment_vacancy">
+        <argument
+            android:name="vacancyId"
+            app:argType="string" />
+    </fragment>
 
     <!-- Экран с избранными вакансиями -->
     <fragment

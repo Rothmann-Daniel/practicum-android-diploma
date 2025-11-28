@@ -3,7 +3,7 @@
     <string name="menu_main_title">Главная</string>
     <string name="menu_favorites_title">Избранное</string>
     <string name="menu_team_title">Команда</string>
-
+    <string name="vacancy_not_found">Вакансия не найдена или\nудалена</string>
     <string name="details_title">Вакансия</string>
     <string name="city">Город</string>
     <string name="company_title">Компания</string>
@@ -13,11 +13,13 @@
     <string name="requirements">Требования</string>
     <string name="conditions">Условия</string>
     <string name="skills">Ключевые навыки</string>
+
     <string name="back_button_description">Назад</string>
     <string name="share_button_description">Поделиться</string>
     <string name="favorite_button_description">Избранное</string>
     <string name="vacancy_search">Поиск вакансий</string>
     <string name="enter_query">Введите запрос</string>
+    <string name="no_vacancy">Таких вакансий нет</string>
     <string name="empty_list">Список пуст</string>
 
     <!-- Примеры текстов для заполнения -->
@@ -27,10 +29,11 @@
     <string name="example_of_responsibilities_text">• Разрабатывать новую функциональность приложения\n• Помогать с интеграцией нашего SDK в другие приложения\n• Проектировать большие новые модули\n• Писать UI- и unit-тесты\n• Следить за работоспособностью сервиса и устранять технический долг</string>
     <string name="example_of_requirements_text">• 100% Kotlin\n• WebRTC\n• CI по модели Trunk Based Development</string>
     <string name="example_of_conditions_text">• сильная команда, с которой можно расти\n• возможность влиять на процесс и результат\n• расширенная программа ДМС: стоматология, обследования, вызов врача на дом и многое другое</string>
+    <string name="empty_result">Не удалось получить список вакансий</string>
+    <string name="error_no_internetConnection">Нет интернета</string>
 
 
     <!-- Ошибки-->
     <string name="error_get_list_of_vacancies">Не удалось получить\n список вакансий</string>
-    <string name="vacancy_not_found">Вакансия не найдена или\nудалена</string>
     <string name="error_server">Ошибка сервера</string>
 </resources>
