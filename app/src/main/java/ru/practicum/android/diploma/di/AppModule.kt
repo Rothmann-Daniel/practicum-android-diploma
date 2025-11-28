@@ -77,6 +77,7 @@ val appModule = module {
         val okHttpClient = OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val originalRequest = chain.request()
+
                 val requestWithToken = originalRequest.newBuilder()
                     .header("Authorization", "Bearer ${BuildConfig.API_ACCESS_TOKEN}")
                     .build()
@@ -109,8 +110,7 @@ val appModule = module {
     // ViewModels
     viewModel {
         SearchViewModel(
-            searchUseCase = get<SearchVacanciesUseCase>(),
-            getCachedVacanciesUseCase = get<GetCachedVacanciesUseCase>()
+            searchUseCase = get<SearchVacanciesUseCase>()
         )
     }
 
