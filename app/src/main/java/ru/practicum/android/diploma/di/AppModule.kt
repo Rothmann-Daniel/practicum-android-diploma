@@ -33,6 +33,7 @@ import ru.practicum.android.diploma.domain.usecases.GetFavoriteVacancyByIdUseCas
 import ru.practicum.android.diploma.domain.usecases.GetVacancyDetailsUseCase
 import ru.practicum.android.diploma.domain.usecases.IsVacancyInFavoritesUseCase
 import ru.practicum.android.diploma.domain.usecases.SearchVacanciesUseCase
+import ru.practicum.android.diploma.presentation.favorites.FavoriteVacancyViewModel
 import ru.practicum.android.diploma.presentation.search.SearchViewModel
 import ru.practicum.android.diploma.presentation.vacancy.VacancyViewModel
 import java.util.concurrent.TimeUnit
@@ -129,5 +130,9 @@ val appModule = module {
 
     viewModel {
         VacancyViewModel(get(), get(), get(), get())
+    }
+
+    viewModel {
+        FavoriteVacancyViewModel(get())
     }
 }
