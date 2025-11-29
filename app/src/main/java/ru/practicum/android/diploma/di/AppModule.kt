@@ -129,7 +129,8 @@ val appModule = module {
 
     viewModel {
         VacancyViewModel(
-            getVacancyDetailsUseCase = get<GetVacancyDetailsUseCase>()
+            getVacancyDetailsUseCase = get<GetVacancyDetailsUseCase>(),
+            isVacancyInFavoritesUseCase = get<IsVacancyInFavoritesUseCase>()
         )
     }
 }

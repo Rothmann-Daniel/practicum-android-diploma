@@ -8,9 +8,11 @@ import kotlinx.coroutines.launch
 import ru.practicum.android.diploma.data.remote.dto.response.ApiResponse
 import ru.practicum.android.diploma.domain.models.Vacancy
 import ru.practicum.android.diploma.domain.usecases.GetVacancyDetailsUseCase
+import ru.practicum.android.diploma.domain.usecases.IsVacancyInFavoritesUseCase
 
 class VacancyViewModel(
-    private val getVacancyDetailsUseCase: GetVacancyDetailsUseCase
+    private val getVacancyDetailsUseCase: GetVacancyDetailsUseCase,
+    private val isVacancyInFavoritesUseCase: IsVacancyInFavoritesUseCase
 ) : ViewModel() {
 
     private val _vacancyState = MutableLiveData<VacancyState>()
@@ -22,7 +24,8 @@ class VacancyViewModel(
         viewModelScope.launch {
             when (val response = getVacancyDetailsUseCase(vacancyId)) {
                 is ApiResponse.Success -> {
-                    _vacancyState.value = VacancyState.Content(response.data)
+                    val inFavorites = isVacancyInFavoritesUseCase(vacancyId)
+                    _vacancyState.value = VacancyState.Content(response.data, inFavorites)
                 }
                 is ApiResponse.Error -> {
                     val errorType = when {
@@ -42,7 +45,7 @@ class VacancyViewModel(
 
     sealed class VacancyState {
         object Loading : VacancyState()
-        data class Content(val vacancy: Vacancy) : VacancyState()
+        data class Content(val vacancy: Vacancy, val inFavorites: Boolean) : VacancyState()
         data class Error(val type: ErrorType) : VacancyState()
     }
 

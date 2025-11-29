@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import ru.practicum.android.diploma.R
 import ru.practicum.android.diploma.databinding.FragmentVacancyBinding
 import ru.practicum.android.diploma.domain.models.Vacancy
 
@@ -61,7 +62,7 @@ class VacancyFragment : Fragment() {
         viewModel.vacancyState.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is VacancyViewModel.VacancyState.Loading -> showLoading()
-                is VacancyViewModel.VacancyState.Content -> showContent(state.vacancy)
+                is VacancyViewModel.VacancyState.Content -> showContent(state.vacancy, state.inFavorites)
                 is VacancyViewModel.VacancyState.Error -> showError(state.type)
             }
         }
@@ -74,11 +75,17 @@ class VacancyFragment : Fragment() {
         binding.serverErrorLayout.isVisible = false
     }
 
-    private fun showContent(vacancy: Vacancy) {
+    private fun showContent(vacancy: Vacancy, inFavorites: Boolean) {
         binding.progressBar.isVisible = false
         binding.contentScrollview.isVisible = true
         binding.errorVacancyNotFound.isVisible = false
         binding.serverErrorLayout.isVisible = false
+
+        if (inFavorites) {
+            binding.favoriteButton.setImageResource(R.drawable.ic_favourites_fill)
+        } else {
+            binding.favoriteButton.setImageResource(R.drawable.ic_favourites)
+        }
 
         vacancyBinder?.bindVacancyData(vacancy)
     }
