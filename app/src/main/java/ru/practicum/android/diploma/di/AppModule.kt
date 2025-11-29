@@ -25,8 +25,13 @@ import ru.practicum.android.diploma.data.repository.VacancyRepositoryImpl
 import ru.practicum.android.diploma.domain.repository.IAreaRepository
 import ru.practicum.android.diploma.domain.repository.IIndustryRepository
 import ru.practicum.android.diploma.domain.repository.IVacancyRepository
+import ru.practicum.android.diploma.domain.usecases.AddVacancyToFavoritesUseCase
+import ru.practicum.android.diploma.domain.usecases.DeleteVacancyFromFavoritesUseCase
 import ru.practicum.android.diploma.domain.usecases.GetCachedVacanciesUseCase
+import ru.practicum.android.diploma.domain.usecases.GetFavoriteVacanciesUseCase
+import ru.practicum.android.diploma.domain.usecases.GetFavoriteVacancyByIdUseCase
 import ru.practicum.android.diploma.domain.usecases.GetVacancyDetailsUseCase
+import ru.practicum.android.diploma.domain.usecases.IsVacancyInFavoritesUseCase
 import ru.practicum.android.diploma.domain.usecases.SearchVacanciesUseCase
 import ru.practicum.android.diploma.presentation.search.SearchViewModel
 import ru.practicum.android.diploma.presentation.vacancy.VacancyViewModel
@@ -109,6 +114,11 @@ val appModule = module {
     single { SearchVacanciesUseCase(get()) }
     single { GetVacancyDetailsUseCase(get()) }
     single { GetCachedVacanciesUseCase(get()) }
+    single { AddVacancyToFavoritesUseCase(get()) }
+    single { DeleteVacancyFromFavoritesUseCase(get()) }
+    single { GetFavoriteVacanciesUseCase(get()) }
+    single { GetFavoriteVacancyByIdUseCase(get()) }
+    single { IsVacancyInFavoritesUseCase(get()) }
 
     // ViewModels
     viewModel {
