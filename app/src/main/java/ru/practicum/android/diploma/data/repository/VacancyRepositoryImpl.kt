@@ -86,6 +86,10 @@ class VacancyRepositoryImpl(
         return vacancyDao.getById(id)?.let { vacancyLocalMapper.mapFromDb(it) }
     }
 
+    override suspend fun checkIsVacancyInFavoritesById(id: String): Boolean {
+        return true // TODO
+    }
+
     private fun logApiResponse(response: VacancyResponse) {
         Log.d(TAG, "API response: found=${response.found}, pages=${response.pages}, items=${response.vacancies.size}")
     }

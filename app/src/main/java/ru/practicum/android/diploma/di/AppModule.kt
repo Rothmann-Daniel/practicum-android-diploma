@@ -26,6 +26,7 @@ import ru.practicum.android.diploma.domain.repository.IIndustryRepository
 import ru.practicum.android.diploma.domain.repository.IVacancyRepository
 import ru.practicum.android.diploma.domain.usecases.GetCachedVacanciesUseCase
 import ru.practicum.android.diploma.domain.usecases.GetVacancyDetailsUseCase
+import ru.practicum.android.diploma.domain.usecases.IsVacancyInFavoritesUseCase
 import ru.practicum.android.diploma.domain.usecases.SearchVacanciesUseCase
 import ru.practicum.android.diploma.presentation.search.SearchViewModel
 import ru.practicum.android.diploma.presentation.vacancy.VacancyViewModel
@@ -106,6 +107,7 @@ val appModule = module {
     single { SearchVacanciesUseCase(get()) }
     single { GetVacancyDetailsUseCase(get()) }
     single { GetCachedVacanciesUseCase(get()) }
+    single { IsVacancyInFavoritesUseCase(get()) }
 
     // ViewModels
     viewModel {
@@ -116,7 +118,8 @@ val appModule = module {
 
     viewModel {
         VacancyViewModel(
-            getVacancyDetailsUseCase = get<GetVacancyDetailsUseCase>()
+            getVacancyDetailsUseCase = get<GetVacancyDetailsUseCase>(),
+            isVacancyInFavoritesUseCase = get<IsVacancyInFavoritesUseCase>()
         )
     }
 }

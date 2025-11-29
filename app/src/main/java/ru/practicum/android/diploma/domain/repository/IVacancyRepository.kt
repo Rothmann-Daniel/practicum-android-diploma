@@ -12,4 +12,5 @@ interface IVacancyRepository {
     suspend fun getVacancyById(id: String): ApiResponse<Vacancy>
     suspend fun getLocalVacancies(): List<Vacancy>
     suspend fun getLocalVacancyById(id: String): Vacancy?
+    suspend fun checkIsVacancyInFavoritesById(id: String): Boolean
 }
