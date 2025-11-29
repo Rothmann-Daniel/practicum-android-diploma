@@ -17,7 +17,7 @@ class VacancyViewModel(
     private val isVacancyInFavoritesUseCase: IsVacancyInFavoritesUseCase,
     private val addVacancyToFavoritesUseCase: AddVacancyToFavoritesUseCase,
     private val deleteVacancyFromFavoritesUseCase: DeleteVacancyFromFavoritesUseCase
-    ) : ViewModel() {
+) : ViewModel() {
 
     private val _vacancyState = MutableLiveData<VacancyState>()
     val vacancyState: LiveData<VacancyState> = _vacancyState

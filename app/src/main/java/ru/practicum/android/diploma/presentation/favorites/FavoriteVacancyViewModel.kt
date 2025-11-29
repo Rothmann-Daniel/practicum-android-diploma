@@ -25,7 +25,7 @@ class FavoriteVacancyViewModel(
                     FavoritesUiState.Content(vacancies)
                 }
             } catch (e: Exception) {
-                _uiState.value = FavoritesUiState.Error
+                _uiState.value = FavoritesUiState.Error(e.message ?: "")
             }
         }
     }
@@ -33,7 +33,7 @@ class FavoriteVacancyViewModel(
     sealed class FavoritesUiState {
         object Loading : FavoritesUiState()
         object EmptyFavorites : FavoritesUiState()
-        object Error : FavoritesUiState()
+        data class Error(val errorMessage: String) : FavoritesUiState()
         data class Content(
             val vacancies: List<Vacancy>
         ) : FavoritesUiState()
