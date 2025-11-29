@@ -40,7 +40,7 @@
     <string name="example_of_responsibilities_text">• Разрабатывать новую функциональность приложения\n• Помогать с интеграцией нашего SDK в другие приложения\n• Проектировать большие новые модули\n• Писать UI- и unit-тесты\n• Следить за работоспособностью сервиса и устранять технический долг</string>
     <string name="example_of_requirements_text">• 100% Kotlin\n• WebRTC\n• CI по модели Trunk Based Development</string>
     <string name="example_of_conditions_text">• сильная команда, с которой можно расти\n• возможность влиять на процесс и результат\n• расширенная программа ДМС: стоматология, обследования, вызов врача на дом и многое другое</string>
-    <!-- Юлок контакты -->
+    <!-- Блок контакты -->
     <string name="contacts">Контакты</string>
     <string name="contacts_name">Контакты ФИО</string>
     <string name="contacts_phones">Контактный телефон</string>
@@ -56,4 +56,11 @@
     <string name="error_get_list_of_vacancies">Не удалось получить\n список вакансий</string>
     <string name="vacancy_not_found">Вакансия не найдена или\nудалена</string>
     <string name="error_server">Ошибка сервера</string>
+
+    <!-- Команда -->
+    <string name="team">Команда</string>
+    <string name="work_on_app">Над приложением работали</string>
+    <string name="developer1">Татьяна Гамма</string>
+    <string name="developer2">Алексей Ненашев</string>
+    <string name="developer3">Данила Ротман</string>
 </resources>
