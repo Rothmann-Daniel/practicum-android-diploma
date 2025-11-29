@@ -5,12 +5,20 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import ru.practicum.android.diploma.databinding.FragmentFavoriteVacancyBinding
+import ru.practicum.android.diploma.domain.models.Vacancy
+import ru.practicum.android.diploma.presentation.search.VacanciesAdapter
 
 class FavoriteVacancyFragment : Fragment() {
 
     private var _binding: FragmentFavoriteVacancyBinding? = null
     private val binding get() = _binding!!
+    private val viewModel: FavoriteVacancyViewModel by viewModel()
+
+    private var adapter: VacanciesAdapter? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -23,33 +31,37 @@ class FavoriteVacancyFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        // Инициализация при запуске - показываем загрузку или сразу проверяем данные
-        showLoadingState()
-
-        // Здесь будет загрузка данных из базы/репозитория
-        loadFavorites()
+        viewModel.showFavorites()
+        setupAdapter()
+        setupRecyclerView()
+        setupObservers()
     }
 
-    // Метод для загрузки избранных вакансий
-    private fun loadFavorites() {
-        // Заменить на реальную загрузку данных
-        // Например:
-        // viewModel.favorites.observe(viewLifecycleOwner) { vacancies ->
-        //     if (vacancies.isEmpty()) {
-        //         showEmptyState()
-        //     } else {
-        //         showVacanciesList()
-        //         // установить данные в адаптер
-        //     }
-        // }
+    private fun setupAdapter() {
+        adapter = VacanciesAdapter { vacancy ->
+            val action = FavoriteVacancyFragmentDirections.actionFavoriteVacancyToVacancy(
+                vacancyId = vacancy.id
+            )
+            findNavController().navigate(action)
+        }
+        binding.recyclerViewFavouriteVacancy.adapter = adapter
+    }
 
-        // Временная заглушка для тестирования:
-        // Для теста пустого состояния раскомментируйте следующую строку:
-        showEmptyState()
+    private fun setupRecyclerView() {
+        val layoutManager = LinearLayoutManager(requireContext())
+        binding.recyclerViewFavouriteVacancy.layoutManager = layoutManager
+        binding.recyclerViewFavouriteVacancy.adapter = adapter
+    }
 
-        // Для теста с данными раскомментируйте:
-        // showVacanciesList()
+    private fun setupObservers() {
+        viewModel.uiState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is FavoriteVacancyViewModel.FavoritesUiState.Loading -> showLoadingState()
+                is FavoriteVacancyViewModel.FavoritesUiState.EmptyFavorites -> showEmptyState()
+                is FavoriteVacancyViewModel.FavoritesUiState.Error -> showErrorState()
+                is FavoriteVacancyViewModel.FavoritesUiState.Content -> showVacanciesList(state.vacancies)
+            }
+        }
     }
 
     // Метод для показа состояния загрузки
@@ -61,7 +73,7 @@ class FavoriteVacancyFragment : Fragment() {
     }
 
     // Метод для показа состояния с данными
-    private fun showContentState(vacancyList: List<Any>) {
+    private fun showContentState(vacancyList: List<Vacancy>) {
         binding.progressBar.visibility = View.GONE
 
         if (vacancyList.isEmpty()) {
@@ -69,7 +81,7 @@ class FavoriteVacancyFragment : Fragment() {
             showEmptyState()
         } else {
             // Показываем список вакансий
-            showVacanciesList()
+            showVacanciesList(vacancyList)
             // Устанавливаем данные в адаптер
             // adapter.submitList(vacancyList)
         }
@@ -84,11 +96,12 @@ class FavoriteVacancyFragment : Fragment() {
     }
 
     // Метод для показа списка вакансий
-    private fun showVacanciesList() {
+    private fun showVacanciesList(vacancies: List<Vacancy>) {
         binding.recyclerViewFavouriteVacancy.visibility = View.VISIBLE
         binding.emptyListFavouritesVacancy.visibility = View.GONE
         binding.progressBar.visibility = View.GONE
         binding.errorGetListFavouriteVacancy.visibility = View.GONE
+        adapter?.submitList(vacancies)
     }
 
     // Метод для показа состояния ошибки
@@ -100,7 +113,7 @@ class FavoriteVacancyFragment : Fragment() {
     }
 
     // Комбинированный метод для удобного управления состояниями
-    fun setState(state: FavoriteState, vacancyList: List<Any>? = null) {
+    fun setState(state: FavoriteState, vacancyList: List<Vacancy>? = null) {
         when (state) {
             FavoriteState.LOADING -> showLoadingState()
             FavoriteState.CONTENT -> showContentState(vacancyList ?: emptyList())
@@ -111,7 +124,7 @@ class FavoriteVacancyFragment : Fragment() {
 
     // Простые методы для вызова
     fun showLoading() = setState(FavoriteState.LOADING)
-    fun showContent(list: List<Any>) = setState(FavoriteState.CONTENT, list)
+    fun showContent(list: List<Vacancy>) = setState(FavoriteState.CONTENT, list)
     fun showError() = setState(FavoriteState.ERROR)
     fun showEmpty() = setState(FavoriteState.EMPTY)
 

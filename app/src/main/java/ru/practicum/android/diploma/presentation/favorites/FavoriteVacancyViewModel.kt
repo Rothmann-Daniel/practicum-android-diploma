@@ -12,15 +12,7 @@ class FavoriteVacancyViewModel(
     private val getFavoriteVacanciesUseCase: GetFavoriteVacanciesUseCase
 ) : ViewModel() {
 
-    sealed class FavoritesUiState {
-        object EmptyFavorites : FavoritesUiState()
-        object Error : FavoritesUiState()
-        data class Content(
-            val vacancies: List<Vacancy>
-        ) : FavoritesUiState()
-    }
-
-    private val _uiState = MutableLiveData<FavoritesUiState>(FavoritesUiState.EmptyFavorites)
+    private val _uiState = MutableLiveData<FavoritesUiState>(FavoritesUiState.Loading)
     val uiState: LiveData<FavoritesUiState> = _uiState
 
     fun showFavorites() {
@@ -38,4 +30,12 @@ class FavoriteVacancyViewModel(
         }
     }
 
+    sealed class FavoritesUiState {
+        object Loading : FavoritesUiState()
+        object EmptyFavorites : FavoritesUiState()
+        object Error : FavoritesUiState()
+        data class Content(
+            val vacancies: List<Vacancy>
+        ) : FavoritesUiState()
+    }
 }
