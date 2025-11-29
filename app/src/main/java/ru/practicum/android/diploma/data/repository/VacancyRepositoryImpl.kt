@@ -106,7 +106,7 @@ class VacancyRepositoryImpl(
 
     override suspend fun getFavoriteVacancyById(id: String): Vacancy? {
         val vacancyEntity = vacancyInFavoritesDao.getVacancyById(id)
-        if (vacancyEntity == null) { return null }
+        if (vacancyEntity == null) return null
         return favoritesLocalMapper.mapFromDb(vacancyEntity)
     }
 
