@@ -54,7 +54,7 @@ class VacancyFragment : Fragment() {
         }
 
         binding.favoriteButton.setOnClickListener {
-            // Нужна реализация
+            viewModel.addToOrRemoveFromFavorites()
         }
     }
 
