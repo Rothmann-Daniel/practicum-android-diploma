@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import ru.practicum.android.diploma.domain.models.Vacancy
 import ru.practicum.android.diploma.domain.usecases.GetFavoriteVacanciesUseCase
+import java.io.IOException
 
 class FavoriteVacancyViewModel(
     private val getFavoriteVacanciesUseCase: GetFavoriteVacanciesUseCase
@@ -24,7 +25,7 @@ class FavoriteVacancyViewModel(
                 } else {
                     FavoritesUiState.Content(vacancies)
                 }
-            } catch (e: Exception) {
+            } catch (e: IOException) {
                 _uiState.value = FavoritesUiState.Error(e.message ?: "")
             }
         }
