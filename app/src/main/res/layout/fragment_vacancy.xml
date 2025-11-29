@@ -111,7 +111,6 @@
             android:fontFamily="@font/ys_display_medium"
             android:text="@string/vacancy_not_found"
             android:textAlignment="center"
-            android:textColor="@color/black"
             android:textSize="22sp" />
 
     </LinearLayout>
@@ -142,7 +141,6 @@
             android:layout_marginBottom="8dp"
             android:fontFamily="@font/ys_display_medium"
             android:text="@string/error_server"
-            android:textColor="@color/black"
             android:textSize="22sp" />
     </LinearLayout>
 
@@ -171,7 +169,6 @@
                 android:layout_marginBottom="8dp"
                 android:fontFamily="@font/ys_display_medium"
                 android:text="Android-разработчик"
-                android:textColor="@color/black"
                 android:textSize="32sp"
                 android:textStyle="bold" />
 
@@ -183,7 +180,6 @@
                 android:layout_marginBottom="16dp"
                 android:fontFamily="@font/ys_display_medium"
                 android:text="от 100 000 ₽"
-                android:textColor="@color/black"
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
@@ -275,7 +271,6 @@
                 android:layout_marginBottom="8dp"
                 android:fontFamily="@font/ys_display_regular"
                 android:text="@string/example_of_experience_text"
-                android:textColor="@color/black"
                 android:textSize="16sp" />
 
             <!-- График работы -->
@@ -301,7 +296,6 @@
                 android:layout_marginBottom="16dp"
                 android:fontFamily="@font/ys_display_medium"
                 android:text="@string/job_description"
-                android:textColor="@color/black"
                 android:textSize="22sp" />
 
             <!-- Обязанности -->
@@ -364,7 +358,6 @@
                 android:layout_marginBottom="16dp"
                 android:fontFamily="@font/ys_display_medium"
                 android:text="@string/skills"
-                android:textColor="@color/black"
                 android:textSize="22sp" />
 
             <TextView
