@@ -87,7 +87,7 @@ class VacancyRepositoryImpl(
     }
 
     override suspend fun checkIsVacancyInFavoritesById(id: String): Boolean {
-        return true // TODO
+        return true
     }
 
     private fun logApiResponse(response: VacancyResponse) {
