@@ -3,8 +3,6 @@ package ru.practicum.android.diploma.data.repository
 import android.util.Log
 import retrofit2.HttpException
 import ru.practicum.android.diploma.data.local.dao.VacancyDao
-import ru.practicum.android.diploma.data.local.dao.VacancyInFavoritesDao
-import ru.practicum.android.diploma.data.local.mapper.FavoritesLocalMapper
 import ru.practicum.android.diploma.data.local.mapper.VacancyLocalMapper
 import ru.practicum.android.diploma.data.remote.api.ApiService
 import ru.practicum.android.diploma.data.remote.dto.response.ApiResponse
@@ -22,11 +20,9 @@ import java.net.SocketTimeoutException
 class VacancyRepositoryImpl(
     private val apiService: ApiService,
     private val vacancyDao: VacancyDao,
-    private val vacancyInFavoritesDao: VacancyInFavoritesDao,
     private val vacancyRemoteMapper: VacancyRemoteMapper,
     private val vacancyLocalMapper: VacancyLocalMapper,
-    private val vacancyRequestMapper: VacancyRequestMapper,
-    private val favoritesLocalMapper: FavoritesLocalMapper
+    private val vacancyRequestMapper: VacancyRequestMapper
 ) : IVacancyRepository {
 
     override suspend fun getVacancies(request: VacancySearchRequest): ApiResponse<VacancySearchResult> {
@@ -88,30 +84,6 @@ class VacancyRepositoryImpl(
 
     override suspend fun getLocalVacancyById(id: String): Vacancy? {
         return vacancyDao.getById(id)?.let { vacancyLocalMapper.mapFromDb(it) }
-    }
-
-    override suspend fun addVacancyToFavorites(vacancy: Vacancy) {
-        vacancyInFavoritesDao.insertVacancy(favoritesLocalMapper.toEntity(vacancy))
-    }
-
-    override suspend fun deleteVacancyFromFavorites(id: String) {
-        vacancyInFavoritesDao.deleteVacancyById(id)
-    }
-
-    override suspend fun getFavoriteVacancies(): List<Vacancy> {
-        return vacancyInFavoritesDao
-            .getAll()
-            .map { favoritesLocalMapper.mapFromDb(it) }
-    }
-
-    override suspend fun getFavoriteVacancyById(id: String): Vacancy? {
-        val vacancyEntity = vacancyInFavoritesDao.getVacancyById(id)
-        if (vacancyEntity == null) return null
-        return favoritesLocalMapper.mapFromDb(vacancyEntity)
-    }
-
-    override suspend fun checkIsVacancyInFavoritesById(id: String): Boolean {
-        return id in vacancyInFavoritesDao.getIdList()
     }
 
     private fun logApiResponse(response: VacancyResponse) {
