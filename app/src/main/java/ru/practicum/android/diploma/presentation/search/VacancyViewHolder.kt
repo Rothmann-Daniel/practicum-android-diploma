@@ -13,9 +13,11 @@ class VacancyViewHolder(
 ) : RecyclerView.ViewHolder(binding.root) {
 
     fun bind(vacancy: Vacancy) {
-        binding.jobTitle.text = vacancy.name
+        val jobName: String = vacancy.name
+        val jobCity: String = vacancy.address?.city ?: ""
+        binding.jobTitle.text = "$jobName, $jobCity"
         binding.companyTitle.text = vacancy.employer.name
-        binding.cityTitle.text = vacancy.address?.city
+        binding.cityTitle.text = ""
         binding.salaryTitle.text = formatSalary(vacancy.salary)
 
         Glide.with(binding.logoCompany.context)
