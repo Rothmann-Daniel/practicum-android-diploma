@@ -69,8 +69,12 @@ class VacancyDataBinder(
             binding.jobDescriptionTitle.isVisible = true
             binding.responsibilitiesTitle.isVisible = false
             binding.responsibilitiesText.isVisible = true
+
+            // Замена \n на <br> для корректного отображения переносов строк
+            val formattedDescription = vacancy.description.replace("\n", "<br>")
+
             binding.responsibilitiesText.text = Html.fromHtml(
-                vacancy.description,
+                formattedDescription,
                 Html.FROM_HTML_MODE_COMPACT
             )
 
