@@ -129,7 +129,7 @@ val appModule = module {
     }
 
     viewModel {
-        VacancyViewModel(get(), get(), get(), get())
+        VacancyViewModel(get(), get(), get(), get(), get())
     }
 
     viewModel {
