@@ -19,9 +19,11 @@ import ru.practicum.android.diploma.data.remote.mapper.IndustryRemoteMapper
 import ru.practicum.android.diploma.data.remote.mapper.VacancyRemoteMapper
 import ru.practicum.android.diploma.data.remote.mapper.VacancyRequestMapper
 import ru.practicum.android.diploma.data.repository.AreaRepositoryImpl
+import ru.practicum.android.diploma.data.repository.FavoriteRepositoryImpl
 import ru.practicum.android.diploma.data.repository.IndustryRepositoryImpl
 import ru.practicum.android.diploma.data.repository.VacancyRepositoryImpl
 import ru.practicum.android.diploma.domain.repository.IAreaRepository
+import ru.practicum.android.diploma.domain.repository.IFavoriteRepository
 import ru.practicum.android.diploma.domain.repository.IIndustryRepository
 import ru.practicum.android.diploma.domain.repository.IVacancyRepository
 import ru.practicum.android.diploma.domain.usecases.AddVacancyToFavoritesUseCase
@@ -107,7 +109,8 @@ val appModule = module {
     // Repositories
     single<IAreaRepository> { AreaRepositoryImpl(get(), get(), get(), get()) }
     single<IIndustryRepository> { IndustryRepositoryImpl(get(), get(), get(), get()) }
-    single<IVacancyRepository> { VacancyRepositoryImpl(get(), get(), get(), get(), get(), get()) }
+    single<IVacancyRepository> { VacancyRepositoryImpl(get(), get(), get(), get(), get()) }
+    single<IFavoriteRepository> { FavoriteRepositoryImpl(get(), get()) }
 
     // Use Cases
     single { SearchVacanciesUseCase(get()) }
