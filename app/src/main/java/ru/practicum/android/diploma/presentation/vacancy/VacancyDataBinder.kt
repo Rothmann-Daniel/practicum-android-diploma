@@ -69,8 +69,11 @@ class VacancyDataBinder(
             binding.jobDescriptionTitle.isVisible = true
             binding.responsibilitiesTitle.isVisible = false
             binding.responsibilitiesText.isVisible = true
+
+            // Форматируем описание с сохранением разделителей
+            val formattedDescription = formatDescription(vacancy.description)
             binding.responsibilitiesText.text = Html.fromHtml(
-                vacancy.description,
+                formattedDescription,
                 Html.FROM_HTML_MODE_COMPACT
             )
 
@@ -96,6 +99,26 @@ class VacancyDataBinder(
             binding.skillsTitle.isVisible = false
             binding.skillsText.isVisible = false
         }
+    }
+
+    private fun formatDescription(description: String): String {
+        return description
+            // 1. Убирает пробелы и переносы в начале и конце строки
+            .trim()
+            // 2. Двойные переносы → двойные HTML-переносы (создают абзацы)
+            .replace("\n\n", "<br><br>")
+            // 3. Одиночные переносы → обычные пробелы (объединяет строки)
+            .replace("\n", " ")
+            // 4. Маркеры списка → перенос + маркер (начинает новый пункт списка)
+            .replace("•", "<br>•")
+            .replace(" - ", "<br>- ")
+            .replace(" — ", "<br>— ")
+            // 5. Исправляет двойные переносы перед маркерами (убирает лишние отступы)
+            .replace("<br><br>•", "<br>•")
+            .replace("<br><br>- ", "<br>- ")
+            .replace("<br><br>— ", "<br>— ")
+            // 6. Заменяет множественные пробелы на один
+            .replace("\\s+".toRegex(), " ")
     }
 
     private fun loadCompanyLogo(logoUrl: String?) {
