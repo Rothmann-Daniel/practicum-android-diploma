@@ -1,13 +1,20 @@
 package ru.practicum.android.diploma.domain.repository
 
-import ru.practicum.android.diploma.data.remote.dto.request.VacancyRequestDto
 import ru.practicum.android.diploma.data.remote.dto.response.ApiResponse
 import ru.practicum.android.diploma.domain.models.Vacancy
+import ru.practicum.android.diploma.domain.models.VacancySearchRequest
 import ru.practicum.android.diploma.domain.models.VacancySearchResult
 
 interface IVacancyRepository {
-    suspend fun getVacancies(request: VacancyRequestDto): ApiResponse<VacancySearchResult>
+
+    // теперь принимает доменную модель запроса и domain не импортирует DTO
+    suspend fun getVacancies(request: VacancySearchRequest): ApiResponse<VacancySearchResult>
     suspend fun getVacancyById(id: String): ApiResponse<Vacancy>
     suspend fun getLocalVacancies(): List<Vacancy>
     suspend fun getLocalVacancyById(id: String): Vacancy?
+    suspend fun addVacancyToFavorites(vacancy: Vacancy)
+    suspend fun deleteVacancyFromFavorites(id: String)
+    suspend fun getFavoriteVacancies(): List<Vacancy>
+    suspend fun getFavoriteVacancyById(id: String): Vacancy?
+    suspend fun checkIsVacancyInFavoritesById(id: String): Boolean
 }

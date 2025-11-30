@@ -60,5 +60,5 @@ class RootActivity : AppCompatActivity() {
     private fun BottomNavigationView.hideNav() {
         this.visibility = View.GONE
     }
-}
 
+}

@@ -7,4 +7,5 @@ data class VacancyRequestDto(
     val salary: Int? = null,
     val page: Int? = null,
     val onlyWithSalary: Boolean? = null
+
 )

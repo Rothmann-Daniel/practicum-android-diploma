@@ -8,5 +8,9 @@
         <item name="colorOnSurfaceVariant">@color/gray</item>
     </style>
 
-    <style name="Theme.PracticumAndroidDiploma" parent="Base.Theme.PracticumAndroidDiploma" />
+    <style name="Theme.PracticumAndroidDiploma" parent="Base.Theme.PracticumAndroidDiploma">
+        <item name="android:textColor">?attr/colorOnBackground</item>
+        <item name="android:textSize">@dimen/mediumTextSize</item>
+        <item name="android:fontFamily">@font/ys_display_regular</item>
+    </style>
 </resources>
