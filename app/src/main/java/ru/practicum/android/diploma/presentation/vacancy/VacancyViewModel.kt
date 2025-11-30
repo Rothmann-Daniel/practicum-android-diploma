@@ -26,37 +26,44 @@ class VacancyViewModel(
 
     fun loadVacancyDetails(vacancyId: String) {
         _vacancyState.value = VacancyState.Loading
-
         viewModelScope.launch {
             val inFavorites = isVacancyInFavoritesUseCase(vacancyId)
             if (inFavorites) {
-                val vacancy = getFavoriteVacancyByIdUseCase(vacancyId)
-                if (vacancy == null) {
-                    _vacancyState.value = VacancyState.Error(ErrorType.VACANCY_NOT_FOUND)
-                } else {
-                    _vacancyState.value = VacancyState.Content(vacancy, inFavorites)
-                }
+                loadVacancyDetailsFromLocalStorage(vacancyId, inFavorites)
             } else {
-                when (val response = getVacancyDetailsUseCase(vacancyId)) {
-                    is ApiResponse.Success -> {
-                        _vacancyState.value = VacancyState.Content(response.data, inFavorites)
-                    }
+                loadVacancyDetailsFromRemoteStorage(vacancyId, inFavorites)
+            }
+        }
+    }
 
-                    is ApiResponse.Error -> {
-                        val errorType = when {
-                            response.code == HTTP_NOT_FOUND -> ErrorType.VACANCY_NOT_FOUND
-                            response.message.contains("Ошибка сети") ||
-                                response.message.contains("Превышено время") -> ErrorType.NETWORK_ERROR
+    suspend fun loadVacancyDetailsFromLocalStorage(vacancyId: String, inFavorites: Boolean) {
+        val vacancy = getFavoriteVacancyByIdUseCase(vacancyId)
+        if (vacancy == null) {
+            _vacancyState.value = VacancyState.Error(ErrorType.VACANCY_NOT_FOUND)
+        } else {
+            _vacancyState.value = VacancyState.Content(vacancy, inFavorites)
+        }
+    }
 
-                            else -> ErrorType.SERVER_ERROR
-                        }
-                        _vacancyState.value = VacancyState.Error(errorType)
-                    }
+    suspend fun loadVacancyDetailsFromRemoteStorage(vacancyId: String, inFavorites: Boolean) {
+        when (val response = getVacancyDetailsUseCase(vacancyId)) {
+            is ApiResponse.Success -> {
+                _vacancyState.value = VacancyState.Content(response.data, inFavorites)
+            }
 
-                    is ApiResponse.Loading -> {
-                        _vacancyState.value = VacancyState.Loading
-                    }
+            is ApiResponse.Error -> {
+                val errorType = when {
+                    response.code == HTTP_NOT_FOUND -> ErrorType.VACANCY_NOT_FOUND
+                    response.message.contains("Ошибка сети") ||
+                        response.message.contains("Превышено время") -> ErrorType.NETWORK_ERROR
+
+                    else -> ErrorType.SERVER_ERROR
                 }
+                _vacancyState.value = VacancyState.Error(errorType)
+            }
+
+            is ApiResponse.Loading -> {
+                _vacancyState.value = VacancyState.Loading
             }
         }
     }
