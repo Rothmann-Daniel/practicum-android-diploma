@@ -11,7 +11,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 import ru.practicum.android.diploma.BuildConfig
 import ru.practicum.android.diploma.data.local.database.AppDatabase
 import ru.practicum.android.diploma.data.local.mapper.AreaLocalMapper
-import ru.practicum.android.diploma.data.local.mapper.FavoritesLocalMapper
 import ru.practicum.android.diploma.data.local.mapper.IndustryLocalMapper
 import ru.practicum.android.diploma.data.local.mapper.VacancyLocalMapper
 import ru.practicum.android.diploma.data.remote.api.ApiService
@@ -68,7 +67,6 @@ val appModule = module {
     single { IndustryRemoteMapper() }
     single { VacancyRemoteMapper(get(), get()) }
     single { VacancyRequestMapper() }
-    single { FavoritesLocalMapper() }
 
     // Local Mappers
     single { AreaLocalMapper() }
