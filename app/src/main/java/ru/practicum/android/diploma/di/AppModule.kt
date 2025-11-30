@@ -11,6 +11,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import ru.practicum.android.diploma.BuildConfig
 import ru.practicum.android.diploma.data.local.database.AppDatabase
 import ru.practicum.android.diploma.data.local.mapper.AreaLocalMapper
+import ru.practicum.android.diploma.data.local.mapper.FavoritesLocalMapper
 import ru.practicum.android.diploma.data.local.mapper.IndustryLocalMapper
 import ru.practicum.android.diploma.data.local.mapper.VacancyLocalMapper
 import ru.practicum.android.diploma.data.remote.api.ApiService
@@ -24,9 +25,15 @@ import ru.practicum.android.diploma.data.repository.VacancyRepositoryImpl
 import ru.practicum.android.diploma.domain.repository.IAreaRepository
 import ru.practicum.android.diploma.domain.repository.IIndustryRepository
 import ru.practicum.android.diploma.domain.repository.IVacancyRepository
+import ru.practicum.android.diploma.domain.usecases.AddVacancyToFavoritesUseCase
+import ru.practicum.android.diploma.domain.usecases.DeleteVacancyFromFavoritesUseCase
 import ru.practicum.android.diploma.domain.usecases.GetCachedVacanciesUseCase
+import ru.practicum.android.diploma.domain.usecases.GetFavoriteVacanciesUseCase
+import ru.practicum.android.diploma.domain.usecases.GetFavoriteVacancyByIdUseCase
 import ru.practicum.android.diploma.domain.usecases.GetVacancyDetailsUseCase
+import ru.practicum.android.diploma.domain.usecases.IsVacancyInFavoritesUseCase
 import ru.practicum.android.diploma.domain.usecases.SearchVacanciesUseCase
+import ru.practicum.android.diploma.presentation.favorites.FavoriteVacancyViewModel
 import ru.practicum.android.diploma.presentation.search.SearchViewModel
 import ru.practicum.android.diploma.presentation.vacancy.VacancyViewModel
 import java.util.concurrent.TimeUnit
@@ -52,12 +59,14 @@ val appModule = module {
     single { get<AppDatabase>().areaDao() }
     single { get<AppDatabase>().industryDao() }
     single { get<AppDatabase>().vacancyDao() }
+    single { get<AppDatabase>().vacancyInFavoritesDao() }
 
     // Remote Mappers
     single { AreaRemoteMapper() }
     single { IndustryRemoteMapper() }
     single { VacancyRemoteMapper(get(), get()) }
     single { VacancyRequestMapper() }
+    single { FavoritesLocalMapper() }
 
     // Local Mappers
     single { AreaLocalMapper() }
@@ -100,12 +109,17 @@ val appModule = module {
     // Repositories
     single<IAreaRepository> { AreaRepositoryImpl(get(), get(), get(), get()) }
     single<IIndustryRepository> { IndustryRepositoryImpl(get(), get(), get(), get()) }
-    single<IVacancyRepository> { VacancyRepositoryImpl(get(), get(), get(), get(), get()) }
+    single<IVacancyRepository> { VacancyRepositoryImpl(get(), get(), get(), get(), get(), get(), get()) }
 
     // Use Cases
     single { SearchVacanciesUseCase(get()) }
     single { GetVacancyDetailsUseCase(get()) }
     single { GetCachedVacanciesUseCase(get()) }
+    single { AddVacancyToFavoritesUseCase(get()) }
+    single { DeleteVacancyFromFavoritesUseCase(get()) }
+    single { GetFavoriteVacanciesUseCase(get()) }
+    single { GetFavoriteVacancyByIdUseCase(get()) }
+    single { IsVacancyInFavoritesUseCase(get()) }
 
     // ViewModels
     viewModel {
@@ -115,8 +129,10 @@ val appModule = module {
     }
 
     viewModel {
-        VacancyViewModel(
-            getVacancyDetailsUseCase = get<GetVacancyDetailsUseCase>()
-        )
+        VacancyViewModel(get(), get(), get(), get(), get())
+    }
+
+    viewModel {
+        FavoriteVacancyViewModel(get())
     }
 }
