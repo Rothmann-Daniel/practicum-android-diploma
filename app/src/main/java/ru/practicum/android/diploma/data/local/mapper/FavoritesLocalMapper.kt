@@ -24,6 +24,7 @@ class FavoritesLocalMapper {
             salaryTo = domain.salary?.to,
             salaryCurrency = domain.salary?.currency,
             address = domain.address?.fullAddress,
+            city = domain.address?.city,
             experienceId = domain.experience?.id,
             experienceName = domain.experience?.name,
             scheduleId = domain.schedule?.id,
@@ -77,14 +78,13 @@ class FavoritesLocalMapper {
     }
 
     private fun mapAddress(entity: VacancyInFavoritesEntity): Address? {
-        return entity.address?.let {
-            Address(
-                city = "",
-                street = "",
-                building = "",
-                fullAddress = it
-            )
-        }
+        if (entity.address == null && entity.city == null) return null
+        return Address(
+            city = entity.city ?: "",
+            street = "",
+            building = "",
+            fullAddress = entity.address ?: ""
+        )
     }
 
     private fun mapExperience(entity: VacancyInFavoritesEntity): Experience? {

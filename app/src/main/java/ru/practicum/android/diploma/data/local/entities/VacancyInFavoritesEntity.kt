@@ -13,6 +13,7 @@ data class VacancyInFavoritesEntity(
     val salaryTo: Int?,
     val salaryCurrency: String?,
     val address: String?,
+    val city: String?, // Добавил, чтобы отображался город в списке
     val experienceId: String?,
     val experienceName: String?,
     val scheduleId: String?,
