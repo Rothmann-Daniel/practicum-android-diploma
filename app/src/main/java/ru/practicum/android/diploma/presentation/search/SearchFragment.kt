@@ -20,8 +20,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import ru.practicum.android.diploma.R
-import ru.practicum.android.diploma.core.utils.addTopOffsetForFirstItem
-import ru.practicum.android.diploma.core.utils.dp
 import ru.practicum.android.diploma.databinding.FragmentSearchBinding
 
 class SearchFragment : Fragment() {
@@ -75,13 +73,6 @@ class SearchFragment : Fragment() {
         val layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerView.layoutManager = layoutManager
         binding.recyclerView.adapter = adapter
-        // Добавляем отступ для первого элемента 8dp
-        binding.recyclerView.post {
-            binding.recyclerView.addTopOffsetForFirstItem(
-                offset = 16.dp,
-                extraTop = binding.btnMessage.height
-            )
-        }
 
         binding.recyclerView.addOnScrollListener(
             object : RecyclerView.OnScrollListener() {
@@ -94,7 +85,9 @@ class SearchFragment : Fragment() {
                     val totalItemCount = layoutManager.itemCount
                     val firstVisibleItem = layoutManager.findFirstVisibleItemPosition()
 
-                    if (visibleItemCount + firstVisibleItem >= totalItemCount && firstVisibleItem >= 0) {
+                    if (!viewModel.isLoadingNextPage.value!! &&
+                        totalItemCount - visibleItemCount <= firstVisibleItem + PRELOAD_THRESHOLD
+                    ) {
                         viewModel.loadNextPage()
                     }
                 }
@@ -222,7 +215,7 @@ class SearchFragment : Fragment() {
             visibility = View.VISIBLE
             text = resultText
         }
-        
+
     }
 
     private fun handleError(state: SearchViewModel.SearchUiState.Error) {
@@ -289,4 +282,9 @@ class SearchFragment : Fragment() {
         super.onDetach()
         activity?.lifecycle?.removeObserver(activityObserver)
     }
+
+    companion object {
+        private const val PRELOAD_THRESHOLD = 5
+    }
+
 }
