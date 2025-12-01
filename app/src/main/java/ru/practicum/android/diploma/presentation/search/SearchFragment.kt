@@ -139,8 +139,8 @@ class SearchFragment : Fragment() {
             if (actionId == EditorInfo.IME_ACTION_DONE || isEnterPressed) {
                 val query = v.text.toString()
                 if (query.isNotEmpty()) {
-                    viewModel.forceSearch(query)  // Запуск поиска
-                    hideKeyboard(v)               // Скрываем клавиатуру
+                    viewModel.forceSearch(query)
+                    hideKeyboard(v)
                     v.clearFocus()
                 }
                 true

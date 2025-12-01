@@ -108,8 +108,11 @@ class SearchViewModel(
         if (isLoadingPage || page >= totalPages) return
 
         isLoadingPage = true
-        if (page == 0) _uiState.value = SearchUiState.Loading
-        else _isLoadingNextPage.value = true
+        if (page == 0) {
+            _uiState.value = SearchUiState.Loading
+        } else {
+            _isLoadingNextPage.value = true
+        }
 
         viewModelScope.launch {
             val request = VacancySearchRequest(text = query, page = page)
