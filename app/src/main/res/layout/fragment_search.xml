@@ -102,6 +102,16 @@
             android:paddingVertical="4dp"
             android:textColor="@color/white"
             tools:text="Найдено 0 вакансий" />
+
+        <!-- ProgressBar для подгрузки следующей страницы -->
+        <ProgressBar
+            android:id="@+id/progressBarBottom"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="8dp"
+            android:indeterminateTint="@color/blue"
+            android:visibility="gone" />
     </FrameLayout>
 
     <!-- Картинка и сообщение -->
@@ -131,7 +141,6 @@
         app:layout_constraintTop_toBottomOf="@id/messageImage"
         tools:text="Нет интернета" />
 
-
     <!-- Progress Bar (крутящееся колечко загрузки) -->
     <ProgressBar
         android:id="@+id/progressBar"
@@ -144,18 +153,5 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <!-- ProgressBar для подгрузки следующей страницы -->
-    <ProgressBar
-        android:id="@+id/progressBarBottom"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="8dp"
-        android:indeterminateTint="@color/blue"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

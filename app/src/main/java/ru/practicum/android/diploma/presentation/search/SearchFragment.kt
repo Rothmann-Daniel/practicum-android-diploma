@@ -2,9 +2,12 @@ package ru.practicum.android.diploma.presentation.search
 
 import android.content.Context
 import android.os.Bundle
+import android.text.InputType
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -135,23 +138,43 @@ class SearchFragment : Fragment() {
             if (hasFocus) showKeyboard(v)
         }
 
-        binding.searchQuery.setOnEditorActionListener { v, _, _ ->
-            viewModel.forceSearch(v.text.toString())
-            hideKeyboard(v)
-            v.clearFocus()
-            true
+        binding.searchQuery.imeOptions = EditorInfo.IME_ACTION_DONE
+        binding.searchQuery.setRawInputType(InputType.TYPE_CLASS_TEXT)
+
+        binding.searchQuery.setOnEditorActionListener { v, actionId, event ->
+            val isEnterPressed = event?.action == KeyEvent.ACTION_DOWN && event.keyCode == KeyEvent.KEYCODE_ENTER
+
+            // Проверяем actionId или физический Enter
+            if (actionId == EditorInfo.IME_ACTION_DONE || isEnterPressed) {
+                val query = v.text.toString()
+                if (query.isNotEmpty()) {
+                    viewModel.forceSearch(query)  // Запуск поиска
+                    hideKeyboard(v)               // Скрываем клавиатуру
+                    v.clearFocus()
+                }
+                true
+            } else {
+                false
+            }
         }
     }
 
     private fun setupObservers() {
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
             when (state) {
-                is SearchViewModel.SearchUiState.Loading -> handleLoading()
+                is SearchViewModel.SearchUiState.Loading -> {
+                    handleLoading()
+                    hideKeyboard(binding.searchQuery)
+                }
+
                 is SearchViewModel.SearchUiState.EmptyQuery -> handleEmptyQuery()
                 is SearchViewModel.SearchUiState.EmptyResult -> handleEmptyResult()
                 is SearchViewModel.SearchUiState.Success -> handleSuccess(state)
                 is SearchViewModel.SearchUiState.Error -> handleError(state)
             }
+        }
+        viewModel.isLoadingNextPage.observe(viewLifecycleOwner) { loading ->
+            binding.progressBarBottom.visibility = if (loading) View.VISIBLE else View.GONE
         }
     }
 
@@ -168,8 +191,6 @@ class SearchFragment : Fragment() {
         binding.messageText.visibility = View.GONE
         binding.btnMessage.visibility = View.GONE
         binding.progressBarBottom.visibility = View.GONE
-        binding.recyclerView.setPadding(0, 0, 0, 0)
-
     }
 
     private fun handleEmptyResult() {
@@ -200,11 +221,8 @@ class SearchFragment : Fragment() {
         binding.btnMessage.apply {
             visibility = View.VISIBLE
             text = resultText
-
         }
-
-        binding.progressBarBottom.visibility =
-            if (state.isLastPage) View.GONE else View.VISIBLE
+        
     }
 
     private fun handleError(state: SearchViewModel.SearchUiState.Error) {

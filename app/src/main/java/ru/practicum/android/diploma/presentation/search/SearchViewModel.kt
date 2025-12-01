@@ -20,6 +20,7 @@ class SearchViewModel(
 
     private var allowRestoreFromCache: Boolean = false
 
+
     // Состояния UI для экрана поиска вакансий
     sealed class SearchUiState {
         object Loading : SearchUiState()
@@ -39,6 +40,9 @@ class SearchViewModel(
 
     private val _uiState = MutableLiveData<SearchUiState>(SearchUiState.EmptyQuery)
     val uiState: LiveData<SearchUiState> = _uiState
+
+    private val _isLoadingNextPage = MutableLiveData(false)
+    val isLoadingNextPage: LiveData<Boolean> = _isLoadingNextPage
 
     private val loadedVacancies = mutableListOf<Vacancy>()
     private var currentPage = 0
@@ -106,6 +110,7 @@ class SearchViewModel(
 
         isLoadingPage = true
         if (page == 0) _uiState.value = SearchUiState.Loading
+        else _isLoadingNextPage.value = true
 
         viewModelScope.launch {
             val request = VacancySearchRequest(text = query, page = page)
@@ -116,10 +121,12 @@ class SearchViewModel(
                     updateVacanciesList(result.data.vacancies, page)
                     updateUiState(result.data.found)
                 }
+
                 is ApiResponse.Error -> handleErrorResult(result)
-                is ApiResponse.Loading -> _uiState.value = SearchUiState.Loading
+                is ApiResponse.Loading -> if (page == 0) _uiState.value = SearchUiState.Loading
             }
             isLoadingPage = false
+            _isLoadingNextPage.value = false
         }
     }
 
@@ -171,9 +178,8 @@ class SearchViewModel(
      * Загружает следующую страницу результатов, если доступна
      */
     fun loadNextPage() {
-        if (currentPage + 1 < totalPages && !isLoadingPage) {
-            searchVacancies(lastQuery, currentPage + 1)
-        }
+        if (currentPage + 1 >= totalPages || isLoadingPage) return
+        searchVacancies(lastQuery, currentPage + 1)
     }
 
     /**
