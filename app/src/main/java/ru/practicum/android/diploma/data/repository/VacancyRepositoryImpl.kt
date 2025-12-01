@@ -5,7 +5,7 @@ import retrofit2.HttpException
 import ru.practicum.android.diploma.data.local.dao.VacancyDao
 import ru.practicum.android.diploma.data.local.mapper.VacancyLocalMapper
 import ru.practicum.android.diploma.data.remote.api.ApiService
-import ru.practicum.android.diploma.data.remote.dto.response.ApiResponse
+import ru.practicum.android.diploma.domain.models.ApiResponse
 import ru.practicum.android.diploma.data.remote.dto.response.VacancyDetailResponseDto
 import ru.practicum.android.diploma.data.remote.dto.response.VacancyResponse
 import ru.practicum.android.diploma.data.remote.mapper.VacancyRemoteMapper

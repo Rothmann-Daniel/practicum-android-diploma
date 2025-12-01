@@ -1,6 +1,6 @@
 package ru.practicum.android.diploma.domain.repository
 
-import ru.practicum.android.diploma.data.remote.dto.response.ApiResponse
+import ru.practicum.android.diploma.domain.models.ApiResponse
 import ru.practicum.android.diploma.domain.models.Vacancy
 import ru.practicum.android.diploma.domain.models.VacancySearchRequest
 import ru.practicum.android.diploma.domain.models.VacancySearchResult

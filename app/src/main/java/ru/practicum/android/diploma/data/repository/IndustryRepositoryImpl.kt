@@ -5,7 +5,7 @@ import retrofit2.HttpException
 import ru.practicum.android.diploma.data.local.dao.IndustryDao
 import ru.practicum.android.diploma.data.local.mapper.IndustryLocalMapper
 import ru.practicum.android.diploma.data.remote.api.ApiService
-import ru.practicum.android.diploma.data.remote.dto.response.ApiResponse
+import ru.practicum.android.diploma.domain.models.ApiResponse
 import ru.practicum.android.diploma.data.remote.mapper.IndustryRemoteMapper
 import ru.practicum.android.diploma.domain.models.Industry
 import ru.practicum.android.diploma.domain.repository.IIndustryRepository
