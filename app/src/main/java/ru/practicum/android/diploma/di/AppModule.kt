@@ -9,6 +9,7 @@ import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import ru.practicum.android.diploma.BuildConfig
+import ru.practicum.android.diploma.core.utils.InternetConnectionChecker
 import ru.practicum.android.diploma.data.local.database.AppDatabase
 import ru.practicum.android.diploma.data.local.mapper.AreaLocalMapper
 import ru.practicum.android.diploma.data.local.mapper.FavoritesLocalMapper
@@ -56,6 +57,10 @@ val appModule = module {
             .fallbackToDestructiveMigration()
             .build()
     }
+
+
+    //  InternetConnectionChecker
+    single { InternetConnectionChecker(androidContext()) }
 
     // DAOs
     single { get<AppDatabase>().areaDao() }
@@ -109,9 +114,9 @@ val appModule = module {
     }
 
     // Repositories
-    single<IAreaRepository> { AreaRepositoryImpl(get(), get(), get(), get()) }
-    single<IIndustryRepository> { IndustryRepositoryImpl(get(), get(), get(), get()) }
-    single<IVacancyRepository> { VacancyRepositoryImpl(get(), get(), get(), get(), get()) }
+    single<IAreaRepository> { AreaRepositoryImpl(get(), get(), get(),get(), get()) }
+    single<IIndustryRepository> { IndustryRepositoryImpl(get(), get(), get(), get(), get()) }
+    single<IVacancyRepository> { VacancyRepositoryImpl(get(), get(), get(), get(), get(), get()) }
     single<IFavoriteRepository> { FavoriteRepositoryImpl(get(), get()) }
 
     // Use Cases
