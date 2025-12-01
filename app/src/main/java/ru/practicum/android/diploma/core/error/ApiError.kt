@@ -12,13 +12,13 @@ import java.net.SocketTimeoutException
 sealed class ApiError(val message: String, val code: Int? = null) {
 
     // HTTP ошибки
-    data class AccessDenied(val httpCode: Int = 403) :
+    data class AccessDenied(val httpCode: Int = HTTP_FORBIDDEN) :
         ApiError("Доступ запрещён. Проверьте токен авторизации", httpCode)
 
-    data class NotFound(val httpCode: Int = 404) :
+    data class NotFound(val httpCode: Int = HTTP_NOT_FOUND) :
         ApiError("Ресурс не найден", httpCode)
 
-    data class InternalServerError(val httpCode: Int = 500) :
+    data class InternalServerError(val httpCode: Int = HTTP_INTERNAL_ERROR) :
         ApiError("Внутренняя ошибка сервера", httpCode)
 
     data class HttpError(val httpCode: Int) :
@@ -40,10 +40,16 @@ sealed class ApiError(val message: String, val code: Int? = null) {
 
     // Специфичные ошибки
     data class VacancyNotFound(val vacancyId: String) :
-        ApiError("Вакансия не найдена", 404)
+        ApiError("Вакансия не найдена", HTTP_NOT_FOUND)
 
     data class MappingError(val entityId: String?) :
         ApiError("Ошибка преобразования данных: $entityId")
+
+    companion object {
+        const val HTTP_FORBIDDEN = 403
+        const val HTTP_NOT_FOUND = 404
+        const val HTTP_INTERNAL_ERROR = 500
+    }
 }
 
 /**
@@ -64,9 +70,9 @@ fun Exception.toApiError(): ApiError {
     return when (this) {
         is HttpException -> {
             when (code()) {
-                403 -> ApiError.AccessDenied()
-                404 -> ApiError.NotFound()
-                500 -> ApiError.InternalServerError()
+                ApiError.HTTP_FORBIDDEN -> ApiError.AccessDenied()
+                ApiError.HTTP_NOT_FOUND -> ApiError.NotFound()
+                ApiError.HTTP_INTERNAL_ERROR -> ApiError.InternalServerError()
                 else -> ApiError.HttpError(code())
             }
         }
@@ -123,8 +129,16 @@ suspend fun <T> executeApiCall(
 
     return try {
         ApiResponse.Success(block())
-    } catch (e: Exception) {
+    } catch (e: HttpException) {
         val error = e.toApiError()
+        error.log(category, e)
+        error.toApiResponse()
+    } catch (e: SocketTimeoutException) {
+        val error = ApiError.Timeout
+        error.log(category, e)
+        error.toApiResponse()
+    } catch (e: IOException) {
+        val error = ApiError.NetworkError(e.message)
         error.log(category, e)
         error.toApiResponse()
     }
