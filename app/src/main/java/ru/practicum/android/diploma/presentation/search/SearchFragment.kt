@@ -80,7 +80,6 @@ class SearchFragment : Fragment() {
             )
         }
 
-
         binding.recyclerView.addOnScrollListener(
             object : RecyclerView.OnScrollListener() {
                 override fun onScrolled(
@@ -98,7 +97,6 @@ class SearchFragment : Fragment() {
                 }
             }
         )
-
     }
 
     private fun setupSearch() {
@@ -109,6 +107,13 @@ class SearchFragment : Fragment() {
 
         binding.searchQuery.doOnTextChanged { text, _, _, _ ->
             val query = text?.toString().orEmpty()
+            // Скрываем стартовую картинку, если ввод есть
+            if (query.isNotEmpty()) {
+                binding.messageImage.visibility = View.GONE
+            } else {
+                // Если поле пустое, показываем стартовую картинку
+                showMessageImage(R.drawable.img_start_search)
+            }
             viewModel.onSearchQueryChanged(query)
             binding.btnClear.setImageResource(
                 if (query.isEmpty()) searchIcon else clearIcon
@@ -128,7 +133,6 @@ class SearchFragment : Fragment() {
 
         binding.searchQuery.setOnFocusChangeListener { v, hasFocus ->
             if (hasFocus) showKeyboard(v)
-            binding.messageImage.visibility = View.GONE
         }
 
         binding.searchQuery.setOnEditorActionListener { v, _, _ ->
