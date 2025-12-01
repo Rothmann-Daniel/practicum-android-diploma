@@ -67,20 +67,49 @@ class VacancyDataBinder(
     private fun bindDescriptionAndSkills(vacancy: Vacancy) {
         if (vacancy.description.isNotEmpty()) {
             binding.jobDescriptionTitle.isVisible = true
-            binding.responsibilitiesTitle.isVisible = false
-            binding.responsibilitiesText.isVisible = true
 
-            // Форматируем описание с сохранением разделителей
-            val formattedDescription = formatDescription(vacancy.description)
-            binding.responsibilitiesText.text = Html.fromHtml(
-                formattedDescription,
-                Html.FROM_HTML_MODE_COMPACT
-            )
+            // Разделяем описание на секции
+            val (responsibilities, requirements, conditions) = parseDescriptionSections(vacancy.description)
 
-            binding.requirementsTitle.isVisible = false
-            binding.requirementsText.isVisible = false
-            binding.conditionsTitle.isVisible = false
-            binding.conditionsText.isVisible = false
+            // Обязанности
+            if (responsibilities.isNotEmpty()) {
+                binding.responsibilitiesTitle.isVisible = true
+                binding.responsibilitiesText.isVisible = true
+                binding.responsibilitiesText.text = Html.fromHtml(
+                    formatSectionContent(responsibilities),
+                    Html.FROM_HTML_MODE_COMPACT
+                )
+            } else {
+                binding.responsibilitiesTitle.isVisible = false
+                binding.responsibilitiesText.isVisible = false
+            }
+
+            // Требования
+            if (requirements.isNotEmpty()) {
+                binding.requirementsTitle.isVisible = true
+                binding.requirementsText.isVisible = true
+                binding.requirementsText.text = Html.fromHtml(
+                    formatSectionContent(requirements),
+                    Html.FROM_HTML_MODE_COMPACT
+                )
+            } else {
+                binding.requirementsTitle.isVisible = false
+                binding.requirementsText.isVisible = false
+            }
+
+            // Условия
+            if (conditions.isNotEmpty()) {
+                binding.conditionsTitle.isVisible = true
+                binding.conditionsText.isVisible = true
+                binding.conditionsText.text = Html.fromHtml(
+                    formatSectionContent(conditions),
+                    Html.FROM_HTML_MODE_COMPACT
+                )
+            } else {
+                binding.conditionsTitle.isVisible = false
+                binding.conditionsText.isVisible = false
+            }
+
         } else {
             binding.jobDescriptionTitle.isVisible = false
             binding.responsibilitiesTitle.isVisible = false
@@ -101,24 +130,75 @@ class VacancyDataBinder(
         }
     }
 
-    private fun formatDescription(description: String): String {
-        return description
-            // 1. Убирает пробелы и переносы в начале и конце строки
+    private fun parseDescriptionSections(description: String): Triple<String, String, String> {
+        var responsibilities = ""
+        var requirements = ""
+        var conditions = ""
+
+        val lines = description.trim().split("\n")
+        var currentSection = ""
+
+        for (line in lines) {
+            val trimmedLine = line.trim()
+
+            when {
+                trimmedLine.contains("Обязанности", ignoreCase = true) ||
+                    trimmedLine.contains("Responsibilities", ignoreCase = true) -> {
+                    currentSection = "responsibilities"
+                    continue // Пропускаем строку с заголовком
+                }
+                trimmedLine.contains("Требования", ignoreCase = true) ||
+                    trimmedLine.contains("Requirements", ignoreCase = true) -> {
+                    currentSection = "requirements"
+                    continue
+                }
+                trimmedLine.contains("Условия", ignoreCase = true) ||
+                    trimmedLine.contains("Conditions", ignoreCase = true) ||
+                    trimmedLine.contains("Мы предлагаем", ignoreCase = true) -> {
+                    currentSection = "conditions"
+                    continue
+                }
+                trimmedLine.isNotEmpty() -> {
+                    when (currentSection) {
+                        "responsibilities" -> {
+                            if (responsibilities.isNotEmpty()) responsibilities += "\n"
+                            responsibilities += trimmedLine
+                        }
+                        "requirements" -> {
+                            if (requirements.isNotEmpty()) requirements += "\n"
+                            requirements += trimmedLine
+                        }
+                        "conditions" -> {
+                            if (conditions.isNotEmpty()) conditions += "\n"
+                            conditions += trimmedLine
+                        }
+                        else -> {
+                            // Если секция не определена, добавляем к обязанностям
+                            if (responsibilities.isNotEmpty()) responsibilities += "\n"
+                            responsibilities += trimmedLine
+                        }
+                    }
+                }
+            }
+        }
+
+        return Triple(responsibilities, requirements, conditions)
+    }
+
+    private fun formatSectionContent(content: String): String {
+        return content
             .trim()
-            // 2. Двойные переносы → двойные HTML-переносы (создают абзацы)
+            // Двойные переносы → абзацы
             .replace("\n\n", "<br><br>")
-            // 3. Одиночные переносы → обычные пробелы (объединяет строки)
+            // Одиночные переносы → пробелы
             .replace("\n", " ")
-            // 4. Маркеры списка → перенос + маркер (начинает новый пункт списка)
-            .replace("•", "<br>•")
-            .replace(" - ", "<br>- ")
-            .replace(" — ", "<br>— ")
-            // 5. Исправляет двойные переносы перед маркерами (убирает лишние отступы)
-            .replace("<br><br>•", "<br>•")
-            .replace("<br><br>- ", "<br>- ")
-            .replace("<br><br>— ", "<br>— ")
-            // 6. Заменяет множественные пробелы на один
-            .replace("\\s+".toRegex(), " ")
+            // Маркеры с переносами и отступами
+            .replace(Regex("([•\\-—])\\s+"), "<br>$1&nbsp;")
+            // Убираем лишние переносы в начале
+            .replace(Regex("^<br>"), "")
+            // Убираем множественные пробелы
+            .replace(Regex("\\s{2,}"), " ")
+            .trim()
     }
 
     private fun loadCompanyLogo(logoUrl: String?) {
