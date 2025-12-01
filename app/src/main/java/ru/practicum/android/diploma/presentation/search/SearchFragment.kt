@@ -115,7 +115,6 @@ class SearchFragment : Fragment() {
                 if (query.isEmpty()) searchIcon else clearIcon
             )
         }
-
         binding.btnClear.setOnClickListener {
             binding.searchQuery.text?.clear()
             binding.btnClear.setImageResource(searchIcon)
@@ -136,7 +135,6 @@ class SearchFragment : Fragment() {
 
         binding.searchQuery.setOnEditorActionListener { v, actionId, event ->
             val isEnterPressed = event?.action == KeyEvent.ACTION_DOWN && event.keyCode == KeyEvent.KEYCODE_ENTER
-
             // Проверяем actionId или физический Enter
             if (actionId == EditorInfo.IME_ACTION_DONE || isEnterPressed) {
                 val query = v.text.toString()
@@ -286,5 +284,4 @@ class SearchFragment : Fragment() {
     companion object {
         private const val PRELOAD_THRESHOLD = 5
     }
-
 }

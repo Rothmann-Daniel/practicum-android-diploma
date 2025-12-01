@@ -20,7 +20,6 @@ class SearchViewModel(
 
     private var allowRestoreFromCache: Boolean = false
 
-
     // Состояния UI для экрана поиска вакансий
     sealed class SearchUiState {
         object Loading : SearchUiState()
