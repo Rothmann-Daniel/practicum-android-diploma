@@ -58,7 +58,6 @@ val appModule = module {
             .build()
     }
 
-
     //  InternetConnectionChecker
     single { InternetConnectionChecker(androidContext()) }
 
@@ -114,7 +113,7 @@ val appModule = module {
     }
 
     // Repositories
-    single<IAreaRepository> { AreaRepositoryImpl(get(), get(), get(),get(), get()) }
+    single<IAreaRepository> { AreaRepositoryImpl(get(), get(), get(), get(), get()) }
     single<IIndustryRepository> { IndustryRepositoryImpl(get(), get(), get(), get(), get()) }
     single<IVacancyRepository> { VacancyRepositoryImpl(get(), get(), get(), get(), get(), get()) }
     single<IFavoriteRepository> { FavoriteRepositoryImpl(get(), get()) }
