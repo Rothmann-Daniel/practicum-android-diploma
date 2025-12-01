@@ -17,6 +17,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import ru.practicum.android.diploma.R
+import ru.practicum.android.diploma.core.utils.addTopOffsetForFirstItem
+import ru.practicum.android.diploma.core.utils.dp
 import ru.practicum.android.diploma.databinding.FragmentSearchBinding
 
 class SearchFragment : Fragment() {
@@ -70,6 +72,14 @@ class SearchFragment : Fragment() {
         val layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerView.layoutManager = layoutManager
         binding.recyclerView.adapter = adapter
+        // Добавляем отступ для первого элемента 8dp
+        binding.recyclerView.post {
+            binding.recyclerView.addTopOffsetForFirstItem(
+                offset = 16.dp,
+                extraTop = binding.btnMessage.height
+            )
+        }
+
 
         binding.recyclerView.addOnScrollListener(
             object : RecyclerView.OnScrollListener() {
@@ -88,6 +98,7 @@ class SearchFragment : Fragment() {
                 }
             }
         )
+
     }
 
     private fun setupSearch() {
@@ -153,6 +164,8 @@ class SearchFragment : Fragment() {
         binding.messageText.visibility = View.GONE
         binding.btnMessage.visibility = View.GONE
         binding.progressBarBottom.visibility = View.GONE
+        binding.recyclerView.setPadding(0, 0, 0, 0)
+
     }
 
     private fun handleEmptyResult() {
@@ -183,6 +196,7 @@ class SearchFragment : Fragment() {
         binding.btnMessage.apply {
             visibility = View.VISIBLE
             text = resultText
+
         }
 
         binding.progressBarBottom.visibility =
