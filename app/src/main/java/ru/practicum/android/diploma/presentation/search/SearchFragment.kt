@@ -169,42 +169,33 @@ class SearchFragment : Fragment() {
     private fun setupObservers() {
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
             ui?.render(state)
-            // Скрываем клавиатуру для Loading, Success, EmptyResult, Error
+
             if (state !is SearchViewModel.SearchUiState.EmptyQuery) {
                 hideKeyboard(binding.searchQuery)
             }
-            if (state is SearchViewModel.SearchUiState.Success) {
-                adapter?.submitList(state.vacancies)
-            } else if (state is SearchViewModel.SearchUiState.Error) {
-                if (state.isNetworkError) {
-                    Toast.makeText(
-                        requireContext(),
-                        "Проверьте подключение к интернету",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                } else {
-                    Toast.makeText(
-                        requireContext(),
-                        "Произошла ошибка",
-                        Toast.LENGTH_SHORT
-                    ).show()
+
+            when (state) {
+                is SearchViewModel.SearchUiState.Success -> {
+                    adapter?.submitList(state.vacancies)
                 }
-                adapter?.submitList(emptyList())
-            } else {
-                adapter?.submitList(emptyList())
+
+                is SearchViewModel.SearchUiState.Error -> {
+                    adapter?.submitList(emptyList())
+                }
+
+                else -> {
+                    adapter?.submitList(emptyList())
+                }
             }
         }
 
         viewModel.isLoadingNextPage.observe(viewLifecycleOwner) { loading ->
-            binding.progressBarBottom.visibility = if (loading) View.VISIBLE else View.GONE
+            binding.progressBarBottom.visibility =
+                if (loading) View.VISIBLE else View.GONE
         }
-        // --- Ошибка подгрузки следующей страницы (pagination) ---
-        viewModel.errorEvent.observe(viewLifecycleOwner) {
-            Toast.makeText(
-                requireContext(),
-                "Не удалось загрузить следующую страницу",
-                Toast.LENGTH_SHORT
-            ).show()
+
+        viewModel.errorEvent.observe(viewLifecycleOwner) { message ->
+            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
         }
     }
 
