@@ -3,6 +3,7 @@ package ru.practicum.android.diploma.presentation.search
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import ru.practicum.android.diploma.core.utils.dp
 import ru.practicum.android.diploma.databinding.ItemVacancyListBinding
 import ru.practicum.android.diploma.domain.models.Vacancy
 
@@ -23,6 +24,13 @@ class VacanciesAdapter(
 
     override fun onBindViewHolder(holder: VacancyViewHolder, position: Int) {
         holder.bind(vacancies[position])
+        val topPadding = if (position == 0) FIRST_ITEM_TOP_PADDING_DP.dp else 0
+        holder.itemView.setPadding(
+            holder.itemView.paddingLeft,
+            topPadding,
+            holder.itemView.paddingRight,
+            holder.itemView.paddingBottom
+        )
     }
 
     override fun getItemCount(): Int = vacancies.size
@@ -38,5 +46,9 @@ class VacanciesAdapter(
     fun clear() {
         vacancies.clear()
         notifyDataSetChanged()
+    }
+
+    companion object {
+        private const val FIRST_ITEM_TOP_PADDING_DP = 38
     }
 }

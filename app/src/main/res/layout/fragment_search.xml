@@ -56,13 +56,13 @@
             android:layout_weight="1"
             android:background="@null"
             android:hint="@string/enter_query"
-            android:textColor="@color/black"
-            android:textColorHint="?attr/colorOnSurfaceVariant"
-            android:textCursorDrawable="@drawable/custom_blue_cursor"
             android:imeOptions="actionSearch"
             android:inputType="text"
             android:maxLines="1"
-            android:singleLine="true" />
+            android:singleLine="true"
+            android:textColor="@color/black"
+            android:textColorHint="?attr/colorOnSurfaceVariant"
+            android:textCursorDrawable="@drawable/custom_blue_cursor" />
 
         <ImageView
             android:id="@+id/btnClear"
@@ -74,37 +74,45 @@
 
     </LinearLayout>
 
-    <!-- Вакансии -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerView"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="38dp"
-        android:orientation="vertical"
-        android:visibility="visible"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/layoutSearch"
-        tools:itemCount="5"
-        tools:listitem="@layout/item_vacancy_list" />
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layoutSearch">
 
-    <!-- Синяя кнопочка-сообщение -->
-    <TextView
-        android:id="@+id/btnMessage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="3dp"
-        android:background="@drawable/shape_small_blue_button"
-        android:paddingHorizontal="12dp"
-        android:paddingVertical="4dp"
-        android:textColor="@color/white"
-        android:visibility="visible"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/layoutSearch"
-        tools:text="Найдено ... вакансий" />
+        <!-- RecyclerView -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:itemCount="5"
+            tools:listitem="@layout/item_vacancy_list" />
+
+        <!-- Фиксированная кнопка сверху -->
+        <TextView
+            android:id="@+id/btnMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|center_horizontal"
+            android:background="@drawable/shape_small_blue_button"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="4dp"
+            android:textColor="@color/white"
+            tools:text="Найдено 0 вакансий" />
+
+        <!-- ProgressBar для подгрузки следующей страницы -->
+        <ProgressBar
+            android:id="@+id/progressBarBottom"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="8dp"
+            android:indeterminateTint="@color/blue"
+            android:visibility="gone" />
+    </FrameLayout>
 
     <!-- Картинка и сообщение -->
     <ImageView
@@ -133,7 +141,6 @@
         app:layout_constraintTop_toBottomOf="@id/messageImage"
         tools:text="Нет интернета" />
 
-
     <!-- Progress Bar (крутящееся колечко загрузки) -->
     <ProgressBar
         android:id="@+id/progressBar"
@@ -146,18 +153,5 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <!-- ProgressBar для подгрузки следующей страницы -->
-    <ProgressBar
-        android:id="@+id/progressBarBottom"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="8dp"
-        android:indeterminateTint="@color/blue"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

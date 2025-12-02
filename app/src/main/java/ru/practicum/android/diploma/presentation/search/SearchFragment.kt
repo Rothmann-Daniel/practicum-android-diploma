@@ -2,9 +2,12 @@ package ru.practicum.android.diploma.presentation.search
 
 import android.content.Context
 import android.os.Bundle
+import android.text.InputType
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -82,7 +85,9 @@ class SearchFragment : Fragment() {
                     val totalItemCount = layoutManager.itemCount
                     val firstVisibleItem = layoutManager.findFirstVisibleItemPosition()
 
-                    if (visibleItemCount + firstVisibleItem >= totalItemCount && firstVisibleItem >= 0) {
+                    if (!viewModel.isLoadingNextPage.value!! &&
+                        totalItemCount - visibleItemCount <= firstVisibleItem + PRELOAD_THRESHOLD
+                    ) {
                         viewModel.loadNextPage()
                     }
                 }
@@ -98,12 +103,18 @@ class SearchFragment : Fragment() {
 
         binding.searchQuery.doOnTextChanged { text, _, _, _ ->
             val query = text?.toString().orEmpty()
+            // Скрываем стартовую картинку, если ввод есть
+            if (query.isNotEmpty()) {
+                binding.messageImage.visibility = View.GONE
+            } else {
+                // Если поле пустое, показываем стартовую картинку
+                showMessageImage(R.drawable.img_start_search)
+            }
             viewModel.onSearchQueryChanged(query)
             binding.btnClear.setImageResource(
                 if (query.isEmpty()) searchIcon else clearIcon
             )
         }
-
         binding.btnClear.setOnClickListener {
             binding.searchQuery.text?.clear()
             binding.btnClear.setImageResource(searchIcon)
@@ -117,26 +128,44 @@ class SearchFragment : Fragment() {
 
         binding.searchQuery.setOnFocusChangeListener { v, hasFocus ->
             if (hasFocus) showKeyboard(v)
-            binding.messageImage.visibility = View.GONE
         }
 
-        binding.searchQuery.setOnEditorActionListener { v, _, _ ->
-            viewModel.forceSearch(v.text.toString())
-            hideKeyboard(v)
-            v.clearFocus()
-            true
+        binding.searchQuery.imeOptions = EditorInfo.IME_ACTION_DONE
+        binding.searchQuery.setRawInputType(InputType.TYPE_CLASS_TEXT)
+
+        binding.searchQuery.setOnEditorActionListener { v, actionId, event ->
+            val isEnterPressed = event?.action == KeyEvent.ACTION_DOWN && event.keyCode == KeyEvent.KEYCODE_ENTER
+            // Проверяем actionId или физический Enter
+            if (actionId == EditorInfo.IME_ACTION_DONE || isEnterPressed) {
+                val query = v.text.toString()
+                if (query.isNotEmpty()) {
+                    viewModel.forceSearch(query)
+                    hideKeyboard(v)
+                    v.clearFocus()
+                }
+                true
+            } else {
+                false
+            }
         }
     }
 
     private fun setupObservers() {
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
             when (state) {
-                is SearchViewModel.SearchUiState.Loading -> handleLoading()
+                is SearchViewModel.SearchUiState.Loading -> {
+                    handleLoading()
+                    hideKeyboard(binding.searchQuery)
+                }
+
                 is SearchViewModel.SearchUiState.EmptyQuery -> handleEmptyQuery()
                 is SearchViewModel.SearchUiState.EmptyResult -> handleEmptyResult()
                 is SearchViewModel.SearchUiState.Success -> handleSuccess(state)
                 is SearchViewModel.SearchUiState.Error -> handleError(state)
             }
+        }
+        viewModel.isLoadingNextPage.observe(viewLifecycleOwner) { loading ->
+            binding.progressBarBottom.visibility = if (loading) View.VISIBLE else View.GONE
         }
     }
 
@@ -185,8 +214,6 @@ class SearchFragment : Fragment() {
             text = resultText
         }
 
-        binding.progressBarBottom.visibility =
-            if (state.isLastPage) View.GONE else View.VISIBLE
     }
 
     private fun handleError(state: SearchViewModel.SearchUiState.Error) {
@@ -252,5 +279,9 @@ class SearchFragment : Fragment() {
     override fun onDetach() {
         super.onDetach()
         activity?.lifecycle?.removeObserver(activityObserver)
+    }
+
+    companion object {
+        private const val PRELOAD_THRESHOLD = 5
     }
 }
