@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
@@ -174,6 +175,21 @@ class SearchFragment : Fragment() {
             }
             if (state is SearchViewModel.SearchUiState.Success) {
                 adapter?.submitList(state.vacancies)
+            } else if (state is SearchViewModel.SearchUiState.Error) {
+                if (state.isNetworkError) {
+                    Toast.makeText(
+                        requireContext(),
+                        "Проверьте подключение к интернету",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    Toast.makeText(
+                        requireContext(),
+                        "Произошла ошибка",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                adapter?.submitList(emptyList())
             } else {
                 adapter?.submitList(emptyList())
             }
@@ -181,6 +197,14 @@ class SearchFragment : Fragment() {
 
         viewModel.isLoadingNextPage.observe(viewLifecycleOwner) { loading ->
             binding.progressBarBottom.visibility = if (loading) View.VISIBLE else View.GONE
+        }
+        // --- Ошибка подгрузки следующей страницы (pagination) ---
+        viewModel.errorEvent.observe(viewLifecycleOwner) {
+            Toast.makeText(
+                requireContext(),
+                "Не удалось загрузить следующую страницу",
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 

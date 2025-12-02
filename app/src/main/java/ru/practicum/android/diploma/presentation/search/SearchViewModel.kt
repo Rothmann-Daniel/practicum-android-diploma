@@ -5,8 +5,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
+import ru.practicum.android.diploma.core.utils.SingleLiveEvent
 import ru.practicum.android.diploma.core.utils.debounce
-import ru.practicum.android.diploma.data.remote.dto.response.ApiResponse
 import ru.practicum.android.diploma.domain.models.DomainResult
 import ru.practicum.android.diploma.domain.models.Vacancy
 import ru.practicum.android.diploma.domain.models.VacancySearchRequest
@@ -43,6 +43,9 @@ class SearchViewModel(
 
     private val _isLoadingNextPage = MutableLiveData(false)
     val isLoadingNextPage: LiveData<Boolean> = _isLoadingNextPage
+
+    private val _errorEvent = SingleLiveEvent<String>()
+    val errorEvent: LiveData<String> = _errorEvent
 
     private val loadedVacancies = mutableListOf<Vacancy>()
     private var currentPage = 0
@@ -124,19 +127,37 @@ class SearchViewModel(
                     updateVacanciesList(result.data.vacancies, page)
                     updateUiState(result.data.found)
                 }
-                is DomainResult.Error -> handleErrorResult(result) // Изменено
+
+                is DomainResult.Error -> handleErrorResult(result, page) // Изменено
             }
             isLoadingPage = false
             _isLoadingNextPage.value = false
         }
     }
 
-    private fun handleErrorResult(result: DomainResult.Error) { // Изменена сигнатура
+    private fun handleErrorResult(result: DomainResult.Error, page: Int) { // Изменена сигнатура
         val isNetworkError = result.type == DomainResult.ErrorType.NETWORK_ERROR
-        _uiState.value = SearchUiState.Error(
-            message = result.message,
-            isNetworkError = isNetworkError
-        )
+        if (page == 0) {
+            _uiState.value = SearchUiState.Error(
+                message = result.message,
+                isNetworkError = isNetworkError
+            )
+        } else {
+            // Если ошибка при подгрузке следующей страницы, оставляем текущий список
+            _uiState.value = SearchUiState.Success(
+                vacancies = loadedVacancies.toList(),
+                isLastPage = currentPage >= totalPages - 1,
+                found = loadedVacancies.size
+            )
+        }
+        // Отправляем событие на тост
+        _errorEvent.value = if (isNetworkError)
+            "Проверьте подключение к интернету"
+        else
+            "Произошла ошибка"
+
+        _isLoadingNextPage.value = false
+        isLoadingPage = false
     }
 
     /**
@@ -169,18 +190,6 @@ class SearchViewModel(
                 found = found
             )
         }
-    }
-
-    /**
-     * Обрабатывает ошибки при поиске вакансий
-     * @param result объект ошибки от API
-     */
-    private fun handleErrorResult(result: ApiResponse.Error) {
-        val isNetworkError = result.code == null
-        _uiState.value = SearchUiState.Error(
-            message = result.message,
-            isNetworkError = isNetworkError
-        )
     }
 
     /**
