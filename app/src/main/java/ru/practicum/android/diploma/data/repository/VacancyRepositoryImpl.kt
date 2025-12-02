@@ -9,10 +9,11 @@ import ru.practicum.android.diploma.core.utils.InternetConnectionChecker
 import ru.practicum.android.diploma.data.local.dao.VacancyDao
 import ru.practicum.android.diploma.data.local.mapper.VacancyLocalMapper
 import ru.practicum.android.diploma.data.remote.api.ApiService
-import ru.practicum.android.diploma.data.remote.dto.response.ApiResponse
 import ru.practicum.android.diploma.data.remote.dto.response.VacancyDetailResponseDto
+import ru.practicum.android.diploma.data.remote.mapper.DomainResultMapper
 import ru.practicum.android.diploma.data.remote.mapper.VacancyRemoteMapper
 import ru.practicum.android.diploma.data.remote.mapper.VacancyRequestMapper
+import ru.practicum.android.diploma.domain.models.DomainResult
 import ru.practicum.android.diploma.domain.models.Vacancy
 import ru.practicum.android.diploma.domain.models.VacancySearchRequest
 import ru.practicum.android.diploma.domain.models.VacancySearchResult
@@ -29,51 +30,48 @@ class VacancyRepositoryImpl(
 
     override suspend fun getVacancies(
         request: VacancySearchRequest
-    ): ApiResponse<VacancySearchResult> {
-        return executeApiCall(
-            category = LogCategory.VACANCY,
-            onNoInternet = { !internetConnectionChecker.isConnected() }
-        ) {
-            Log.d(LogCategory.VACANCY.tag, "Fetching vacancies with request: $request")
-            val dtoRequest = vacancyRequestMapper.toDto(request)
+    ): DomainResult<VacancySearchResult> {
+        // Используем маппер для преобразования
+        return DomainResultMapper.mapToDomainResult(
+            executeApiCall(
+                category = LogCategory.VACANCY,
+                onNoInternet = { !internetConnectionChecker.isConnected() }
+            ) {
+                val dtoRequest = vacancyRequestMapper.toDto(request)
+                val response = apiService.getVacancies(
+                    area = dtoRequest.area,
+                    industry = dtoRequest.industry,
+                    text = dtoRequest.text,
+                    salary = dtoRequest.salary,
+                    page = dtoRequest.page,
+                    onlyWithSalary = dtoRequest.onlyWithSalary
+                )
 
-            val response = apiService.getVacancies(
-                area = dtoRequest.area,
-                industry = dtoRequest.industry,
-                text = dtoRequest.text,
-                salary = dtoRequest.salary,
-                page = dtoRequest.page,
-                onlyWithSalary = dtoRequest.onlyWithSalary
-            )
+                val vacancies = mapVacancies(response.vacancies)
+                saveVacanciesToDatabase(vacancies)
 
-            Log.d(
-                LogCategory.VACANCY.tag,
-                "API response: found=${response.found}, pages=${response.pages}, items=${response.vacancies.size}"
-            )
-
-            val vacancies = mapVacancies(response.vacancies)
-            saveVacanciesToDatabase(vacancies)
-
-            VacancySearchResult(
-                found = response.found,
-                pages = response.pages,
-                page = response.page,
-                vacancies = vacancies
-            )
-        }
+                VacancySearchResult(
+                    found = response.found,
+                    pages = response.pages,
+                    page = response.page,
+                    vacancies = vacancies
+                )
+            }
+        )
     }
 
-    override suspend fun getVacancyById(id: String): ApiResponse<Vacancy> {
-        return executeApiCall(
-            category = LogCategory.VACANCY,
-            onNoInternet = { !internetConnectionChecker.isConnected() }
-        ) {
-            Log.d(LogCategory.VACANCY.tag, "Fetching vacancy by id: $id")
-            val response = apiService.getVacancyById(id)
-            val vacancy = vacancyRemoteMapper.mapToDomain(response)
-            saveVacancyToDatabase(vacancy)
-            vacancy
-        }
+    override suspend fun getVacancyById(id: String): DomainResult<Vacancy> {
+        return DomainResultMapper.mapToDomainResult(
+            executeApiCall(
+                category = LogCategory.VACANCY,
+                onNoInternet = { !internetConnectionChecker.isConnected() }
+            ) {
+                val response = apiService.getVacancyById(id)
+                val vacancy = vacancyRemoteMapper.mapToDomain(response)
+                saveVacancyToDatabase(vacancy)
+                vacancy
+            }
+        )
     }
 
     override suspend fun getLocalVacancies(): List<Vacancy> {

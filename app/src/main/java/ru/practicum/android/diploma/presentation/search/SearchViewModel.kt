@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import ru.practicum.android.diploma.core.utils.debounce
 import ru.practicum.android.diploma.data.remote.dto.response.ApiResponse
+import ru.practicum.android.diploma.domain.models.DomainResult
 import ru.practicum.android.diploma.domain.models.Vacancy
 import ru.practicum.android.diploma.domain.models.VacancySearchRequest
 import ru.practicum.android.diploma.domain.usecases.SearchVacanciesUseCase
@@ -117,19 +118,25 @@ class SearchViewModel(
         viewModelScope.launch {
             val request = VacancySearchRequest(text = query, page = page)
             when (val result = searchUseCase(request)) {
-                is ApiResponse.Success -> {
+                is DomainResult.Success -> { // Изменено с ApiResponse на DomainResult
                     totalPages = result.data.pages
                     currentPage = result.data.page
                     updateVacanciesList(result.data.vacancies, page)
                     updateUiState(result.data.found)
                 }
-
-                is ApiResponse.Error -> handleErrorResult(result)
-                is ApiResponse.Loading -> if (page == 0) _uiState.value = SearchUiState.Loading
+                is DomainResult.Error -> handleErrorResult(result) // Изменено
             }
             isLoadingPage = false
             _isLoadingNextPage.value = false
         }
+    }
+
+    private fun handleErrorResult(result: DomainResult.Error) { // Изменена сигнатура
+        val isNetworkError = result.type == DomainResult.ErrorType.NETWORK_ERROR
+        _uiState.value = SearchUiState.Error(
+            message = result.message,
+            isNetworkError = isNetworkError
+        )
     }
 
     /**

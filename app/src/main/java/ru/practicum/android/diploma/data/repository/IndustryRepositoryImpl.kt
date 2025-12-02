@@ -7,8 +7,9 @@ import ru.practicum.android.diploma.core.utils.InternetConnectionChecker
 import ru.practicum.android.diploma.data.local.dao.IndustryDao
 import ru.practicum.android.diploma.data.local.mapper.IndustryLocalMapper
 import ru.practicum.android.diploma.data.remote.api.ApiService
-import ru.practicum.android.diploma.data.remote.dto.response.ApiResponse
+import ru.practicum.android.diploma.data.remote.mapper.DomainResultMapper
 import ru.practicum.android.diploma.data.remote.mapper.IndustryRemoteMapper
+import ru.practicum.android.diploma.domain.models.DomainResult
 import ru.practicum.android.diploma.domain.models.Industry
 import ru.practicum.android.diploma.domain.repository.IIndustryRepository
 
@@ -20,16 +21,19 @@ class IndustryRepositoryImpl(
     private val internetConnectionChecker: InternetConnectionChecker
 ) : IIndustryRepository {
 
-    override suspend fun getIndustries(): ApiResponse<List<Industry>> {
-        return executeApiCall(
-            category = LogCategory.INDUSTRY,
-            onNoInternet = { !internetConnectionChecker.isConnected() }
-        ) {
-            val response = apiService.getIndustries()
-            val industries = response.map { industryRemoteMapper.mapToDomain(it) }
-            saveIndustriesToDatabase(industries)
-            industries
-        }
+    // Изменено: возвращаем DomainResult вместо ApiResponse
+    override suspend fun getIndustries(): DomainResult<List<Industry>> {
+        return DomainResultMapper.mapToDomainResult(
+            executeApiCall(
+                category = LogCategory.INDUSTRY,
+                onNoInternet = { !internetConnectionChecker.isConnected() }
+            ) {
+                val response = apiService.getIndustries()
+                val industries = response.map { industryRemoteMapper.mapToDomain(it) }
+                saveIndustriesToDatabase(industries)
+                industries
+            }
+        )
     }
 
     override suspend fun getLocalIndustries(): List<Industry> {
