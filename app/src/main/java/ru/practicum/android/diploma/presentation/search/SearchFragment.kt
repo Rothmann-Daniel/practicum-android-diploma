@@ -96,35 +96,14 @@ class SearchFragment : Fragment() {
     }
 
     private fun setupSearch() {
-        val searchIcon = R.drawable.ic_search
-        val clearIcon = R.drawable.ic_close
+        setupSearchIcons()
+        setupSearchTextWatcher()
+        setupClearButton()
+        setupSearchImeActions()
+    }
 
-        binding.btnClear.setImageResource(searchIcon)
-
-        binding.searchQuery.doOnTextChanged { text, _, _, _ ->
-            val query = text?.toString().orEmpty()
-            // Скрываем стартовую картинку, если ввод есть
-            if (query.isNotEmpty()) {
-                binding.messageImage.visibility = View.GONE
-            } else {
-                // Если поле пустое, показываем стартовую картинку
-                showMessageImage(R.drawable.img_start_search)
-            }
-            viewModel.onSearchQueryChanged(query)
-            binding.btnClear.setImageResource(
-                if (query.isEmpty()) searchIcon else clearIcon
-            )
-        }
-        binding.btnClear.setOnClickListener {
-            binding.searchQuery.text?.clear()
-            binding.btnClear.setImageResource(searchIcon)
-            binding.recyclerView.visibility = View.GONE
-            showMessageImage(R.drawable.img_start_search)
-            binding.btnMessage.visibility = View.GONE
-            binding.messageText.visibility = View.GONE
-            binding.progressBar.visibility = View.GONE
-            binding.progressBarBottom.visibility = View.GONE
-        }
+    private fun setupSearchIcons() {
+        binding.btnClear.setImageResource(R.drawable.ic_search)
 
         binding.searchQuery.setOnFocusChangeListener { v, hasFocus ->
             if (hasFocus) showKeyboard(v)
@@ -132,10 +111,47 @@ class SearchFragment : Fragment() {
 
         binding.searchQuery.imeOptions = EditorInfo.IME_ACTION_DONE
         binding.searchQuery.setRawInputType(InputType.TYPE_CLASS_TEXT)
+    }
 
+    private fun setupSearchTextWatcher() {
+        val searchIcon = R.drawable.ic_search
+        val clearIcon = R.drawable.ic_close
+
+        binding.searchQuery.doOnTextChanged { text, _, _, _ ->
+            val query = text?.toString().orEmpty()
+
+            if (query.isNotEmpty()) {
+                showCleanState()
+            } else {
+                showMessageImage(R.drawable.img_start_search)
+            }
+
+            viewModel.onSearchQueryChanged(query)
+
+            binding.btnClear.setImageResource(
+                if (query.isEmpty()) searchIcon else clearIcon
+            )
+        }
+    }
+
+    private fun setupClearButton() {
+        binding.btnClear.setOnClickListener {
+            binding.searchQuery.text?.clear()
+            binding.btnClear.setImageResource(R.drawable.ic_search)
+            binding.recyclerView.visibility = View.GONE
+            showMessageImage(R.drawable.img_start_search)
+            binding.btnMessage.visibility = View.GONE
+            binding.messageText.visibility = View.GONE
+            binding.progressBar.visibility = View.GONE
+            binding.progressBarBottom.visibility = View.GONE
+        }
+    }
+
+    private fun setupSearchImeActions() {
         binding.searchQuery.setOnEditorActionListener { v, actionId, event ->
-            val isEnterPressed = event?.action == KeyEvent.ACTION_DOWN && event.keyCode == KeyEvent.KEYCODE_ENTER
-            // Проверяем actionId или физический Enter
+            val isEnterPressed =
+                event?.action == KeyEvent.ACTION_DOWN && event.keyCode == KeyEvent.KEYCODE_ENTER
+
             if (actionId == EditorInfo.IME_ACTION_DONE || isEnterPressed) {
                 val query = v.text.toString()
                 if (query.isNotEmpty()) {
@@ -255,6 +271,15 @@ class SearchFragment : Fragment() {
             ContextCompat.getDrawable(requireContext(), drawableRes)
         )
         binding.messageImage.visibility = View.VISIBLE
+    }
+
+    private fun showCleanState() {
+        binding.recyclerView.visibility = View.GONE
+        binding.messageImage.visibility = View.GONE
+        binding.messageText.visibility = View.GONE
+        binding.btnMessage.visibility = View.GONE
+        binding.progressBar.visibility = View.GONE
+        binding.progressBarBottom.visibility = View.GONE
     }
 
     override fun onDestroyView() {

@@ -1,0 +1,88 @@
+Index: app/src/main/java/ru/practicum/android/diploma/presentation/search/SearchFragment.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package ru.practicum.android.diploma.presentation.search\n\nimport android.content.Context\nimport android.os.Bundle\nimport android.text.InputType\nimport android.view.KeyEvent\nimport android.view.LayoutInflater\nimport android.view.View\nimport android.view.ViewGroup\nimport android.view.inputmethod.EditorInfo\nimport android.view.inputmethod.InputMethodManager\nimport android.widget.Toast\nimport androidx.core.content.ContextCompat\nimport androidx.core.widget.doOnTextChanged\nimport androidx.fragment.app.Fragment\nimport androidx.lifecycle.DefaultLifecycleObserver\nimport androidx.lifecycle.LifecycleOwner\nimport androidx.navigation.fragment.findNavController\nimport androidx.recyclerview.widget.LinearLayoutManager\nimport androidx.recyclerview.widget.RecyclerView\nimport org.koin.androidx.viewmodel.ext.android.viewModel\nimport ru.practicum.android.diploma.R\nimport ru.practicum.android.diploma.databinding.FragmentSearchBinding\n\nclass SearchFragment : Fragment() {\n\n    private var _binding: FragmentSearchBinding? = null\n    private val binding get() = _binding!!\n    private val viewModel: SearchViewModel by viewModel()\n\n    private var adapter: VacanciesAdapter? = null\n\n    override fun onCreateView(\n        inflater: LayoutInflater,\n        container: ViewGroup?,\n        savedInstanceState: Bundle?\n    ): View {\n        _binding = FragmentSearchBinding.inflate(inflater, container, false)\n        return binding.root\n    }\n\n    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {\n        super.onViewCreated(view, savedInstanceState)\n        setupAdapter()\n        setupRecyclerView()\n        setupSearch()\n        setupObservers()\n        setupFilters()\n    }\n\n    private fun resetSearchState() {\n        binding.searchQuery.setText(\"\")\n        binding.recyclerView.visibility = View.GONE\n        binding.btnMessage.visibility = View.GONE\n        binding.progressBarBottom.visibility = View.GONE\n        binding.messageText.visibility = View.GONE\n        showMessageImage(R.drawable.img_start_search)\n        viewModel.clearSearchState()\n    }\n\n    private fun setupAdapter() {\n        adapter = VacanciesAdapter { vacancy ->\n            viewModel.markRestoreForNavigation()\n            val action = SearchFragmentDirections.actionSearchToVacancy(\n                vacancyId = vacancy.id\n            )\n            findNavController().navigate(action)\n        }\n        binding.recyclerView.adapter = adapter\n    }\n\n    private fun setupRecyclerView() {\n        val layoutManager = LinearLayoutManager(requireContext())\n        binding.recyclerView.layoutManager = layoutManager\n        binding.recyclerView.adapter = adapter\n\n        binding.recyclerView.addOnScrollListener(\n            object : RecyclerView.OnScrollListener() {\n                override fun onScrolled(\n                    rv: RecyclerView,\n                    dx: Int,\n                    dy: Int\n                ) {\n                    val visibleItemCount = layoutManager.childCount\n                    val totalItemCount = layoutManager.itemCount\n                    val firstVisibleItem = layoutManager.findFirstVisibleItemPosition()\n\n                    if (!viewModel.isLoadingNextPage.value!! &&\n                        totalItemCount - visibleItemCount <= firstVisibleItem + PRELOAD_THRESHOLD\n                    ) {\n                        viewModel.loadNextPage()\n                    }\n                }\n            }\n        )\n    }\n\n    private fun setupSearch() {\n        val searchIcon = R.drawable.ic_search\n        val clearIcon = R.drawable.ic_close\n\n        binding.btnClear.setImageResource(searchIcon)\n\n        binding.searchQuery.doOnTextChanged { text, _, _, _ ->\n            val query = text?.toString().orEmpty()\n            // Скрываем стартовую картинку, если ввод есть\n            if (query.isNotEmpty()) {\n                binding.messageImage.visibility = View.GONE\n            } else {\n                // Если поле пустое, показываем стартовую картинку\n                showMessageImage(R.drawable.img_start_search)\n            }\n            viewModel.onSearchQueryChanged(query)\n            binding.btnClear.setImageResource(\n                if (query.isEmpty()) searchIcon else clearIcon\n            )\n        }\n        binding.btnClear.setOnClickListener {\n            binding.searchQuery.text?.clear()\n            binding.btnClear.setImageResource(searchIcon)\n            binding.recyclerView.visibility = View.GONE\n            showMessageImage(R.drawable.img_start_search)\n            binding.btnMessage.visibility = View.GONE\n            binding.messageText.visibility = View.GONE\n            binding.progressBar.visibility = View.GONE\n            binding.progressBarBottom.visibility = View.GONE\n        }\n\n        binding.searchQuery.setOnFocusChangeListener { v, hasFocus ->\n            if (hasFocus) showKeyboard(v)\n        }\n\n        binding.searchQuery.imeOptions = EditorInfo.IME_ACTION_DONE\n        binding.searchQuery.setRawInputType(InputType.TYPE_CLASS_TEXT)\n\n        binding.searchQuery.setOnEditorActionListener { v, actionId, event ->\n            val isEnterPressed = event?.action == KeyEvent.ACTION_DOWN && event.keyCode == KeyEvent.KEYCODE_ENTER\n            // Проверяем actionId или физический Enter\n            if (actionId == EditorInfo.IME_ACTION_DONE || isEnterPressed) {\n                val query = v.text.toString()\n                if (query.isNotEmpty()) {\n                    viewModel.forceSearch(query)\n                    hideKeyboard(v)\n                    v.clearFocus()\n                }\n                true\n            } else {\n                false\n            }\n        }\n    }\n\n    private fun setupObservers() {\n        viewModel.uiState.observe(viewLifecycleOwner) { state ->\n            when (state) {\n                is SearchViewModel.SearchUiState.Loading -> {\n                    handleLoading()\n                    hideKeyboard(binding.searchQuery)\n                }\n\n                is SearchViewModel.SearchUiState.EmptyQuery -> handleEmptyQuery()\n                is SearchViewModel.SearchUiState.EmptyResult -> handleEmptyResult()\n                is SearchViewModel.SearchUiState.Success -> handleSuccess(state)\n                is SearchViewModel.SearchUiState.Error -> handleError(state)\n            }\n        }\n        viewModel.isLoadingNextPage.observe(viewLifecycleOwner) { loading ->\n            binding.progressBarBottom.visibility = if (loading) View.VISIBLE else View.GONE\n        }\n    }\n\n    private fun handleLoading() {\n        binding.progressBar.visibility = View.VISIBLE\n        binding.recyclerView.visibility = View.GONE\n        binding.progressBarBottom.visibility = View.GONE\n    }\n\n    private fun handleEmptyQuery() {\n        binding.progressBar.visibility = View.GONE\n        binding.recyclerView.visibility = View.GONE\n        showMessageImage(R.drawable.img_start_search)\n        binding.messageText.visibility = View.GONE\n        binding.btnMessage.visibility = View.GONE\n        binding.progressBarBottom.visibility = View.GONE\n    }\n\n    private fun handleEmptyResult() {\n        binding.progressBar.visibility = View.GONE\n        binding.recyclerView.visibility = View.GONE\n        showMessageImage(R.drawable.img_error_get_list_cat)\n        binding.messageText.visibility = View.VISIBLE\n        binding.messageText.text = getString(R.string.empty_result)\n        binding.btnMessage.visibility = View.VISIBLE\n        binding.btnMessage.text = getString(R.string.no_vacancy)\n        binding.progressBarBottom.visibility = View.GONE\n    }\n\n    private fun handleSuccess(state: SearchViewModel.SearchUiState.Success) {\n        binding.progressBar.visibility = View.GONE\n        binding.messageImage.visibility = View.GONE\n        binding.messageText.visibility = View.GONE\n        binding.recyclerView.visibility = View.VISIBLE\n\n        adapter?.submitList(state.vacancies)\n\n        val resultText = resources.getQuantityString(\n            R.plurals.found_vacancies,\n            state.found,\n            state.found\n        )\n\n        binding.btnMessage.apply {\n            visibility = View.VISIBLE\n            text = resultText\n        }\n\n    }\n\n    private fun handleError(state: SearchViewModel.SearchUiState.Error) {\n        binding.progressBar.visibility = View.GONE\n        binding.recyclerView.visibility = View.GONE\n        binding.progressBarBottom.visibility = View.GONE\n\n        if (state.isNetworkError) {\n            showMessageImage(R.drawable.img_no_internet)\n            binding.messageText.visibility = View.VISIBLE\n            binding.messageText.text = getString(R.string.error_no_internetConnection)\n            binding.btnMessage.visibility = View.GONE\n        } else {\n            binding.messageText.visibility = View.GONE\n            binding.btnMessage.visibility = View.GONE\n            Toast.makeText(requireContext(), state.message, Toast.LENGTH_SHORT).show()\n        }\n    }\n\n    private fun setupFilters() {\n        binding.btnFilters.setOnClickListener {\n            viewModel.markRestoreForNavigation()\n            findNavController().navigate(R.id.action_search_to_filters)\n        }\n    }\n\n    private fun showKeyboard(view: View) {\n        val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager\n        imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)\n    }\n\n    private fun hideKeyboard(view: View) {\n        val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager\n        imm.hideSoftInputFromWindow(view.windowToken, 0)\n    }\n\n    private fun showMessageImage(drawableRes: Int) {\n        binding.messageImage.setImageDrawable(\n            ContextCompat.getDrawable(requireContext(), drawableRes)\n        )\n        binding.messageImage.visibility = View.VISIBLE\n    }\n\n    override fun onDestroyView() {\n        super.onDestroyView()\n        _binding = null\n    }\n\n    private val activityObserver = object : DefaultLifecycleObserver {\n        override fun onPause(owner: LifecycleOwner) {\n            super.onPause(owner)\n            _binding?.let {\n                resetSearchState()\n            }\n        }\n    }\n\n    override fun onAttach(context: Context) {\n        super.onAttach(context)\n        activity?.lifecycle?.addObserver(activityObserver)\n    }\n\n    override fun onDetach() {\n        super.onDetach()\n        activity?.lifecycle?.removeObserver(activityObserver)\n    }\n\n    companion object {\n        private const val PRELOAD_THRESHOLD = 5\n    }\n}\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/ru/practicum/android/diploma/presentation/search/SearchFragment.kt b/app/src/main/java/ru/practicum/android/diploma/presentation/search/SearchFragment.kt
+--- a/app/src/main/java/ru/practicum/android/diploma/presentation/search/SearchFragment.kt	(revision 3b6390475c9d7cdd89db41d9a38b61c8270052dc)
++++ b/app/src/main/java/ru/practicum/android/diploma/presentation/search/SearchFragment.kt	(date 1764657960958)
+@@ -96,28 +96,49 @@
+     }
+ 
+     private fun setupSearch() {
++        setupSearchIcons()
++        setupSearchTextWatcher()
++        setupClearButton()
++        setupSearchImeActions()
++    }
++
++    private fun setupSearchIcons() {
++        binding.btnClear.setImageResource(R.drawable.ic_search)
++
++        binding.searchQuery.setOnFocusChangeListener { v, hasFocus ->
++            if (hasFocus) showKeyboard(v)
++        }
++
++        binding.searchQuery.imeOptions = EditorInfo.IME_ACTION_DONE
++        binding.searchQuery.setRawInputType(InputType.TYPE_CLASS_TEXT)
++    }
++
++    private fun setupSearchTextWatcher() {
+         val searchIcon = R.drawable.ic_search
+         val clearIcon = R.drawable.ic_close
+ 
+-        binding.btnClear.setImageResource(searchIcon)
+-
+         binding.searchQuery.doOnTextChanged { text, _, _, _ ->
+             val query = text?.toString().orEmpty()
+-            // Скрываем стартовую картинку, если ввод есть
++
+             if (query.isNotEmpty()) {
+                 binding.messageImage.visibility = View.GONE
+             } else {
+-                // Если поле пустое, показываем стартовую картинку
+                 showMessageImage(R.drawable.img_start_search)
+             }
++
+             viewModel.onSearchQueryChanged(query)
++
+             binding.btnClear.setImageResource(
+                 if (query.isEmpty()) searchIcon else clearIcon
+             )
+         }
++    }
++
++    private fun setupClearButton() {
+         binding.btnClear.setOnClickListener {
+             binding.searchQuery.text?.clear()
+-            binding.btnClear.setImageResource(searchIcon)
++            binding.btnClear.setImageResource(R.drawable.ic_search)
++
+             binding.recyclerView.visibility = View.GONE
+             showMessageImage(R.drawable.img_start_search)
+             binding.btnMessage.visibility = View.GONE
+@@ -125,17 +146,13 @@
+             binding.progressBar.visibility = View.GONE
+             binding.progressBarBottom.visibility = View.GONE
+         }
+-
+-        binding.searchQuery.setOnFocusChangeListener { v, hasFocus ->
+-            if (hasFocus) showKeyboard(v)
+-        }
++    }
+ 
+-        binding.searchQuery.imeOptions = EditorInfo.IME_ACTION_DONE
+-        binding.searchQuery.setRawInputType(InputType.TYPE_CLASS_TEXT)
+-
++    private fun setupSearchImeActions() {
+         binding.searchQuery.setOnEditorActionListener { v, actionId, event ->
+-            val isEnterPressed = event?.action == KeyEvent.ACTION_DOWN && event.keyCode == KeyEvent.KEYCODE_ENTER
+-            // Проверяем actionId или физический Enter
++            val isEnterPressed =
++                event?.action == KeyEvent.ACTION_DOWN && event.keyCode == KeyEvent.KEYCODE_ENTER
++
+             if (actionId == EditorInfo.IME_ACTION_DONE || isEnterPressed) {
+                 val query = v.text.toString()
+                 if (query.isNotEmpty()) {
