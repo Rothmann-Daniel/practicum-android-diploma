@@ -102,7 +102,6 @@ class SearchViewModel(
             val request = VacancySearchRequest(text = query, page = page)
 
             when (val result = searchUseCase(request)) {
-
                 is DomainResult.Success -> {
                     totalPages = result.data.pages
                     currentPage = result.data.page
