@@ -67,20 +67,26 @@ class VacancyDataBinder(
     private fun bindDescriptionAndSkills(vacancy: Vacancy) {
         if (vacancy.description.isNotEmpty()) {
             binding.jobDescriptionTitle.isVisible = true
-            binding.responsibilitiesTitle.isVisible = false
-            binding.responsibilitiesText.isVisible = true
 
-            // Форматируем описание с сохранением разделителей
-            val formattedDescription = formatDescription(vacancy.description)
-            binding.responsibilitiesText.text = Html.fromHtml(
-                formattedDescription,
-                Html.FROM_HTML_MODE_COMPACT
+            val (responsibilities, requirements, conditions) = parseDescriptionSections(vacancy.description)
+
+            bindSection(
+                titleView = binding.responsibilitiesTitle,
+                textView = binding.responsibilitiesText,
+                content = responsibilities
             )
 
-            binding.requirementsTitle.isVisible = false
-            binding.requirementsText.isVisible = false
-            binding.conditionsTitle.isVisible = false
-            binding.conditionsText.isVisible = false
+            bindSection(
+                titleView = binding.requirementsTitle,
+                textView = binding.requirementsText,
+                content = requirements
+            )
+
+            bindSection(
+                titleView = binding.conditionsTitle,
+                textView = binding.conditionsText,
+                content = conditions
+            )
         } else {
             binding.jobDescriptionTitle.isVisible = false
             binding.responsibilitiesTitle.isVisible = false
@@ -101,24 +107,99 @@ class VacancyDataBinder(
         }
     }
 
-    private fun formatDescription(description: String): String {
-        return description
-            // 1. Убирает пробелы и переносы в начале и конце строки
+    private fun bindSection(titleView: android.view.View, textView: android.widget.TextView, content: String) {
+        if (content.isNotEmpty()) {
+            titleView.isVisible = true
+            textView.isVisible = true
+            textView.text = Html.fromHtml(formatSectionContent(content), Html.FROM_HTML_MODE_COMPACT)
+        } else {
+            titleView.isVisible = false
+            textView.isVisible = false
+        }
+    }
+
+    private fun parseDescriptionSections(description: String): Triple<String, String, String> {
+        val sections = DescriptionSections()
+        val lines = description.trim().split("\n")
+
+        lines.forEach { line ->
+            val trimmedLine = line.trim()
+            if (trimmedLine.isNotEmpty()) {
+                sections.processLine(trimmedLine)
+            }
+        }
+
+        return sections.toTriple()
+    }
+
+    private inner class DescriptionSections {
+        private val responsibilities = StringBuilder()
+        private val requirements = StringBuilder()
+        private val conditions = StringBuilder()
+        private var currentSection = SectionType.RESPONSIBILITIES
+
+        fun processLine(line: String) {
+            when {
+                isResponsibilitiesHeader(line) -> currentSection = SectionType.RESPONSIBILITIES
+                isRequirementsHeader(line) -> currentSection = SectionType.REQUIREMENTS
+                isConditionsHeader(line) -> currentSection = SectionType.CONDITIONS
+                else -> appendToCurrentSection(line)
+            }
+        }
+
+        private fun isResponsibilitiesHeader(line: String): Boolean {
+            return line.contains("Обязанности", ignoreCase = true) ||
+                line.contains("Responsibilities", ignoreCase = true)
+        }
+
+        private fun isRequirementsHeader(line: String): Boolean {
+            return line.contains("Требования", ignoreCase = true) ||
+                line.contains("Requirements", ignoreCase = true)
+        }
+
+        private fun isConditionsHeader(line: String): Boolean {
+            return line.contains("Условия", ignoreCase = true) ||
+                line.contains("Conditions", ignoreCase = true) ||
+                line.contains("Мы предлагаем", ignoreCase = true)
+        }
+
+        private fun appendToCurrentSection(line: String) {
+            val targetSection = when (currentSection) {
+                SectionType.RESPONSIBILITIES -> responsibilities
+                SectionType.REQUIREMENTS -> requirements
+                SectionType.CONDITIONS -> conditions
+            }
+
+            if (targetSection.isNotEmpty()) {
+                targetSection.append("\n")
+            }
+            targetSection.append(line)
+        }
+
+        fun toTriple(): Triple<String, String, String> {
+            return Triple(
+                responsibilities.toString(),
+                requirements.toString(),
+                conditions.toString()
+            )
+        }
+    }
+
+    private enum class SectionType {
+        RESPONSIBILITIES,
+        REQUIREMENTS,
+        CONDITIONS
+    }
+
+    private fun formatSectionContent(content: String): String {
+        return content
             .trim()
-            // 2. Двойные переносы → двойные HTML-переносы (создают абзацы)
             .replace("\n\n", "<br><br>")
-            // 3. Одиночные переносы → обычные пробелы (объединяет строки)
             .replace("\n", " ")
-            // 4. Маркеры списка → перенос + маркер (начинает новый пункт списка)
-            .replace("•", "<br>•")
-            .replace(" - ", "<br>- ")
-            .replace(" — ", "<br>— ")
-            // 5. Исправляет двойные переносы перед маркерами (убирает лишние отступы)
-            .replace("<br><br>•", "<br>•")
-            .replace("<br><br>- ", "<br>- ")
-            .replace("<br><br>— ", "<br>— ")
-            // 6. Заменяет множественные пробелы на один
-            .replace("\\s+".toRegex(), " ")
+            .replace(Regex("([•\\-—])\\s+"), "<br>$1&nbsp;")
+            .replace(Regex("^<br>"), "")
+            .replace(Regex("\\s{2,}"), " ")
+            .trim()
     }
 
     private fun loadCompanyLogo(logoUrl: String?) {
