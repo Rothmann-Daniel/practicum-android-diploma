@@ -9,7 +9,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
@@ -30,6 +29,8 @@ class SearchFragment : Fragment() {
 
     private var adapter: VacanciesAdapter? = null
 
+    private var ui: SearchUiRenderer? = null
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -41,6 +42,8 @@ class SearchFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        ui = SearchUiRenderer(binding)
         setupAdapter()
         setupRecyclerView()
         setupSearch()
@@ -50,11 +53,7 @@ class SearchFragment : Fragment() {
 
     private fun resetSearchState() {
         binding.searchQuery.setText("")
-        binding.recyclerView.visibility = View.GONE
-        binding.btnMessage.visibility = View.GONE
-        binding.progressBarBottom.visibility = View.GONE
-        binding.messageText.visibility = View.GONE
-        showMessageImage(R.drawable.img_start_search)
+        ui?.showCleanState()
         viewModel.clearSearchState()
     }
 
@@ -168,84 +167,20 @@ class SearchFragment : Fragment() {
 
     private fun setupObservers() {
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
-            when (state) {
-                is SearchViewModel.SearchUiState.Loading -> {
-                    handleLoading()
-                    hideKeyboard(binding.searchQuery)
-                }
-
-                is SearchViewModel.SearchUiState.EmptyQuery -> handleEmptyQuery()
-                is SearchViewModel.SearchUiState.EmptyResult -> handleEmptyResult()
-                is SearchViewModel.SearchUiState.Success -> handleSuccess(state)
-                is SearchViewModel.SearchUiState.Error -> handleError(state)
+            ui?.render(state)
+            // Скрываем клавиатуру для Loading, Success, EmptyResult, Error
+            if (state !is SearchViewModel.SearchUiState.EmptyQuery) {
+                hideKeyboard(binding.searchQuery)
+            }
+            if (state is SearchViewModel.SearchUiState.Success) {
+                adapter?.submitList(state.vacancies)
+            } else {
+                adapter?.submitList(emptyList())
             }
         }
+
         viewModel.isLoadingNextPage.observe(viewLifecycleOwner) { loading ->
             binding.progressBarBottom.visibility = if (loading) View.VISIBLE else View.GONE
-        }
-    }
-
-    private fun handleLoading() {
-        binding.progressBar.visibility = View.VISIBLE
-        binding.recyclerView.visibility = View.GONE
-        binding.progressBarBottom.visibility = View.GONE
-    }
-
-    private fun handleEmptyQuery() {
-        binding.progressBar.visibility = View.GONE
-        binding.recyclerView.visibility = View.GONE
-        showMessageImage(R.drawable.img_start_search)
-        binding.messageText.visibility = View.GONE
-        binding.btnMessage.visibility = View.GONE
-        binding.progressBarBottom.visibility = View.GONE
-    }
-
-    private fun handleEmptyResult() {
-        binding.progressBar.visibility = View.GONE
-        binding.recyclerView.visibility = View.GONE
-        showMessageImage(R.drawable.img_error_get_list_cat)
-        binding.messageText.visibility = View.VISIBLE
-        binding.messageText.text = getString(R.string.empty_result)
-        binding.btnMessage.visibility = View.VISIBLE
-        binding.btnMessage.text = getString(R.string.no_vacancy)
-        binding.progressBarBottom.visibility = View.GONE
-    }
-
-    private fun handleSuccess(state: SearchViewModel.SearchUiState.Success) {
-        binding.progressBar.visibility = View.GONE
-        binding.messageImage.visibility = View.GONE
-        binding.messageText.visibility = View.GONE
-        binding.recyclerView.visibility = View.VISIBLE
-
-        adapter?.submitList(state.vacancies)
-
-        val resultText = resources.getQuantityString(
-            R.plurals.found_vacancies,
-            state.found,
-            state.found
-        )
-
-        binding.btnMessage.apply {
-            visibility = View.VISIBLE
-            text = resultText
-        }
-
-    }
-
-    private fun handleError(state: SearchViewModel.SearchUiState.Error) {
-        binding.progressBar.visibility = View.GONE
-        binding.recyclerView.visibility = View.GONE
-        binding.progressBarBottom.visibility = View.GONE
-
-        if (state.isNetworkError) {
-            showMessageImage(R.drawable.img_no_internet)
-            binding.messageText.visibility = View.VISIBLE
-            binding.messageText.text = getString(R.string.error_no_internetConnection)
-            binding.btnMessage.visibility = View.GONE
-        } else {
-            binding.messageText.visibility = View.GONE
-            binding.btnMessage.visibility = View.GONE
-            Toast.makeText(requireContext(), state.message, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -284,6 +219,7 @@ class SearchFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        ui = null
         _binding = null
     }
 

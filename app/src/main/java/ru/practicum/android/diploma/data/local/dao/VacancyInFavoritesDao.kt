@@ -23,4 +23,3 @@ interface VacancyInFavoritesDao {
     @Query("SELECT id FROM favorites")
     suspend fun getIdList(): List<String>
 }
-

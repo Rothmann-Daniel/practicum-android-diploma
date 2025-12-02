@@ -30,4 +30,3 @@ data class VacancyInFavoritesEntity(
     val industryId: Int?,
     val industryName: String?
 )
-
