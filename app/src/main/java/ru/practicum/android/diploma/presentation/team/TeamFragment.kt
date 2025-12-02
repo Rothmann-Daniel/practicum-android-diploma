@@ -20,5 +20,5 @@ class TeamFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
-
+    //init iteration_2_review
 }
