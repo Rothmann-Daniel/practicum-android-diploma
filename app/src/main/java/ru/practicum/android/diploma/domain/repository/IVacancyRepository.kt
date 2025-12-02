@@ -6,7 +6,6 @@ import ru.practicum.android.diploma.domain.models.VacancySearchRequest
 import ru.practicum.android.diploma.domain.models.VacancySearchResult
 
 interface IVacancyRepository {
-    // Заменяем ApiResponse на DomainResult
     suspend fun getVacancies(request: VacancySearchRequest): DomainResult<VacancySearchResult>
     suspend fun getVacancyById(id: String): DomainResult<Vacancy>
     suspend fun getLocalVacancies(): List<Vacancy>

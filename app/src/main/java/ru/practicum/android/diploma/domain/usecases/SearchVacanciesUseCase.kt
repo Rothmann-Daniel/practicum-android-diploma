@@ -8,6 +8,6 @@ import ru.practicum.android.diploma.domain.repository.IVacancyRepository
 class SearchVacanciesUseCase(private val repository: IVacancyRepository) {
 
     suspend operator fun invoke(request: VacancySearchRequest): DomainResult<VacancySearchResult> {
-        return repository.getVacancies(request)  // Теперь возвращает DomainResult
+        return repository.getVacancies(request)
     }
 }

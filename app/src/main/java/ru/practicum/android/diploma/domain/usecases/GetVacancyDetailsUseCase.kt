@@ -7,6 +7,6 @@ import ru.practicum.android.diploma.domain.repository.IVacancyRepository
 class GetVacancyDetailsUseCase(private val repository: IVacancyRepository) {
 
     suspend operator fun invoke(id: String): DomainResult<Vacancy> {
-        return repository.getVacancyById(id)  // Теперь возвращает DomainResult
+        return repository.getVacancyById(id)
     }
 }
