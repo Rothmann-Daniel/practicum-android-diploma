@@ -8,9 +8,10 @@ import ru.practicum.android.diploma.core.utils.InternetConnectionChecker
 import ru.practicum.android.diploma.data.local.dao.AreaDao
 import ru.practicum.android.diploma.data.local.mapper.AreaLocalMapper
 import ru.practicum.android.diploma.data.remote.api.ApiService
-import ru.practicum.android.diploma.data.remote.dto.response.ApiResponse
 import ru.practicum.android.diploma.data.remote.mapper.AreaRemoteMapper
+import ru.practicum.android.diploma.data.remote.mapper.DomainResultMapper
 import ru.practicum.android.diploma.domain.models.Area
+import ru.practicum.android.diploma.domain.models.DomainResult
 import ru.practicum.android.diploma.domain.repository.IAreaRepository
 
 class AreaRepositoryImpl(
@@ -21,23 +22,26 @@ class AreaRepositoryImpl(
     private val internetConnectionChecker: InternetConnectionChecker
 ) : IAreaRepository {
 
-    override suspend fun getAreas(): ApiResponse<List<Area>> {
-        return executeApiCall(
-            category = LogCategory.AREA,
-            onNoInternet = {
-                try {
-                    !internetConnectionChecker.isConnected()
-                } catch (e: SecurityException) {
-                    Log.w(LogCategory.AREA.tag, "No ACCESS_NETWORK_STATE permission", e)
-                    true
+    // Изменено: возвращаем DomainResult вместо ApiResponse
+    override suspend fun getAreas(): DomainResult<List<Area>> {
+        return DomainResultMapper.mapToDomainResult(
+            executeApiCall(
+                category = LogCategory.AREA,
+                onNoInternet = {
+                    try {
+                        !internetConnectionChecker.isConnected()
+                    } catch (e: SecurityException) {
+                        Log.w(LogCategory.AREA.tag, "No ACCESS_NETWORK_STATE permission", e)
+                        true
+                    }
                 }
+            ) {
+                val response = apiService.getAreas()
+                val areas = response.map { areaRemoteMapper.mapToDomain(it) }
+                saveAreasToDatabase(areas)
+                areas
             }
-        ) {
-            val response = apiService.getAreas()
-            val areas = response.map { areaRemoteMapper.mapToDomain(it) }
-            saveAreasToDatabase(areas)
-            areas
-        }
+        )
     }
 
     override suspend fun getLocalAreas(): List<Area> {

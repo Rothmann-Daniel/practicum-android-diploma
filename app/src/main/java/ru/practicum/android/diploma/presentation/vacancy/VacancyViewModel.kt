@@ -5,7 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
-import ru.practicum.android.diploma.data.remote.dto.response.ApiResponse
+import ru.practicum.android.diploma.domain.models.DomainResult
 import ru.practicum.android.diploma.domain.models.Vacancy
 import ru.practicum.android.diploma.domain.usecases.AddVacancyToFavoritesUseCase
 import ru.practicum.android.diploma.domain.usecases.DeleteVacancyFromFavoritesUseCase
@@ -36,7 +36,7 @@ class VacancyViewModel(
         }
     }
 
-    suspend fun loadVacancyDetailsFromLocalStorage(vacancyId: String, inFavorites: Boolean) {
+    private suspend fun loadVacancyDetailsFromLocalStorage(vacancyId: String, inFavorites: Boolean) {
         val vacancy = getFavoriteVacancyByIdUseCase(vacancyId)
         if (vacancy == null) {
             _vacancyState.value = VacancyState.Error(ErrorType.VACANCY_NOT_FOUND)
@@ -45,25 +45,21 @@ class VacancyViewModel(
         }
     }
 
-    suspend fun loadVacancyDetailsFromRemoteStorage(vacancyId: String, inFavorites: Boolean) {
+    private suspend fun loadVacancyDetailsFromRemoteStorage(vacancyId: String, inFavorites: Boolean) {
         when (val response = getVacancyDetailsUseCase(vacancyId)) {
-            is ApiResponse.Success -> {
+            is DomainResult.Success -> { // Изменено с ApiResponse на DomainResult
                 _vacancyState.value = VacancyState.Content(response.data, inFavorites)
             }
-
-            is ApiResponse.Error -> {
-                val errorType = when {
-                    response.code == HTTP_NOT_FOUND -> ErrorType.VACANCY_NOT_FOUND
-                    response.message.contains("Ошибка сети") ||
-                        response.message.contains("Превышено время") -> ErrorType.NETWORK_ERROR
-
-                    else -> ErrorType.SERVER_ERROR
+            is DomainResult.Error -> { // Изменено с ApiResponse на DomainResult
+                val errorType = when (response.type) {
+                    DomainResult.ErrorType.NOT_FOUND -> ErrorType.VACANCY_NOT_FOUND
+                    DomainResult.ErrorType.NETWORK_ERROR -> ErrorType.NETWORK_ERROR
+                    DomainResult.ErrorType.SERVER_ERROR,
+                    DomainResult.ErrorType.ACCESS_DENIED,
+                    DomainResult.ErrorType.DATABASE_ERROR,
+                    DomainResult.ErrorType.UNKNOWN_ERROR -> ErrorType.SERVER_ERROR
                 }
                 _vacancyState.value = VacancyState.Error(errorType)
-            }
-
-            is ApiResponse.Loading -> {
-                _vacancyState.value = VacancyState.Loading
             }
         }
     }
@@ -94,9 +90,5 @@ class VacancyViewModel(
         VACANCY_NOT_FOUND,
         NETWORK_ERROR,
         SERVER_ERROR
-    }
-
-    companion object {
-        private const val HTTP_NOT_FOUND = 404
     }
 }
