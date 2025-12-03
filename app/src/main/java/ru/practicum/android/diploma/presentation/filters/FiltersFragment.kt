@@ -34,4 +34,6 @@ class FiltersFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
+
+    // init develop
 }
