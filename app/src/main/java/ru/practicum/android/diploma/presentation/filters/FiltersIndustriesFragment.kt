@@ -19,7 +19,13 @@ class FiltersIndustriesFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: FilterIndustriesViewModel by viewModel()
-    private lateinit var adapter: FilterIndustriesAdapter
+
+    // Изменено: lazy инициализация
+    private val adapter: FilterIndustriesAdapter by lazy {
+        FilterIndustriesAdapter { industry ->
+            viewModel.selectIndustry(industry)
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -42,10 +48,6 @@ class FiltersIndustriesFragment : Fragment() {
     }
 
     private fun setupUI() {
-        adapter = FilterIndustriesAdapter { industry ->
-            viewModel.selectIndustry(industry)
-        }
-
         binding.recyclerViewIndustries.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerViewIndustries.adapter = adapter
         binding.buttonContainer.isVisible = false
@@ -77,7 +79,6 @@ class FiltersIndustriesFragment : Fragment() {
         binding.selectButton.setOnClickListener {
             viewModel.saveSelectedIndustry()
 
-            // ПОКАЗЫВАЕМ TOAST СООБЩЕНИЕ
             viewModel.selectedIndustry.value?.let { selectedIndustry ->
                 showSuccessMessage(selectedIndustry.name)
             }
@@ -103,14 +104,12 @@ class FiltersIndustriesFragment : Fragment() {
         viewModel.filteredIndustries.observe(viewLifecycleOwner) { industries ->
             adapter.submitList(industries)
 
-            // После обновления списка устанавливаем выбранную отрасль в адаптере
             viewModel.selectedIndustryId.value?.let { industryId ->
                 adapter.setSelectedIndustryId(industryId)
             }
         }
 
         viewModel.selectedIndustryId.observe(viewLifecycleOwner) { industryId ->
-            // Когда меняется выбранная отрасль, обновляем адаптер
             adapter.setSelectedIndustryId(industryId)
         }
 
@@ -166,5 +165,6 @@ class FiltersIndustriesFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        // adapter не нужно очищать, так как он lazy
     }
 }
