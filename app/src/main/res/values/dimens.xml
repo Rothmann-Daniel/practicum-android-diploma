@@ -4,4 +4,5 @@
     <dimen name="bigTextSize">22sp</dimen>
     <dimen name="mediumTextSize">16sp</dimen>
     <dimen name="smallTextSize">12sp</dimen>
+    <dimen name="corner_radius_12">12dp</dimen>
 </resources>

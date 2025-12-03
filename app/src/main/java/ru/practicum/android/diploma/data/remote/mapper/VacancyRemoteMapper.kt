@@ -5,6 +5,7 @@ import ru.practicum.android.diploma.data.remote.dto.response.ContactsResponseDto
 import ru.practicum.android.diploma.data.remote.dto.response.EmployerResponseDto
 import ru.practicum.android.diploma.data.remote.dto.response.EmploymentResponseDto
 import ru.practicum.android.diploma.data.remote.dto.response.ExperienceResponseDto
+import ru.practicum.android.diploma.data.remote.dto.response.PhoneResponseDto
 import ru.practicum.android.diploma.data.remote.dto.response.SalaryResponseDto
 import ru.practicum.android.diploma.data.remote.dto.response.ScheduleResponseDto
 import ru.practicum.android.diploma.data.remote.dto.response.VacancyDetailResponseDto
@@ -13,6 +14,7 @@ import ru.practicum.android.diploma.domain.models.Contacts
 import ru.practicum.android.diploma.domain.models.Employer
 import ru.practicum.android.diploma.domain.models.Employment
 import ru.practicum.android.diploma.domain.models.Experience
+import ru.practicum.android.diploma.domain.models.Phone
 import ru.practicum.android.diploma.domain.models.Salary
 import ru.practicum.android.diploma.domain.models.Schedule
 import ru.practicum.android.diploma.domain.models.Vacancy
@@ -82,13 +84,18 @@ class VacancyRemoteMapper(
     }
 
     private fun ContactsResponseDto.toDomain(): Contacts {
-        val phoneNumbers = phone?.map { it.formatted }.orEmpty()
-
         return Contacts(
             id = id,
             name = name,
             email = email.orEmpty(),
-            phone = phoneNumbers
+            phones = phone?.map { it.toDomain() }.orEmpty() //  Маппим Phone объекты
+        )
+    }
+
+    private fun PhoneResponseDto.toDomain(): Phone {
+        return Phone(
+            number = formatted,
+            comment = comment
         )
     }
 
@@ -100,4 +107,3 @@ class VacancyRemoteMapper(
         )
     }
 }
-

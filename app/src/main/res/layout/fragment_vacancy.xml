@@ -2,28 +2,418 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent">
 
     <LinearLayout
-        android:id="@+id/centerLayout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:id="@+id/toolbar_layout"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:layout_marginTop="24dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <TextView
-            android:id="@+id/tvTitle"
+        <!-- Кнопка назад -->
+        <ImageButton
+            android:id="@+id/back_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="Вакансия"
-            android:textSize="25sp"
-            android:textStyle="bold" />
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/back_button_description"
+            android:scaleType="centerInside"
+            app:srcCompat="@drawable/ic_arrow_back" />
+
+        <!-- Заголовок -->
+        <TextView
+            android:id="@+id/toolbar_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_weight="1"
+            android:fontFamily="@font/ys_display_medium"
+            android:gravity="center|start"
+            android:text="@string/details_title"
+            android:textSize="22sp" />
+
+        <!-- Кнопка поделиться -->
+        <ImageButton
+            android:id="@+id/share_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/share_button_description"
+            android:scaleType="centerInside"
+            app:srcCompat="@drawable/ic_share" />
+
+        <!-- Кнопка избранного -->
+        <ImageButton
+            android:id="@+id/favorite_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/favorite_button_description"
+            android:padding="12dp"
+            android:scaleType="centerInside"
+            app:srcCompat="@drawable/ic_favourites" />
+    </LinearLayout>
+
+    <!-- Кастомный Прогресс-бар под тулбаром -->
+    <FrameLayout
+        android:id="@+id/progress_bar"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar_layout">
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_gravity="center"
+            android:indeterminate="true"
+            app:indicatorColor="@color/blue" />
+    </FrameLayout>
+
+
+    <!-- Состояние ошибки: Вакансия не найдена или удалена -->
+    <LinearLayout
+        android:id="@+id/error_vacancy_not_found"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="32dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar_layout">
+
+        <ImageView
+            android:layout_width="328dp"
+            android:layout_height="223dp"
+            android:layout_marginBottom="16dp"
+            android:src="@drawable/img_error_vacancy_not_found" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:fontFamily="@font/ys_display_medium"
+            android:text="@string/vacancy_not_found"
+            android:textAlignment="center"
+            android:textSize="22sp" />
 
     </LinearLayout>
+
+    <!-- Состояние ошибки сервера -->
+    <LinearLayout
+        android:id="@+id/server_error_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="32dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar_layout">
+
+        <ImageView
+            android:layout_width="328dp"
+            android:layout_height="223dp"
+            android:layout_marginBottom="16dp"
+            android:src="@drawable/img_error_server_1" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:fontFamily="@font/ys_display_medium"
+            android:text="@string/error_server"
+            android:textSize="22sp" />
+    </LinearLayout>
+
+    <!-- Контент вакансии -->
+    <ScrollView
+        android:id="@+id/content_scrollview"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar_layout">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Заголовок вакансии -->
+            <TextView
+                android:id="@+id/vacancy_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:fontFamily="@font/ys_display_medium"
+                android:text="Android-разработчик"
+                android:textSize="32sp"
+                android:textStyle="bold" />
+
+            <!-- Зарплата -->
+            <TextView
+                android:id="@+id/salary_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:fontFamily="@font/ys_display_medium"
+                android:text="от 100 000 ₽"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <!-- Компания и город -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/shape_details"
+                android:orientation="horizontal">
+
+                <!-- Лого компании -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/logo_company"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="16dp"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="12dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <ImageView
+                        android:id="@+id/image_logo_company"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerInside"
+                        android:padding="2dp" />
+
+                </androidx.cardview.widget.CardView>
+
+                <!-- Вертикальная цепочка для текста -->
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    app:layout_constraintBottom_toBottomOf="@id/logo_company"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/logo_company"
+                    app:layout_constraintTop_toTopOf="@id/logo_company">
+
+                    <TextView
+                        android:id="@+id/company_name"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/ys_display_medium"
+                        android:gravity="start"
+                        android:text="@string/company_title"
+                        android:textColor="@color/black"
+                        android:textSize="22sp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <TextView
+                        android:id="@+id/city_text"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:fontFamily="@font/ys_display_regular"
+                        android:gravity="start"
+                        android:text="@string/city"
+                        android:textColor="@color/black"
+                        android:textSize="16sp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/company_name" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Опыт работы -->
+            <TextView
+                android:id="@+id/experience_title"
+                style="@style/Vacancy_title_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/experience_title" />
+
+            <TextView
+                android:id="@+id/experience_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:fontFamily="@font/ys_display_regular"
+                android:text="@string/example_of_experience_text"
+                android:textSize="16sp" />
+
+            <!-- График работы -->
+            <TextView
+                android:id="@+id/schedule_text"
+                style="@style/Vacancy_text_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:text="@string/example_of_schedule_text" />
+
+            <!-- Разделитель -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Описание вакансии -->
+            <TextView
+                android:id="@+id/job_description_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:fontFamily="@font/ys_display_medium"
+                android:text="@string/job_description"
+                android:textSize="22sp" />
+
+            <!-- Обязанности -->
+            <TextView
+                android:id="@+id/responsibilities_title"
+                style="@style/Vacancy_title_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/responsibilities" />
+
+            <TextView
+                android:id="@+id/responsibilities_text"
+                style="@style/Vacancy_text_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/example_of_responsibilities_text" />
+
+            <!-- Требования -->
+            <TextView
+                android:id="@+id/requirements_title"
+                style="@style/Vacancy_title_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/requirements" />
+
+            <TextView
+                android:id="@+id/requirements_text"
+                style="@style/Vacancy_text_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/example_of_requirements_text" />
+
+            <!-- Условия -->
+            <TextView
+                android:id="@+id/conditions_title"
+                style="@style/Vacancy_title_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/conditions" />
+
+            <TextView
+                android:id="@+id/conditions_text"
+                style="@style/Vacancy_text_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/example_of_conditions_text" />
+
+            <!-- Разделитель -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Ключевые навыки -->
+
+            <TextView
+                android:id="@+id/skills_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:fontFamily="@font/ys_display_medium"
+                android:text="@string/skills"
+                android:textSize="22sp" />
+
+            <TextView
+                android:id="@+id/skills_text"
+                style="@style/Vacancy_text_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/example_of_responsibilities_text" />
+
+            <!-- Блок контакты -->
+            <LinearLayout
+                android:id="@+id/contacts_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/contacts_title"
+                    style="@style/Vacancy_title_content"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:layout_marginBottom="16dp"
+                    android:text="@string/contacts"
+                    android:textSize="22sp" />
+
+                <TextView
+                    android:id="@+id/contacts_name"
+                    style="@style/Vacancy_text_content"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/contacts_phones"
+                    style="@style/Vacancy_text_content"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:autoLink="phone"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/contacts_email"
+                    style="@style/Vacancy_text_content"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:autoLink="email"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

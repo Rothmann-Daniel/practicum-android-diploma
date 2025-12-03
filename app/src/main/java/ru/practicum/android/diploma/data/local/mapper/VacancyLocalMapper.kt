@@ -149,4 +149,5 @@ class VacancyLocalMapper {
             null
         }
     }
+
 }
