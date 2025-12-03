@@ -14,4 +14,15 @@
         <item name="android:lineSpacingExtra">1dp</item>
     </style>
 
+    <style name="SalaryHintText" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/gray</item>
+    </style>
+
+    <style name="SalaryHelperText" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/gray</item>
+    </style>
+
+
 </resources>

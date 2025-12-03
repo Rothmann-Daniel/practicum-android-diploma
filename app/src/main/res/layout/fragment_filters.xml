@@ -5,32 +5,223 @@
     android:layout_height="match_parent">
 
     <LinearLayout
-        android:id="@+id/centerLayout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:id="@+id/toolbar_layout"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:layout_marginTop="24dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <TextView
-            android:id="@+id/tvTitle"
+        <!-- Кнопка назад -->
+        <ImageButton
+            android:id="@+id/back_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="Настройки фильтров"
-            android:textSize="25sp"
-            android:textStyle="bold" />
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/back_button_description"
+            android:scaleType="centerInside"
+            app:srcCompat="@drawable/ic_arrow_back" />
 
-        <!-- тестовая кнопка перехода на экран выбора отрасли -->
-        <Button
-            android:id="@+id/btnIndustries"
-            android:layout_width="wrap_content"
+        <!-- Заголовок -->
+        <TextView
+            android:id="@+id/toolbar_title"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Отрасли" />
+            android:layout_marginStart="4dp"
+            android:layout_weight="1"
+            android:fontFamily="@font/ys_display_medium"
+            android:gravity="center|start"
+            android:text="@string/fiters_title"
+            android:textSize="22sp" />
+
     </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/filters_block"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar_layout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/filer_area"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginHorizontal="16dp">
+
+            <TextView
+                android:id="@+id/area_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:text="@string/filter_area"
+                android:fontFamily="@font/ys_display_regular"
+                android:textSize="16sp"
+                android:textColor="@color/gray" />
+
+            <ImageView
+                android:id="@+id/area_forwardIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:src="@drawable/ic_arrow_forward" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/filer_industry"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginHorizontal="16dp">
+
+            <TextView
+                android:id="@+id/industry_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:text="@string/filter_industry"
+                android:fontFamily="@font/ys_display_regular"
+                android:textSize="16sp"
+                android:textColor="@color/gray" />
+
+            <ImageView
+                android:id="@+id/industry_forwardIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:src="@drawable/ic_arrow_forward" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <LinearLayout
+            android:id="@+id/salary_block"
+            android:layout_width="match_parent"
+            android:layout_height="51dp"
+            android:orientation="vertical"
+            android:layout_marginTop="24dp"
+            android:layout_marginHorizontal="16dp"
+            android:background="@drawable/shape_search_query">
+
+            <!-- Label сверху -->
+            <TextView
+                android:id="@+id/salary_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingStart="16dp"
+                android:paddingTop="8dp"
+                android:text="Ожидаемая зарплата"
+                android:textColor="@color/gray"
+                android:textSize="12sp"
+                android:fontFamily="@font/ys_display_regular" />
+
+            <!-- Контейнер для EditText с иконкой -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:layout_marginBottom="8dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/salary_sum"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:hint="Введите сумму"
+                    android:inputType="number"
+                    android:textColor="@color/black"
+                    android:textSize="16sp"
+                    android:fontFamily="@font/ys_display_regular"
+                    android:background="@null" />
+
+                <ImageView
+                    android:id="@+id/salary_clear_icon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="end|center_vertical"
+                    android:src="@drawable/ic_close"
+                    android:visibility="gone" />
+            </FrameLayout>
+        </LinearLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/salary_checkBox"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="30dp">
+
+            <TextView
+                android:id="@+id/checkBox_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:text="@string/salary_checkBox"
+                android:fontFamily="@font/ys_display_regular"
+                android:textSize="16sp"
+                android:textColor="@color/black" />
+
+            <ImageView
+                android:id="@+id/checkBox_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:src="@drawable/ic_check_box_off" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/btn_apply"
+        android:layout_width="match_parent"
+        android:layout_height="59dp"
+        android:layout_marginTop="214dp"
+        app:layout_constraintTop_toBottomOf="@+id/filters_block"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginHorizontal="17dp"
+        android:background="@drawable/shape_filter_button"
+        android:text="@string/button_apply"
+        android:gravity="center"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        android:fontFamily="@font/ys_display_medium"
+        android:textFontWeight="500" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="59dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/btn_apply"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginHorizontal="17dp"
+        android:text="@string/button_resert"
+        android:gravity="center"
+        android:textColor="@color/red"
+        android:textSize="16sp"
+        android:fontFamily="@font/ys_display_medium"
+        android:textFontWeight="500" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

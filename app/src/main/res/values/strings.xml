@@ -62,4 +62,14 @@
     <string name="developer1">Татьяна Гамма</string>
     <string name="developer2">Алексей Ненашев</string>
     <string name="developer3">Данила Ротман</string>
+
+    <!-- Filers Screen -->
+    <string name="fiters_title">Настройки фильтрации</string>
+    <string name="filter_area">Место работы</string>
+    <string name="filter_industry">Отрасль</string>
+    <string name="salary_hint">Ожидаемая зарплата</string>
+    <string name="salary_checkBox">Не показывать без зарплаты</string>
+    <string name="button_apply">Применить</string>
+    <string name="button_resert">Сбросить</string>
+
 </resources>
