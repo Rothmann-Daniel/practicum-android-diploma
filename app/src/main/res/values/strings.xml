@@ -71,5 +71,7 @@
     <string name="choosing_industry_title">Выбор отрасли</string>
     <string name="hint_industries">Введите отрасль</string>
     <string name="select">Выбрать</string>
+    <string name="industries_list_empty">Список отраслей пуст</string>
+    <string name="search_empty_results">Ничего не найдено</string>
 
 </resources>
