@@ -1,13 +1,12 @@
 package ru.practicum.android.diploma.presentation.filters
 
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.view.isVisible
+import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -53,16 +52,10 @@ class FiltersIndustriesFragment : Fragment() {
     }
 
     private fun setupSearch() {
-        binding.searchQueryIndustries.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                viewModel.setSearchQuery(s.toString())
-                updateClearButton(s.toString())
-            }
-
-            override fun afterTextChanged(s: Editable?) {}
-        })
+        binding.searchQueryIndustries.doOnTextChanged { text, _, _, _ ->
+            viewModel.setSearchQuery(text.toString())
+            updateClearButton(text.toString())
+        }
 
         binding.btnClear.setOnClickListener {
             binding.searchQueryIndustries.text?.clear()
