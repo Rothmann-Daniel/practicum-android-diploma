@@ -64,14 +64,19 @@ class FiltersFragment : Fragment() {
             salary = text?.toString()
 
             // показать / скрыть иконку очистки
-            clearIcon.visibility = if (text.isNullOrEmpty()) View.GONE else View.VISIBLE
+            clearIcon.visibility = if (text.isNullOrEmpty()) {
+                View.GONE
+            } else {
+                View.VISIBLE
+            }
 
             // менять цвет лейбла
             label.setTextColor(
-                if (text.isNullOrEmpty())
+                if (text.isNullOrEmpty()) {
                     requireContext().getColor(R.color.gray)
-                else
+                } else {
                     requireContext().getColor(R.color.blue)
+                }
             )
 
             updateButtonsState()
