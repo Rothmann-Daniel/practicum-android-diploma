@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/industriesItem"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="60dp"
+    android:gravity="center_vertical|start"
+    android:orientation="horizontal"
+    android:background="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true">
+
+    <RadioButton
+        android:id="@+id/industries_item_list"
+        style="@style/IndustriesItemStyle"
+        android:text="@string/industry_title"
+        android:button="@null"
+        android:drawableEnd="@drawable/ic_radio_selector"
+        android:drawablePadding="8dp"
+        android:contentDescription="@string/industry_title"
+        android:focusable="false"
+        android:clickable="false"/>
+
+</LinearLayout>
