@@ -82,5 +82,6 @@
     <string name="select">Выбрать</string>
     <string name="industries_list_empty">Список отраслей пуст</string>
     <string name="search_empty_results">Ничего не найдено</string>
+    <string name="area_ilter_toast">Фильтр находится в разработке</string>
 
 </resources>
