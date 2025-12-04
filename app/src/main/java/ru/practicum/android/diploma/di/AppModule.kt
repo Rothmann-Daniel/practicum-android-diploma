@@ -146,7 +146,7 @@ val appModule = module {
     single { SaveFilterSettingsUseCase(get()) }
 
     // ViewModels
-    viewModel { SearchViewModel(get()) }
+    viewModel { SearchViewModel(get(), get()) }
     viewModel { VacancyViewModel(get(), get(), get(), get(), get()) }
     viewModel { FavoriteVacancyViewModel(get()) }
     viewModel { FilterIndustriesViewModel(get(), get()) }
