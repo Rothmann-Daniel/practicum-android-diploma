@@ -3,9 +3,9 @@ package ru.practicum.android.diploma.data.repository
 import android.content.SharedPreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import ru.practicum.android.diploma.domain.models.FilterSettings
 import ru.practicum.android.diploma.domain.models.Industry
 import ru.practicum.android.diploma.domain.repository.FilterRepository
-import ru.practicum.android.diploma.domain.repository.FilterSettings
 
 class FilterRepositoryImpl(
     private val sharedPreferences: SharedPreferences
