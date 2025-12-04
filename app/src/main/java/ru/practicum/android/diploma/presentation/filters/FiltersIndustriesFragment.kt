@@ -29,7 +29,9 @@ class FiltersIndustriesFragment : Fragment() {
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
     ): View {
         _binding = FragmentFiltersIndustriesBinding.inflate(inflater, container, false)
         return binding.root
@@ -84,9 +86,9 @@ class FiltersIndustriesFragment : Fragment() {
 
             // Передаем выбранную отрасль во FiltersFragment
             parentFragmentManager.setFragmentResult(
-                "selectedIndustry", bundleOf("industry" to selected)
+                "selectedIndustry",
+                bundleOf("industry" to selected)
             )
-
             parentFragmentManager.popBackStack()
         }
     }
@@ -94,7 +96,9 @@ class FiltersIndustriesFragment : Fragment() {
     private fun showSuccessMessage(industryName: String) {
         val message = "Выбрана отрасль: $industryName"
         Toast.makeText(
-            requireContext(), message, Toast.LENGTH_SHORT
+            requireContext(),
+            message,
+            Toast.LENGTH_SHORT
         ).show()
     }
 

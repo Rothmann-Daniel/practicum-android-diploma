@@ -98,8 +98,6 @@ class FilterRepositoryImpl(
                 onlyWithSalary = getOnlyWithSalary()
             )
         }
-
-
     }
 
     override suspend fun saveFilterSettings(settings: FilterSettings) {

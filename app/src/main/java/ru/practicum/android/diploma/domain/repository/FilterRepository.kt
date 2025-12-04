@@ -18,5 +18,3 @@ interface FilterRepository {
     suspend fun getFilterSettings(): FilterSettings
     suspend fun saveFilterSettings(settings: FilterSettings)
 }
-
-

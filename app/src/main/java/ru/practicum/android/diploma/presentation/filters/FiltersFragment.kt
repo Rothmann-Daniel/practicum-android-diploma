@@ -75,7 +75,6 @@ class FiltersFragment : Fragment() {
         }
     }
 
-
     private fun saveFilters(settings: FilterSettings) {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.saveFilters(settings)
@@ -163,8 +162,8 @@ class FiltersFragment : Fragment() {
     private fun setupApplyButton() {
         binding.btnApply.setOnClickListener {
             val settings = FilterSettings(
-                industry = selectedIndustry,  // берём уже выбранный объект
-                salary = salary,              // берём число, введённое пользователем
+                industry = selectedIndustry, // берём уже выбранный объект
+                salary = salary, // берём число, введённое пользователем
                 onlyWithSalary = salaryChecked // берём актуальное значение чекбокса
             )
 

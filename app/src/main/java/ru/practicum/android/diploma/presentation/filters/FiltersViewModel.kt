@@ -27,7 +27,7 @@ class FiltersViewModel(
 
     fun saveFilters(settings: FilterSettings) {
         viewModelScope.launch {
-            saveFilterUseCase(settings)  // сохраняем все фильтры сразу
+            saveFilterUseCase(settings) // сохраняем все фильтры сразу
             _filterSettings.value = settings // обновляем LiveData для UI
         }
     }
