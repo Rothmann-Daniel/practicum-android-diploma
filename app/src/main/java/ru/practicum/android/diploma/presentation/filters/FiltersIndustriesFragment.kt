@@ -76,7 +76,7 @@ class FiltersIndustriesFragment : Fragment() {
         }
 
         binding.selectButton.setOnClickListener {
-// Получаем выбранную отрасль из ViewModel
+            // Получаем выбранную отрасль из ViewModel
             val selected = viewModel.selectedIndustry.value
 
             // Показываем Toast сразу
