@@ -37,13 +37,23 @@ class FilterIndustriesViewModel(
     private var searchJob: Job? = null
     private var currentQuery: String = ""
 
+    // флаг для отслеживания успешной загрузки данных
+    private var isDataLoaded = false
+
     fun loadIndustries() {
+        // Если данные уже загружены, не загружаем повторно
+        if (isDataLoaded && allIndustries.isNotEmpty()) {
+            filterIndustries(currentQuery)
+            return
+        }
+
         viewModelScope.launch {
             _state.value = IndustriesState.Loading
 
             when (val result = getIndustriesUseCase()) {
                 is DomainResult.Success -> {
                     allIndustries = result.data
+                    isDataLoaded = true
 
                     if (result.data.isEmpty()) {
                         _state.value = IndustriesState.Empty
@@ -58,6 +68,7 @@ class FilterIndustriesViewModel(
 
                 is DomainResult.Error -> {
                     _state.value = IndustriesState.Error
+                    isDataLoaded = false
                 }
             }
         }
@@ -70,6 +81,13 @@ class FilterIndustriesViewModel(
             delay(DEBOUNCE_DELAY_MS)
             filterIndustries(query)
         }
+    }
+
+    // МЕТОД: для мгновенной очистки поиска без задержки
+    fun clearSearch() {
+        currentQuery = ""
+        searchJob?.cancel()
+        filterIndustries("")
     }
 
     fun selectIndustry(industry: Industry) {
@@ -94,8 +112,13 @@ class FilterIndustriesViewModel(
     }
 
     private fun filterIndustries(query: String) {
-        if (allIndustries.isEmpty()) {
+        // проверяем наличие загруженных данных
+        if (!isDataLoaded || allIndustries.isEmpty()) {
             _filteredIndustries.value = emptyList()
+            // Не меняем состояние, если данные еще не загружены
+            if (_state.value !is IndustriesState.Loading && _state.value !is IndustriesState.Error) {
+                _state.value = IndustriesState.Empty
+            }
             return
         }
 
@@ -109,9 +132,10 @@ class FilterIndustriesViewModel(
 
         _filteredIndustries.value = filtered
 
-        if (_state.value is IndustriesState.Content) {
+        // обновляем состояние только если данные успешно загружены
+        if (isDataLoaded) {
             _state.value = if (filtered.isEmpty()) {
-                IndustriesState.Empty
+                IndustriesState.NoResults //  состояние для "нет результатов поиска"
             } else {
                 IndustriesState.Content
             }
@@ -139,8 +163,9 @@ class FilterIndustriesViewModel(
     sealed class IndustriesState {
         object Loading : IndustriesState()
         object Content : IndustriesState()
-        object Empty : IndustriesState()
-        object Error : IndustriesState()
+        object NoResults : IndustriesState() // Нет результатов поиска
+        object Empty : IndustriesState() // Пустой список от сервера
+        object Error : IndustriesState() // Ошибка загрузки
     }
 
     companion object {
