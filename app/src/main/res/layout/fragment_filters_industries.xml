@@ -170,6 +170,37 @@
                 android:textSize="22sp" />
         </LinearLayout>
 
+        <!-- Состояние: Ввод несуществующего значения -->
+        <LinearLayout
+            android:id="@+id/error_no_such_industry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="32dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:layout_width="328dp"
+                android:layout_height="223dp"
+                android:layout_marginBottom="16dp"
+                android:src="@drawable/img_error_get_list_cat" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:fontFamily="@font/ys_display_medium"
+                android:text="@string/error_no_such_industry"
+                android:textAlignment="center"
+                android:textSize="22sp" />
+
+        </LinearLayout>
+
         <!-- Progress Bar -->
         <ProgressBar
             android:id="@+id/progressBar"
