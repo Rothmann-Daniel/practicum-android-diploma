@@ -8,6 +8,7 @@ import kotlinx.coroutines.launch
 import ru.practicum.android.diploma.core.utils.SingleLiveEvent
 import ru.practicum.android.diploma.core.utils.debounce
 import ru.practicum.android.diploma.domain.models.DomainResult
+import ru.practicum.android.diploma.domain.models.Industry
 import ru.practicum.android.diploma.domain.models.Vacancy
 import ru.practicum.android.diploma.domain.models.VacancySearchRequest
 import ru.practicum.android.diploma.domain.repository.FilterSettings
@@ -116,7 +117,13 @@ class SearchViewModel(
         }
 
         viewModelScope.launch {
-            val request = VacancySearchRequest(text = query, page = page)
+            val request = VacancySearchRequest(
+                text = query,
+                page = page,
+                industry = filterSettings.industry?.id,
+                salary = filterSettings.salary,
+                onlyWithSalary = filterSettings.onlyWithSalary
+            )
 
             when (val result = searchUseCase(request)) {
                 is DomainResult.Success -> {
