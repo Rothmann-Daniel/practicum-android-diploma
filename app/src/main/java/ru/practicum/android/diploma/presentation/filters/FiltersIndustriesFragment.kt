@@ -21,7 +21,6 @@ class FiltersIndustriesFragment : Fragment() {
 
     private val viewModel: FilterIndustriesViewModel by viewModel()
 
-    // Изменено: lazy инициализация
     private val adapter: FilterIndustriesAdapter by lazy {
         FilterIndustriesAdapter { industry ->
             viewModel.selectIndustry(industry)
@@ -54,13 +53,15 @@ class FiltersIndustriesFragment : Fragment() {
 
     private fun setupSearch() {
         binding.searchQueryIndustries.doOnTextChanged { text, _, _, _ ->
-            viewModel.setSearchQuery(text.toString())
-            updateClearButton(text.toString())
+            val query = text.toString()
+            viewModel.setSearchQuery(query)
+            updateClearButton(query)
         }
 
         binding.btnClear.setOnClickListener {
             binding.searchQueryIndustries.text?.clear()
-            viewModel.setSearchQuery("")
+            // сразу сбрасываем поиск без задержки
+            viewModel.clearSearch()
         }
     }
 
@@ -118,16 +119,13 @@ class FiltersIndustriesFragment : Fragment() {
         viewModel.showSelectButton.observe(viewLifecycleOwner) { show ->
             binding.buttonContainer.isVisible = show
         }
-
-        viewModel.selectedIndustry.observe(viewLifecycleOwner) { industry ->
-            // Дополнительная логика если нужно
-        }
     }
 
     private fun handleState(state: FilterIndustriesViewModel.IndustriesState) {
         when (state) {
             FilterIndustriesViewModel.IndustriesState.Loading -> showLoading()
             FilterIndustriesViewModel.IndustriesState.Content -> showContent()
+            FilterIndustriesViewModel.IndustriesState.NoResults -> showNoResults()
             FilterIndustriesViewModel.IndustriesState.Empty -> showEmpty()
             FilterIndustriesViewModel.IndustriesState.Error -> showError()
         }
@@ -138,6 +136,7 @@ class FiltersIndustriesFragment : Fragment() {
         binding.recyclerViewIndustries.isVisible = false
         binding.errorNoInternetConnection.isVisible = false
         binding.serverErrorLayout.isVisible = false
+        binding.errorNoSuchIndustry.isVisible = false
         binding.buttonContainer.isVisible = false
     }
 
@@ -146,6 +145,19 @@ class FiltersIndustriesFragment : Fragment() {
         binding.recyclerViewIndustries.isVisible = true
         binding.errorNoInternetConnection.isVisible = false
         binding.serverErrorLayout.isVisible = false
+        binding.errorNoSuchIndustry.isVisible = false
+        // Кнопка видна только если есть выбранная отрасль
+    }
+
+    private fun showNoResults() {
+        // используем плейсхолдер для "нет такой отрасли"
+        binding.progressBar.isVisible = false
+        binding.recyclerViewIndustries.isVisible = false
+        binding.errorNoInternetConnection.isVisible = false
+        binding.serverErrorLayout.isVisible = false
+        binding.errorNoSuchIndustry.isVisible = true
+        // скрываем кнопку при отображении ошибки "нет такой отрасли"
+        binding.buttonContainer.isVisible = false
     }
 
     private fun showEmpty() {
@@ -153,6 +165,7 @@ class FiltersIndustriesFragment : Fragment() {
         binding.recyclerViewIndustries.isVisible = false
         binding.errorNoInternetConnection.isVisible = false
         binding.serverErrorLayout.isVisible = true
+        binding.errorNoSuchIndustry.isVisible = false
         binding.buttonContainer.isVisible = false
     }
 
@@ -161,12 +174,12 @@ class FiltersIndustriesFragment : Fragment() {
         binding.recyclerViewIndustries.isVisible = false
         binding.errorNoInternetConnection.isVisible = true
         binding.serverErrorLayout.isVisible = false
+        binding.errorNoSuchIndustry.isVisible = false
         binding.buttonContainer.isVisible = false
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-        // adapter не нужно очищать, так как он lazy
     }
 }
