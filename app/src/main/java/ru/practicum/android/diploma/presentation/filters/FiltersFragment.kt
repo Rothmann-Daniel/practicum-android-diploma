@@ -88,7 +88,7 @@ class FiltersFragment : Fragment() {
             )
 
             updateButtonsState()
-            updateSalaryCheckboxIcon()
+            //    updateSalaryCheckboxIcon()
         }
 
         // очистка поля
@@ -102,13 +102,14 @@ class FiltersFragment : Fragment() {
         binding.checkBoxIcon.setOnClickListener {
             salaryChecked = !salaryChecked
             updateSalaryCheckboxIcon()
+            updateButtonsState()
         }
     }
 
     private fun updateSalaryCheckboxIcon() {
-        val hasSalary = !salary.isNullOrEmpty()
+        //  val hasSalary = !salary.isNullOrEmpty()
 
-        val iconRes = if (hasSalary && salaryChecked) {
+        val iconRes = if (salaryChecked) {
             R.drawable.ic_check_box_on
         } else {
             R.drawable.ic_check_box_off
