@@ -14,4 +14,74 @@
         <item name="android:lineSpacingExtra">1dp</item>
     </style>
 
+    <style name="ToolbarTitle">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:fontFamily">@font/ys_display_medium</item>
+        <item name="android:textSize">@dimen/bigTextSize</item>
+        <item name="android:gravity">center|start</item>
+    </style>
+
+    <style name="SalaryHintText" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/gray</item>
+    </style>
+
+    <style name="SalaryHelperText" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/gray</item>
+    </style>
+
+    <style name="TextRegularGray">
+        <item name="android:textSize">@dimen/mediumTextSize</item>
+        <item name="android:fontFamily">@font/ys_display_regular</item>
+        <item name="android:textColor">@color/gray</item>
+    </style>
+
+    <style name="TextRegularBlack">
+        <item name="android:textSize">@dimen/mediumTextSize</item>
+        <item name="android:fontFamily">@font/ys_display_regular</item>
+        <item name="android:textColor">@color/black</item>
+    </style>
+
+    <style name="FilterRowContainer">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">60dp</item>
+        <item name="android:layout_marginHorizontal">16dp</item>
+    </style>
+
+    <style name="FilterRowTitle" parent="TextRegularGray" />
+
+    <style name="FilterButtonBase">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">59dp</item>
+        <item name="android:layout_marginHorizontal">17dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">@dimen/mediumTextSize</item>
+        <item name="android:fontFamily">@font/ys_display_medium</item>
+    </style>
+
+    <style name="FilterButtonApply" parent="FilterButtonBase">
+        <item name="android:background">@drawable/shape_filter_button</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="FilterButtonReset" parent="FilterButtonBase">
+        <item name="android:textColor">@color/red</item>
+    </style>
+
+
+    <style name="IndustriesItemStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingEnd">4dp</item>
+        <item name="android:paddingVertical">6dp</item>
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:fontFamily">@font/ys_display_regular</item>
+        <item name="android:layout_marginStart">16dp</item>
+        <item name="android:layout_marginEnd">8dp</item>
+    </style>
+
 </resources>
