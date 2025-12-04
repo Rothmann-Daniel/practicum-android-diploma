@@ -98,5 +98,29 @@ class FilterRepositoryImpl(
                 onlyWithSalary = getOnlyWithSalary()
             )
         }
+
+
+    }
+
+    override suspend fun saveFilterSettings(settings: FilterSettings) {
+        withContext(Dispatchers.IO) {
+            sharedPreferences.edit().apply {
+                if (settings.industry == null) {
+                    remove(KEY_INDUSTRY_ID)
+                    remove(KEY_INDUSTRY_NAME)
+                } else {
+                    putInt(KEY_INDUSTRY_ID, settings.industry.id)
+                    putString(KEY_INDUSTRY_NAME, settings.industry.name)
+                }
+
+                if (settings.salary == null) {
+                    remove(KEY_SALARY)
+                } else {
+                    putInt(KEY_SALARY, settings.salary)
+                }
+
+                putBoolean(KEY_ONLY_WITH_SALARY, settings.onlyWithSalary)
+            }.apply()
+        }
     }
 }

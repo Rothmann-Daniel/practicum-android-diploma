@@ -2,24 +2,31 @@ package ru.practicum.android.diploma.presentation.filters
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
-import android.widget.Toast
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import kotlinx.coroutines.launch
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import ru.practicum.android.diploma.R
 import ru.practicum.android.diploma.databinding.FragmentFiltersBinding
+import ru.practicum.android.diploma.domain.models.FilterSettings
+import ru.practicum.android.diploma.domain.models.Industry
 
 class FiltersFragment : Fragment() {
 
     private var _binding: FragmentFiltersBinding? = null
     private val binding get() = _binding!!
 
-    private var selectedIndustry: String? = null
-    private var salary: String? = null
+    private val viewModel: FiltersViewModel by viewModel()
+
+    private var selectedIndustry: Industry? = null
+    private var salary: Int? = null
     private var salaryChecked = false
 
     override fun onCreateView(
@@ -34,12 +41,24 @@ class FiltersFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        viewModel.loadFiltersFromPrefs()
         setupBackButton()
-        setupAreaBlock()
         setupIndustryBlock()
         setupSalaryInput()
         setupSalaryCheckbox()
-        setupApplyAndResetButtons()
+        setupApplyButton()
+        setupResetButton()
+        observeFilters()
+
+        // Слушаем выбранную отрасль из IndustriesFragment
+        parentFragmentManager.setFragmentResultListener("selectedIndustry", viewLifecycleOwner) { _, bundle ->
+            val industry = bundle.getParcelable<Industry>("industry")
+            selectedIndustry = industry
+            binding.industry.text = industry?.name ?: ""
+            binding.industry.visibility = if (industry != null) View.VISIBLE else View.GONE
+            updateButtonsState()
+            Log.d("FiltersFragment", "Selected industry from result: $industry")
+        }
     }
 
     private fun setupBackButton() {
@@ -48,17 +67,43 @@ class FiltersFragment : Fragment() {
         }
     }
 
-    private fun setupAreaBlock() {
-        binding.areaForwardIcon.setOnClickListener {
-            Toast.makeText(context, getString(R.string.area_ilter_toast), Toast.LENGTH_SHORT).show()
+    private fun observeFilters() {
+        // Один раз подписываемся на LiveData
+        viewModel.filterSettings.observe(viewLifecycleOwner) { settings ->
+            Log.d("FiltersFragment", "observeFilters: $settings")
+            updateUI(settings)
         }
+    }
+
+
+    private fun saveFilters(settings: FilterSettings) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.saveFilters(settings)
+        }
+    }
+
+    private fun updateUI(settings: FilterSettings) {
+        if (selectedIndustry == null) {
+            binding.industry.text = settings.industry?.name ?: ""
+            binding.industry.visibility = if (settings.industry != null) View.VISIBLE else View.GONE
+            selectedIndustry = settings.industry
+        }
+
+        if (binding.salarySum.text.toString().isEmpty()) {
+            binding.salarySum.setText(settings.salary?.toString() ?: "")
+            salary = settings.salary
+        }
+
+        salaryChecked = settings.onlyWithSalary
+        updateSalaryCheckboxIcon()
+
+        updateButtonsState()
     }
 
     private fun setupIndustryBlock() {
         binding.industryForwardIcon.setOnClickListener {
             findNavController().navigate(R.id.action_filters_to_industries)
         }
-
         // Текст отрасли скрыт пока не выбран фильтр
         binding.industry.visibility = View.GONE
     }
@@ -69,7 +114,7 @@ class FiltersFragment : Fragment() {
         val label = binding.salaryLabel
 
         edit.doOnTextChanged { text, _, _, _ ->
-            salary = text?.toString()
+            salary = text?.toString()?.toIntOrNull()
 
             // показать / скрыть иконку очистки
             clearIcon.visibility = if (text.isNullOrEmpty()) {
@@ -88,7 +133,6 @@ class FiltersFragment : Fragment() {
             )
 
             updateButtonsState()
-            //    updateSalaryCheckboxIcon()
         }
 
         // очистка поля
@@ -107,8 +151,6 @@ class FiltersFragment : Fragment() {
     }
 
     private fun updateSalaryCheckboxIcon() {
-        //  val hasSalary = !salary.isNullOrEmpty()
-
         val iconRes = if (salaryChecked) {
             R.drawable.ic_check_box_on
         } else {
@@ -118,24 +160,37 @@ class FiltersFragment : Fragment() {
         binding.checkBoxIcon.setImageResource(iconRes)
     }
 
-    private fun setupApplyAndResetButtons() {
-        updateButtonsState()
-
+    private fun setupApplyButton() {
         binding.btnApply.setOnClickListener {
-            // логика применения фильтров
-        }
+            val settings = FilterSettings(
+                industry = selectedIndustry,  // берём уже выбранный объект
+                salary = salary,              // берём число, введённое пользователем
+                onlyWithSalary = salaryChecked // берём актуальное значение чекбокса
+            )
 
+            saveFilters(settings) // сохраняем все фильтры
+            findNavController().popBackStack()
+        }
+    }
+
+    private fun setupResetButton() {
         binding.btnResert.setOnClickListener {
+            viewModel.clearAllFilters()
             resetFilters()
         }
     }
 
-    private fun updateButtonsState() {
-        val anyFilterSet =
-            !salary.isNullOrEmpty() || selectedIndustry != null || salaryChecked
+    private fun updateButtonsState(settings: FilterSettings? = null) {
+        val currentSettings = settings ?: FilterSettings(
+            industry = selectedIndustry,
+            salary = salary,
+            onlyWithSalary = salaryChecked
+        )
+        val anyFilterSet = currentSettings.salary != null ||
+            currentSettings.industry != null ||
+            currentSettings.onlyWithSalary
 
         val visibility = if (anyFilterSet) View.VISIBLE else View.GONE
-
         binding.btnApply.visibility = visibility
         binding.btnResert.visibility = visibility
     }

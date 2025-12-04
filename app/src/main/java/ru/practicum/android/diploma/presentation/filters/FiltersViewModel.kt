@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import ru.practicum.android.diploma.domain.models.FilterSettings
-import ru.practicum.android.diploma.domain.models.Industry
 import ru.practicum.android.diploma.domain.usecases.ClearFilterSettingsUseCase
 import ru.practicum.android.diploma.domain.usecases.GetFilterSettingsUseCase
 import ru.practicum.android.diploma.domain.usecases.SaveFilterSettingsUseCase
@@ -20,37 +19,16 @@ class FiltersViewModel(
     private val _filterSettings = MutableLiveData<FilterSettings>()
     val filterSettings: LiveData<FilterSettings> = _filterSettings
 
-    init {
-        loadFilters()
-    }
-
     private fun loadFilters() {
         viewModelScope.launch {
-            _filterSettings.value = getFilterUseCase()
+            _filterSettings.postValue(getFilterUseCase())
         }
     }
 
-    fun saveIndustry(industry: Industry?) {
+    fun saveFilters(settings: FilterSettings) {
         viewModelScope.launch {
-            val current = _filterSettings.value ?: FilterSettings()
-            saveFilterUseCase(current.copy(industry = industry))
-            loadFilters()
-        }
-    }
-
-    fun saveSalary(salary: Int?) {
-        viewModelScope.launch {
-            val current = _filterSettings.value ?: FilterSettings()
-            saveFilterUseCase(current.copy(salary = salary))
-            loadFilters()
-        }
-    }
-
-    fun saveOnlyWithSalary(onlyWithSalary: Boolean) {
-        viewModelScope.launch {
-            val current = _filterSettings.value ?: FilterSettings()
-            saveFilterUseCase(current.copy(onlyWithSalary = onlyWithSalary))
-            loadFilters()
+            saveFilterUseCase(settings)  // сохраняем все фильтры сразу
+            _filterSettings.value = settings // обновляем LiveData для UI
         }
     }
 
@@ -58,6 +36,12 @@ class FiltersViewModel(
         viewModelScope.launch {
             clearFilterUseCase()
             loadFilters()
+        }
+    }
+
+    fun loadFiltersFromPrefs() {
+        viewModelScope.launch {
+            _filterSettings.value = getFilterUseCase()
         }
     }
 }

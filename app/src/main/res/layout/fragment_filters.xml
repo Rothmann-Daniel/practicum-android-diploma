@@ -49,31 +49,6 @@
         app:layout_constraintTop_toBottomOf="@+id/toolbar_layout">
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/filer_area"
-            style="@style/FilterRowContainer">
-
-            <TextView
-                android:id="@+id/area_title"
-                style="@style/FilterRowTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/filter_area"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <ImageView
-                android:id="@+id/area_forwardIcon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_arrow_forward"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/filer_industry"
             style="@style/FilterRowContainer">
 

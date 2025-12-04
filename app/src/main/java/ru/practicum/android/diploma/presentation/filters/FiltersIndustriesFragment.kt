@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
@@ -28,9 +29,7 @@ class FiltersIndustriesFragment : Fragment() {
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentFiltersIndustriesBinding.inflate(inflater, container, false)
         return binding.root
@@ -77,11 +76,16 @@ class FiltersIndustriesFragment : Fragment() {
         }
 
         binding.selectButton.setOnClickListener {
-            viewModel.saveSelectedIndustry()
+// Получаем выбранную отрасль из ViewModel
+            val selected = viewModel.selectedIndustry.value
 
-            viewModel.selectedIndustry.value?.let { selectedIndustry ->
-                showSuccessMessage(selectedIndustry.name)
-            }
+            // Показываем Toast сразу
+            selected?.let { showSuccessMessage(it.name) }
+
+            // Передаем выбранную отрасль во FiltersFragment
+            parentFragmentManager.setFragmentResult(
+                "selectedIndustry", bundleOf("industry" to selected)
+            )
 
             parentFragmentManager.popBackStack()
         }
@@ -90,9 +94,7 @@ class FiltersIndustriesFragment : Fragment() {
     private fun showSuccessMessage(industryName: String) {
         val message = "Выбрана отрасль: $industryName"
         Toast.makeText(
-            requireContext(),
-            message,
-            Toast.LENGTH_SHORT
+            requireContext(), message, Toast.LENGTH_SHORT
         ).show()
     }
 
