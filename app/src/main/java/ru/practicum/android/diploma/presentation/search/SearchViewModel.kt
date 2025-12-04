@@ -8,7 +8,6 @@ import kotlinx.coroutines.launch
 import ru.practicum.android.diploma.core.utils.SingleLiveEvent
 import ru.practicum.android.diploma.core.utils.debounce
 import ru.practicum.android.diploma.domain.models.DomainResult
-import ru.practicum.android.diploma.domain.models.Industry
 import ru.practicum.android.diploma.domain.models.Vacancy
 import ru.practicum.android.diploma.domain.models.VacancySearchRequest
 import ru.practicum.android.diploma.domain.repository.FilterSettings
@@ -62,10 +61,18 @@ class SearchViewModel(
 
     init {
         viewModelScope.launch {
-            filterSettings = saveFilterSettingsUseCase.getFilterSettings()
-            useFilter = filterSettings.industry != null || filterSettings.salary != null || filterSettings.onlyWithSalary
+            getFilterSettings()
             _uiState.value = SearchUiState.EmptyQuery(useFilter)
         }
+    }
+
+    fun receiveFilterInfo() {
+        viewModelScope.launch { getFilterSettings() }
+    }
+
+    private suspend fun getFilterSettings() {
+        filterSettings = saveFilterSettingsUseCase.getFilterSettings()
+        useFilter = filterSettings.industry != null || filterSettings.salary != null || filterSettings.onlyWithSalary
     }
 
     private val debouncedSearch = debounce<String>(
