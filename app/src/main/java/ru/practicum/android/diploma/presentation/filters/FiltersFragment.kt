@@ -15,12 +15,13 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import ru.practicum.android.diploma.R
 import ru.practicum.android.diploma.databinding.FragmentFiltersBinding
-
+import ru.practicum.android.diploma.domain.models.FilterSettings
 
 class FiltersFragment : Fragment() {
 
     private var _binding: FragmentFiltersBinding? = null
     private val binding get() = _binding!!
+
 
     private val viewModel: FiltersViewModel by viewModel()
 
@@ -44,39 +45,64 @@ class FiltersFragment : Fragment() {
         setupResetButton()
 
         // Загружаем сохраненные фильтры из SharedPreferences
-        loadSavedFilters()
+        setupObservers()
     }
 
-    private fun loadSavedFilters() {
+    private fun setupObservers() {
+        // ОДИН общий observer для всего UI
         viewModel.filterSettings.observe(viewLifecycleOwner) { settings ->
-
-            // Загружаем отрасль
-            if (settings.industry != null) {
-                binding.industryTitle.textSize = 12f
-                binding.industryTitle.setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
-                binding.industry.text = settings.industry.name
-                binding.industry.visibility = View.VISIBLE
-                binding.industryForwardIcon.setImageResource(R.drawable.ic_close)
-            } else {
-                binding.industry.text = ""
-                binding.industry.visibility = View.GONE
-                binding.industryTitle.textSize = 16f
-                binding.industryTitle.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))
-                binding.industryForwardIcon.setImageResource(R.drawable.ic_arrow_forward)
-            }
-
-            // Загружаем зарплату
-            binding.salarySum.setText(settings.salary?.toString() ?: "")
-
-            // Загружаем чекбокс
-
-            binding.checkBoxIcon.setImageResource(
-                if (settings.onlyWithSalary) R.drawable.ic_check_box_on
-                else R.drawable.ic_check_box_off
-            )
-
-            updateButtonsState()
+            updateUI(settings)
         }
+    }
+
+    private fun updateUI(settings: FilterSettings) {
+        // 1. Обновляем отрасль
+        if (settings.industry != null) {
+            binding.industryTitle.textSize = 12f
+            binding.industryTitle.setTextColor(
+                ContextCompat.getColor(requireContext(), R.color.black)
+            )
+            binding.industry.text = settings.industry.name
+            binding.industry.visibility = View.VISIBLE
+            binding.industryForwardIcon.setImageResource(R.drawable.ic_close)
+        } else {
+            binding.industry.text = ""
+            binding.industry.visibility = View.GONE
+            binding.industryTitle.textSize = 16f
+            binding.industryTitle.setTextColor(
+                ContextCompat.getColor(requireContext(), R.color.gray)
+            )
+            binding.industryForwardIcon.setImageResource(R.drawable.ic_arrow_forward)
+        }
+
+        // 2. Обновляем зарплату всегда при обновлении из LiveData
+        // Убираем проверку на фокус для случая сброса
+        val currentText = binding.salarySum.text?.toString() ?: ""
+        val savedSalary = settings.salary?.toString() ?: ""
+
+        if (currentText != savedSalary) {
+            binding.salarySum.setText(savedSalary)
+        }
+
+        // 3. Обновляем чекбокс
+        binding.checkBoxIcon.setImageResource(
+            if (settings.onlyWithSalary) R.drawable.ic_check_box_on
+            else R.drawable.ic_check_box_off
+        )
+
+        // 4. Обновляем состояние кнопок
+        updateButtonsState(settings)
+    }
+
+    private fun updateButtonsState(settings: FilterSettings) {
+        val industry = settings.industry
+        val salary = settings.salary
+        val onlyWithSalary = settings.onlyWithSalary
+
+        val anyFilterSet = industry != null || salary != null || onlyWithSalary
+        val visibility = if (anyFilterSet) View.VISIBLE else View.GONE
+        binding.btnApply.visibility = visibility
+        binding.btnResert.visibility = visibility
     }
 
     private fun setupBackButton() {
@@ -87,20 +113,15 @@ class FiltersFragment : Fragment() {
 
     private fun setupIndustryBlock() {
         binding.industryForwardIcon.setOnClickListener {
-            viewModel.filterSettings.observe(viewLifecycleOwner) { settings ->
-                if (settings.industry != null) {
-                    // Очистка отрасли
-                    viewModel.saveIndustry(null)
-                    binding.industry.text = ""
-                    binding.industry.visibility = View.GONE
-                    binding.industryTitle.textSize = 16f
-                    binding.industryTitle.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))
-                    binding.industryForwardIcon.setImageResource(R.drawable.ic_arrow_forward)
-                } else {
-                    // Навигация на выбор отрасли
-                    findNavController().navigate(R.id.action_filters_to_industries)
-                }
-                updateButtonsState()
+            val currentSettings = viewModel.filterSettings.value
+
+            if (currentSettings?.industry != null) {
+                // Очистка отрасли
+                viewModel.saveIndustry(null)
+                // UI обновится автоматически через observer
+            } else {
+                // Навигация на выбор отрасли
+                findNavController().navigate(R.id.action_filters_to_industries)
             }
         }
     }
@@ -118,15 +139,24 @@ class FiltersFragment : Fragment() {
                 if (textNotEmpty && hasFocus) requireContext().getColor(R.color.blue)
                 else requireContext().getColor(R.color.gray)
             )
+
+            // Когда теряем фокус, сохраняем последнее значение
+            if (!hasFocus) {
+                val salary = edit.text?.toString()?.toIntOrNull()
+                viewLifecycleOwner.lifecycleScope.launch {
+                    viewModel.saveSalary(salary)
+                }
+            }
         }
 
         edit.doOnTextChanged { text, _, _, _ ->
             val salary = text?.toString()?.toIntOrNull()
+
             viewLifecycleOwner.lifecycleScope.launch {
                 viewModel.saveSalary(salary)
             }
 
-            // иконка и цвет зависят от текста и фокуса
+            // Локальное обновление иконки и цвета
             val hasFocus = edit.isFocused
             clearIcon.visibility = if (!text.isNullOrEmpty() && hasFocus) View.VISIBLE else View.GONE
             label.setTextColor(
@@ -134,33 +164,45 @@ class FiltersFragment : Fragment() {
                 else requireContext().getColor(R.color.gray)
             )
 
-            updateButtonsState()
+            // Обновляем кнопки на основе текущих данных
+            val currentSettings = viewModel.filterSettings.value
+            if (currentSettings != null) {
+                updateButtonsState(currentSettings.copy(salary = salary))
+            }
         }
+
         clearIcon.setOnClickListener {
             edit.setText("")
             hideKeyboard()
+            // Зарплата обновится через doOnTextChanged
         }
     }
 
     private fun setupSalaryCheckbox() {
         binding.checkBoxIcon.setOnClickListener {
-            viewModel.filterSettings.observe(viewLifecycleOwner) { settings ->
-                val current = settings.onlyWithSalary
-                val newValue = !current
-                viewModel.saveOnlyWithSalary(newValue)
-                binding.checkBoxIcon.setImageResource(
-                    if (newValue) R.drawable.ic_check_box_on
-                    else R.drawable.ic_check_box_off
-                )
-                updateButtonsState()
-            }
+            val current = viewModel.filterSettings.value?.onlyWithSalary ?: false
+            val newValue = !current
+
+            viewModel.saveOnlyWithSalary(newValue)
+            // UI обновится автоматически через observer
         }
     }
 
     private fun setupApplyButton() {
         binding.btnApply.setOnClickListener {
-            //добавить логику по применению фильтров в поиске
-            findNavController().popBackStack()
+            // Сохраняем текущую зарплату перед уходом
+            val salaryText = binding.salarySum.text?.toString()
+            val salary = salaryText?.toIntOrNull()
+
+            viewLifecycleOwner.lifecycleScope.launch {
+                // Гарантируем сохранение последних данных
+                viewModel.saveSalary(salary)
+
+                // Применяем фильтры (здесь должна быть логика применения фильтров к поиску)
+
+                // Возвращаемся назад
+                findNavController().popBackStack()
+            }
         }
     }
 
@@ -168,21 +210,8 @@ class FiltersFragment : Fragment() {
         binding.btnResert.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
                 viewModel.clearAllFilters()
-                loadSavedFilters()
+                // UI обновится автоматически через observer
             }
-        }
-    }
-
-    private fun updateButtonsState() {
-        viewModel.filterSettings.observe(viewLifecycleOwner) { settings ->
-            val industry = settings.industry
-            val salary = settings.salary
-            val onlyWithSalary = settings.onlyWithSalary
-
-            val anyFilterSet = industry != null || salary != null || onlyWithSalary
-            val visibility = if (anyFilterSet) View.VISIBLE else View.GONE
-            binding.btnApply.visibility = visibility
-            binding.btnResert.visibility = visibility
         }
     }
 
