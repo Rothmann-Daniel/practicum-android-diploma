@@ -147,8 +147,11 @@ class FiltersFragment : Fragment() {
             val textNotEmpty = !edit.text.isNullOrEmpty()
             clearIcon.visibility = if (textNotEmpty && hasFocus) View.VISIBLE else View.GONE
             label.setTextColor(
-                if (textNotEmpty && hasFocus) requireContext().getColor(R.color.blue)
-                else requireContext().getColor(R.color.gray)
+                if (textNotEmpty && hasFocus) {
+                    requireContext().getColor(R.color.blue)
+                } else {
+                    requireContext().getColor(R.color.gray)
+                }
             )
 
             if (!hasFocus) {
@@ -172,10 +175,17 @@ class FiltersFragment : Fragment() {
             }
 
             val hasFocus = edit.isFocused
-            clearIcon.visibility = if (!text.isNullOrEmpty() && hasFocus) View.VISIBLE else View.GONE
+            clearIcon.visibility = if (!text.isNullOrEmpty() && hasFocus) {
+                View.VISIBLE
+            } else {
+                View.GONE
+            }
             label.setTextColor(
-                if (!text.isNullOrEmpty() && hasFocus) requireContext().getColor(R.color.blue)
-                else requireContext().getColor(R.color.gray)
+                if (!text.isNullOrEmpty() && hasFocus) {
+                    requireContext().getColor(R.color.blue)
+                } else {
+                    requireContext().getColor(R.color.gray)
+                }
             )
 
             val currentSettings = viewModel.filterSettings.value
@@ -192,7 +202,6 @@ class FiltersFragment : Fragment() {
             // doOnTextChanged автоматически обновит значение
         }
     }
-
 
     private fun setupSalaryCheckbox() {
         binding.checkBoxIcon.setOnClickListener {
