@@ -1,5 +1,6 @@
 package ru.practicum.android.diploma.domain.repository
 
+import ru.practicum.android.diploma.domain.models.FilterSettings
 import ru.practicum.android.diploma.domain.models.Industry
 
 interface FilterRepository {
@@ -15,10 +16,5 @@ interface FilterRepository {
     suspend fun clearAllFilters()
 
     suspend fun getFilterSettings(): FilterSettings
+    suspend fun saveFilterSettings(settings: FilterSettings)
 }
-
-data class FilterSettings(
-    val industry: Industry? = null,
-    val salary: Int? = null,
-    val onlyWithSalary: Boolean = false
-)

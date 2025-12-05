@@ -1,11 +1,12 @@
 package ru.practicum.android.diploma.domain.usecases
 
+import ru.practicum.android.diploma.domain.models.FilterSettings
 import ru.practicum.android.diploma.domain.models.Industry
 import ru.practicum.android.diploma.domain.repository.FilterRepository
-import ru.practicum.android.diploma.domain.repository.FilterSettings
 
-class SaveFilterSettingsUseCase(private val repository: FilterRepository) {
-
+class SaveFilterSettingsUseCase(
+    private val repository: FilterRepository
+) {
     suspend fun saveIndustry(industry: Industry?) {
         repository.saveIndustry(industry)
     }
@@ -28,10 +29,6 @@ class SaveFilterSettingsUseCase(private val repository: FilterRepository) {
 
     suspend fun getSavedOnlyWithSalary(): Boolean {
         return repository.getOnlyWithSalary()
-    }
-
-    suspend fun clearAllFilters() {
-        repository.clearAllFilters()
     }
 
     // Новый метод для получения всех настроек сразу
