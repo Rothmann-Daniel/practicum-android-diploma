@@ -48,40 +48,53 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar_layout">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <RelativeLayout
             android:id="@+id/filer_industry"
             style="@style/FilterRowContainer">
 
-            <TextView
-                android:id="@+id/industry_title"
-                style="@style/FilterRowTitle"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/filter_industry"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:orientation="vertical"
+                android:layout_centerVertical="true"
+                android:gravity="start"
+                android:layout_toStartOf="@+id/industry_forwardIcon"
+                android:layout_marginEnd="16dp">
 
+                <!-- Название поля: "Отрасль" -->
+                <TextView
+                    android:id="@+id/industry_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/filter_industry"
+                    android:textSize="16sp"
+                    android:textColor="@color/gray" />
+
+                <!-- Название выбранной отрасли -->
+                <TextView
+                    android:id="@+id/industry"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                    android:textSize="16sp"
+                    android:paddingTop="4dp"
+                    tools:text="IT" />
+
+            </LinearLayout>
+
+            <!-- Иконка: вперед или очистить -->
             <ImageView
                 android:id="@+id/industry_forwardIcon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_arrow_forward"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:layout_centerVertical="true"
+                android:layout_alignParentEnd="true" />
 
-            <TextView
-                android:id="@+id/industry"
-                style="@style/TextRegularBlack"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@+id/industry_title"
-                tools:text="IT" />
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+        </RelativeLayout>
 
-        <LinearLayout
+        <RelativeLayout
             android:id="@+id/salary_block"
             android:layout_width="match_parent"
             android:layout_height="51dp"
@@ -100,36 +113,45 @@
                 android:paddingTop="8dp"
                 android:text="@string/salary_label"
                 android:textColor="@color/gray"
-                android:textSize="12sp" />
+                android:textSize="12sp"
+                android:layout_alignParentTop="true" />
 
             <!-- Контейнер для EditText с иконкой -->
             <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_marginBottom="8dp"
                 android:paddingStart="16dp"
-                android:paddingEnd="16dp">
+                android:paddingEnd="16dp"
+                android:layout_below="@+id/salary_label"
+                android:layout_alignParentStart="true"
+                android:layout_toStartOf="@+id/salary_clear_icon"
+                android:layout_marginEnd="16dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/salary_sum"
                     style="@style/TextRegularBlack"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:gravity="center_vertical"
                     android:background="@null"
                     android:fontFamily="@font/ys_display_regular"
                     android:hint="@string/salary_hint"
                     android:inputType="number"
                     android:textCursorDrawable="@drawable/custom_blue_cursor" />
-
-                <ImageView
-                    android:id="@+id/salary_clear_icon"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_gravity="end|center_vertical"
-                    android:src="@drawable/ic_close"
-                    android:visibility="gone" />
             </FrameLayout>
-        </LinearLayout>
+
+            <ImageView
+                android:id="@+id/salary_clear_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_close"
+                android:visibility="gone"
+                android:layout_centerVertical="true"
+                android:layout_alignParentEnd="true"
+                tools:visibility="visible"
+                android:layout_marginEnd="16dp" />
+        </RelativeLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/salary_checkBox"

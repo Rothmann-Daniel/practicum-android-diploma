@@ -7,17 +7,34 @@ import ru.practicum.android.diploma.domain.repository.FilterRepository
 class SaveFilterSettingsUseCase(
     private val repository: FilterRepository
 ) {
-    suspend operator fun invoke(settings: FilterSettings) {
-        repository.saveFilterSettings(settings)
-    }
-
-    // Сохраняем выбранную отрасль
     suspend fun saveIndustry(industry: Industry?) {
         repository.saveIndustry(industry)
     }
 
-    // Получаем сохранённую отрасль
     suspend fun getSavedIndustry(): Industry? {
         return repository.getSavedIndustry()
     }
+
+    suspend fun saveSalary(salary: Int?) {
+        repository.saveSalary(salary)
+    }
+
+    suspend fun getSavedSalary(): Int? {
+        return repository.getSavedSalary()
+    }
+
+    suspend fun saveOnlyWithSalary(onlyWithSalary: Boolean) {
+        repository.saveOnlyWithSalary(onlyWithSalary)
+    }
+
+    suspend fun getSavedOnlyWithSalary(): Boolean {
+        return repository.getOnlyWithSalary()
+    }
+    
+
+    // Новый метод для получения всех настроек сразу
+    suspend fun getFilterSettings(): FilterSettings {
+        return repository.getFilterSettings()
+    }
 }
+

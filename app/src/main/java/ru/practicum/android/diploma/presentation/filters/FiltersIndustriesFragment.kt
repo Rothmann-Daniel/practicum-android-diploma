@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
@@ -79,17 +78,12 @@ class FiltersIndustriesFragment : Fragment() {
         }
 
         binding.selectButton.setOnClickListener {
-            // Получаем выбранную отрасль из ViewModel
-            val selected = viewModel.selectedIndustry.value
+            viewModel.saveSelectedIndustry()
 
-            // Показываем Toast сразу
-            selected?.let { showSuccessMessage(it.name) }
+            viewModel.selectedIndustry.value?.let { selectedIndustry ->
+                showSuccessMessage(selectedIndustry.name)
+            }
 
-            // Передаем выбранную отрасль во FiltersFragment
-            parentFragmentManager.setFragmentResult(
-                "selectedIndustry",
-                bundleOf("industry" to selected)
-            )
             parentFragmentManager.popBackStack()
         }
     }
