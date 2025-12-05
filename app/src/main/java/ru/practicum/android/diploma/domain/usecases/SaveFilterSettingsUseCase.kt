@@ -30,11 +30,9 @@ class SaveFilterSettingsUseCase(
     suspend fun getSavedOnlyWithSalary(): Boolean {
         return repository.getOnlyWithSalary()
     }
-    
 
     // Новый метод для получения всех настроек сразу
     suspend fun getFilterSettings(): FilterSettings {
         return repository.getFilterSettings()
     }
 }
-

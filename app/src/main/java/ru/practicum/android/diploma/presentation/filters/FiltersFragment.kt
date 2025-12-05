@@ -22,7 +22,6 @@ class FiltersFragment : Fragment() {
     private var _binding: FragmentFiltersBinding? = null
     private val binding get() = _binding!!
 
-
     private val viewModel: FiltersViewModel by viewModel()
 
     override fun onCreateView(
@@ -58,7 +57,7 @@ class FiltersFragment : Fragment() {
     private fun updateUI(settings: FilterSettings) {
         // 1. Обновляем отрасль
         if (settings.industry != null) {
-            binding.industryTitle.textSize = 12f
+            binding.industryTitle.textSize = INDUSTRY_TITLE_TEXT_SIZE_SMALL
             binding.industryTitle.setTextColor(
                 ContextCompat.getColor(requireContext(), R.color.black)
             )
@@ -68,7 +67,7 @@ class FiltersFragment : Fragment() {
         } else {
             binding.industry.text = ""
             binding.industry.visibility = View.GONE
-            binding.industryTitle.textSize = 16f
+            binding.industryTitle.textSize = INDUSTRY_TITLE_TEXT_SIZE_LARGE
             binding.industryTitle.setTextColor(
                 ContextCompat.getColor(requireContext(), R.color.gray)
             )
@@ -86,8 +85,11 @@ class FiltersFragment : Fragment() {
 
         // 3. Обновляем чекбокс
         binding.checkBoxIcon.setImageResource(
-            if (settings.onlyWithSalary) R.drawable.ic_check_box_on
-            else R.drawable.ic_check_box_off
+            if (settings.onlyWithSalary) {
+                R.drawable.ic_check_box_on
+            } else {
+                R.drawable.ic_check_box_off
+            }
         )
 
         // 4. Обновляем состояние кнопок
@@ -100,7 +102,11 @@ class FiltersFragment : Fragment() {
         val onlyWithSalary = settings.onlyWithSalary
 
         val anyFilterSet = industry != null || salary != null || onlyWithSalary
-        val visibility = if (anyFilterSet) View.VISIBLE else View.GONE
+        val visibility = if (anyFilterSet) {
+            View.VISIBLE
+        } else {
+            View.GONE
+        }
         binding.btnApply.visibility = visibility
         binding.btnResert.visibility = visibility
     }
@@ -134,10 +140,17 @@ class FiltersFragment : Fragment() {
         // Фокус-слушатель
         edit.setOnFocusChangeListener { _, hasFocus ->
             val textNotEmpty = !edit.text.isNullOrEmpty()
-            clearIcon.visibility = if (textNotEmpty && hasFocus) View.VISIBLE else View.GONE
+            clearIcon.visibility = if (textNotEmpty && hasFocus) {
+                View.VISIBLE
+            } else {
+                View.GONE
+            }
             label.setTextColor(
-                if (textNotEmpty && hasFocus) requireContext().getColor(R.color.blue)
-                else requireContext().getColor(R.color.gray)
+                if (textNotEmpty && hasFocus) {
+                    requireContext().getColor(R.color.blue)
+                } else {
+                    requireContext().getColor(R.color.gray)
+                }
             )
 
             // Когда теряем фокус, сохраняем последнее значение
@@ -158,10 +171,17 @@ class FiltersFragment : Fragment() {
 
             // Локальное обновление иконки и цвета
             val hasFocus = edit.isFocused
-            clearIcon.visibility = if (!text.isNullOrEmpty() && hasFocus) View.VISIBLE else View.GONE
+            clearIcon.visibility = if (!text.isNullOrEmpty() && hasFocus) {
+                View.VISIBLE
+            } else {
+                View.GONE
+            }
             label.setTextColor(
-                if (!text.isNullOrEmpty() && hasFocus) requireContext().getColor(R.color.blue)
-                else requireContext().getColor(R.color.gray)
+                if (!text.isNullOrEmpty() && hasFocus) {
+                    requireContext().getColor(R.color.blue)
+                } else {
+                    requireContext().getColor(R.color.gray)
+                }
             )
 
             // Обновляем кнопки на основе текущих данных
@@ -223,5 +243,10 @@ class FiltersFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    companion object {
+        private const val INDUSTRY_TITLE_TEXT_SIZE_SMALL = 12f
+        private const val INDUSTRY_TITLE_TEXT_SIZE_LARGE = 16f
     }
 }
