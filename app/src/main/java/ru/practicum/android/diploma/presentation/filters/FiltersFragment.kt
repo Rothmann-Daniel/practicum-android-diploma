@@ -133,27 +133,24 @@ class FiltersFragment : Fragment() {
     }
 
     private fun setupSalaryInput() {
+        setupSalaryFocusListener()
+        setupSalaryTextWatcher()
+        setupSalaryClearButton()
+    }
+
+    private fun setupSalaryFocusListener() {
         val edit = binding.salarySum
         val clearIcon = binding.salaryClearIcon
         val label = binding.salaryLabel
 
-        // Фокус-слушатель
         edit.setOnFocusChangeListener { _, hasFocus ->
             val textNotEmpty = !edit.text.isNullOrEmpty()
-            clearIcon.visibility = if (textNotEmpty && hasFocus) {
-                View.VISIBLE
-            } else {
-                View.GONE
-            }
+            clearIcon.visibility = if (textNotEmpty && hasFocus) View.VISIBLE else View.GONE
             label.setTextColor(
-                if (textNotEmpty && hasFocus) {
-                    requireContext().getColor(R.color.blue)
-                } else {
-                    requireContext().getColor(R.color.gray)
-                }
+                if (textNotEmpty && hasFocus) requireContext().getColor(R.color.blue)
+                else requireContext().getColor(R.color.gray)
             )
 
-            // Когда теряем фокус, сохраняем последнее значение
             if (!hasFocus) {
                 val salary = edit.text?.toString()?.toIntOrNull()
                 viewLifecycleOwner.lifecycleScope.launch {
@@ -161,42 +158,41 @@ class FiltersFragment : Fragment() {
                 }
             }
         }
+    }
+
+    private fun setupSalaryTextWatcher() {
+        val edit = binding.salarySum
+        val clearIcon = binding.salaryClearIcon
+        val label = binding.salaryLabel
 
         edit.doOnTextChanged { text, _, _, _ ->
             val salary = text?.toString()?.toIntOrNull()
-
             viewLifecycleOwner.lifecycleScope.launch {
                 viewModel.saveSalary(salary)
             }
 
-            // Локальное обновление иконки и цвета
             val hasFocus = edit.isFocused
-            clearIcon.visibility = if (!text.isNullOrEmpty() && hasFocus) {
-                View.VISIBLE
-            } else {
-                View.GONE
-            }
+            clearIcon.visibility = if (!text.isNullOrEmpty() && hasFocus) View.VISIBLE else View.GONE
             label.setTextColor(
-                if (!text.isNullOrEmpty() && hasFocus) {
-                    requireContext().getColor(R.color.blue)
-                } else {
-                    requireContext().getColor(R.color.gray)
-                }
+                if (!text.isNullOrEmpty() && hasFocus) requireContext().getColor(R.color.blue)
+                else requireContext().getColor(R.color.gray)
             )
 
-            // Обновляем кнопки на основе текущих данных
             val currentSettings = viewModel.filterSettings.value
             if (currentSettings != null) {
                 updateButtonsState(currentSettings.copy(salary = salary))
             }
         }
+    }
 
-        clearIcon.setOnClickListener {
-            edit.setText("")
+    private fun setupSalaryClearButton() {
+        binding.salaryClearIcon.setOnClickListener {
+            binding.salarySum.setText("")
             hideKeyboard()
-            // Зарплата обновится через doOnTextChanged
+            // doOnTextChanged автоматически обновит значение
         }
     }
+
 
     private fun setupSalaryCheckbox() {
         binding.checkBoxIcon.setOnClickListener {

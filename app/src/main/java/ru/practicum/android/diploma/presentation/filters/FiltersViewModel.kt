@@ -73,4 +73,3 @@ class FiltersViewModel(
     // Можно также вернуть все настройки сразу
     suspend fun getFilterSettings() = getFilterUseCase()
 }
-

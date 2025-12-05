@@ -1,0 +1,212 @@
+Index: app/src/main/java/ru/practicum/android/diploma/presentation/filters/FiltersFragment.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package ru.practicum.android.diploma.presentation.filters\n\nimport android.content.Context\nimport android.os.Bundle\nimport android.view.LayoutInflater\nimport android.view.View\nimport android.view.ViewGroup\nimport android.view.inputmethod.InputMethodManager\nimport androidx.core.content.ContextCompat\nimport androidx.core.widget.doOnTextChanged\nimport androidx.fragment.app.Fragment\nimport androidx.lifecycle.lifecycleScope\nimport androidx.navigation.fragment.findNavController\nimport kotlinx.coroutines.launch\nimport org.koin.androidx.viewmodel.ext.android.viewModel\nimport ru.practicum.android.diploma.R\nimport ru.practicum.android.diploma.databinding.FragmentFiltersBinding\n\n\nclass FiltersFragment : Fragment() {\n\n    private var _binding: FragmentFiltersBinding? = null\n    private val binding get() = _binding!!\n\n    private val viewModel: FiltersViewModel by viewModel()\n\n    override fun onCreateView(\n        inflater: LayoutInflater,\n        container: ViewGroup?,\n        savedInstanceState: Bundle?\n    ): View {\n        _binding = FragmentFiltersBinding.inflate(inflater, container, false)\n        return binding.root\n    }\n\n    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {\n        super.onViewCreated(view, savedInstanceState)\n\n        setupBackButton()\n        setupIndustryBlock()\n        setupSalaryInput()\n        setupSalaryCheckbox()\n        setupApplyButton()\n        setupResetButton()\n\n        // Загружаем сохраненные фильтры из SharedPreferences\n        loadSavedFilters()\n    }\n\n    private fun loadSavedFilters() {\n        viewModel.filterSettings.observe(viewLifecycleOwner) { settings ->\n\n            // Загружаем отрасль\n            if (settings.industry != null) {\n                binding.industryTitle.textSize = 12f\n                binding.industryTitle.setTextColor(ContextCompat.getColor(requireContext(), R.color.black))\n                binding.industry.text = settings.industry.name\n                binding.industry.visibility = View.VISIBLE\n                binding.industryForwardIcon.setImageResource(R.drawable.ic_close)\n            } else {\n                binding.industry.text = \"\"\n                binding.industry.visibility = View.GONE\n                binding.industryTitle.textSize = 16f\n                binding.industryTitle.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))\n                binding.industryForwardIcon.setImageResource(R.drawable.ic_arrow_forward)\n            }\n\n            // Загружаем зарплату\n            binding.salarySum.setText(settings.salary?.toString() ?: \"\")\n\n            // Загружаем чекбокс\n\n            binding.checkBoxIcon.setImageResource(\n                if (settings.onlyWithSalary) R.drawable.ic_check_box_on\n                else R.drawable.ic_check_box_off\n            )\n\n            updateButtonsState()\n        }\n    }\n\n    private fun setupBackButton() {\n        binding.backButton.setOnClickListener {\n            findNavController().popBackStack()\n        }\n    }\n\n    private fun setupIndustryBlock() {\n        binding.industryForwardIcon.setOnClickListener {\n            viewModel.filterSettings.observe(viewLifecycleOwner) { settings ->\n                if (settings.industry != null) {\n                    // Очистка отрасли\n                    viewModel.saveIndustry(null)\n                    binding.industry.text = \"\"\n                    binding.industry.visibility = View.GONE\n                    binding.industryTitle.textSize = 16f\n                    binding.industryTitle.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))\n                    binding.industryForwardIcon.setImageResource(R.drawable.ic_arrow_forward)\n                } else {\n                    // Навигация на выбор отрасли\n                    findNavController().navigate(R.id.action_filters_to_industries)\n                }\n                updateButtonsState()\n            }\n        }\n    }\n\n    private fun setupSalaryInput() {\n        val edit = binding.salarySum\n        val clearIcon = binding.salaryClearIcon\n        val label = binding.salaryLabel\n\n        // Фокус-слушатель\n        edit.setOnFocusChangeListener { _, hasFocus ->\n            val textNotEmpty = !edit.text.isNullOrEmpty()\n            clearIcon.visibility = if (textNotEmpty && hasFocus) View.VISIBLE else View.GONE\n            label.setTextColor(\n                if (textNotEmpty && hasFocus) requireContext().getColor(R.color.blue)\n                else requireContext().getColor(R.color.gray)\n            )\n        }\n\n        edit.doOnTextChanged { text, _, _, _ ->\n            val salary = text?.toString()?.toIntOrNull()\n            viewLifecycleOwner.lifecycleScope.launch {\n                viewModel.saveSalary(salary)\n            }\n\n            // иконка и цвет зависят от текста и фокуса\n            val hasFocus = edit.isFocused\n            clearIcon.visibility = if (!text.isNullOrEmpty() && hasFocus) View.VISIBLE else View.GONE\n            label.setTextColor(\n                if (!text.isNullOrEmpty() && hasFocus) requireContext().getColor(R.color.blue)\n                else requireContext().getColor(R.color.gray)\n            )\n\n            updateButtonsState()\n        }\n        clearIcon.setOnClickListener {\n            edit.setText(\"\")\n            hideKeyboard()\n        }\n    }\n\n    private fun setupSalaryCheckbox() {\n        binding.checkBoxIcon.setOnClickListener {\n            viewModel.filterSettings.observe(viewLifecycleOwner) { settings ->\n                val current = settings.onlyWithSalary\n                val newValue = !current\n                viewModel.saveOnlyWithSalary(newValue)\n                binding.checkBoxIcon.setImageResource(\n                    if (newValue) R.drawable.ic_check_box_on\n                    else R.drawable.ic_check_box_off\n                )\n                updateButtonsState()\n            }\n        }\n    }\n\n    private fun setupApplyButton() {\n        binding.btnApply.setOnClickListener {\n            //добавить логику по применению фильтров в поиске\n            findNavController().popBackStack()\n        }\n    }\n\n    private fun setupResetButton() {\n        binding.btnResert.setOnClickListener {\n            viewLifecycleOwner.lifecycleScope.launch {\n                viewModel.clearAllFilters()\n                loadSavedFilters()\n            }\n        }\n    }\n\n    private fun updateButtonsState() {\n        viewModel.filterSettings.observe(viewLifecycleOwner) { settings ->\n            val industry = settings.industry\n            val salary = settings.salary\n            val onlyWithSalary = settings.onlyWithSalary\n\n            val anyFilterSet = industry != null || salary != null || onlyWithSalary\n            val visibility = if (anyFilterSet) View.VISIBLE else View.GONE\n            binding.btnApply.visibility = visibility\n            binding.btnResert.visibility = visibility\n        }\n    }\n\n    private fun hideKeyboard() {\n        val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager\n        imm.hideSoftInputFromWindow(binding.salarySum.windowToken, 0)\n    }\n\n    override fun onDestroyView() {\n        super.onDestroyView()\n        _binding = null\n    }\n}\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/ru/practicum/android/diploma/presentation/filters/FiltersFragment.kt b/app/src/main/java/ru/practicum/android/diploma/presentation/filters/FiltersFragment.kt
+--- a/app/src/main/java/ru/practicum/android/diploma/presentation/filters/FiltersFragment.kt	(revision f74d475306dc84d13d815525155691283c4ece1c)
++++ b/app/src/main/java/ru/practicum/android/diploma/presentation/filters/FiltersFragment.kt	(date 1764940882606)
+@@ -9,9 +9,7 @@
+ import androidx.core.content.ContextCompat
+ import androidx.core.widget.doOnTextChanged
+ import androidx.fragment.app.Fragment
+-import androidx.lifecycle.lifecycleScope
+ import androidx.navigation.fragment.findNavController
+-import kotlinx.coroutines.launch
+ import org.koin.androidx.viewmodel.ext.android.viewModel
+ import ru.practicum.android.diploma.R
+ import ru.practicum.android.diploma.databinding.FragmentFiltersBinding
+@@ -87,23 +85,23 @@
+ 
+     private fun setupIndustryBlock() {
+         binding.industryForwardIcon.setOnClickListener {
+-            viewModel.filterSettings.observe(viewLifecycleOwner) { settings ->
+-                if (settings.industry != null) {
+-                    // Очистка отрасли
+-                    viewModel.saveIndustry(null)
+-                    binding.industry.text = ""
+-                    binding.industry.visibility = View.GONE
+-                    binding.industryTitle.textSize = 16f
+-                    binding.industryTitle.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))
+-                    binding.industryForwardIcon.setImageResource(R.drawable.ic_arrow_forward)
+-                } else {
+-                    // Навигация на выбор отрасли
+-                    findNavController().navigate(R.id.action_filters_to_industries)
+-                }
+-                updateButtonsState()
+-            }
++            val currentIndustry = viewModel.filterSettings.value?.industry
++            if (currentIndustry != null) {
++                // Очистка отрасли
++                viewModel.saveIndustry(null)
++                binding.industry.text = ""
++                binding.industry.visibility = View.GONE
++                binding.industryTitle.textSize = 16f
++                binding.industryTitle.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))
++                binding.industryForwardIcon.setImageResource(R.drawable.ic_arrow_forward)
++            } else {
++                // Навигация на выбор отрасли
++                findNavController().navigate(R.id.action_filters_to_industries)
++            }
++            updateButtonsState()
+         }
+     }
++
+ 
+     private fun setupSalaryInput() {
+         val edit = binding.salarySum
+@@ -113,47 +111,68 @@
+         // Фокус-слушатель
+         edit.setOnFocusChangeListener { _, hasFocus ->
+             val textNotEmpty = !edit.text.isNullOrEmpty()
+-            clearIcon.visibility = if (textNotEmpty && hasFocus) View.VISIBLE else View.GONE
++
++            clearIcon.visibility =
++                if (textNotEmpty && hasFocus) View.VISIBLE else View.GONE
++
+             label.setTextColor(
+-                if (textNotEmpty && hasFocus) requireContext().getColor(R.color.blue)
+-                else requireContext().getColor(R.color.gray)
++                if (textNotEmpty && hasFocus)
++                    requireContext().getColor(R.color.blue)
++                else
++                    requireContext().getColor(R.color.gray)
+             )
++
++            if (hasFocus) {
++                val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
++                imm.showSoftInput(edit, InputMethodManager.SHOW_IMPLICIT)
++            }
+         }
+ 
++        // Слушатель изменений текста — ВНЕ observe (важно!)
+         edit.doOnTextChanged { text, _, _, _ ->
+             val salary = text?.toString()?.toIntOrNull()
+-            viewLifecycleOwner.lifecycleScope.launch {
+-                viewModel.saveSalary(salary)
+-            }
++            viewModel.saveSalary(salary)
++        }
+ 
+-            // иконка и цвет зависят от текста и фокуса
+-            val hasFocus = edit.isFocused
+-            clearIcon.visibility = if (!text.isNullOrEmpty() && hasFocus) View.VISIBLE else View.GONE
+-            label.setTextColor(
+-                if (!text.isNullOrEmpty() && hasFocus) requireContext().getColor(R.color.blue)
+-                else requireContext().getColor(R.color.gray)
+-            )
+-
+-            updateButtonsState()
+-        }
++        // Очистка поля
+         clearIcon.setOnClickListener {
+             edit.setText("")
+             hideKeyboard()
+         }
++
++        // Подписка на LiveData
++        viewModel.filterSettings.observe(viewLifecycleOwner) { settings ->
++            val currentText = edit.text.toString()
++            val newText = settings.salary?.toString() ?: ""
++
++            // Обновляем EditText только если текст изменился
++            if (currentText != newText) {
++                val hasFocus = edit.isFocused
++                edit.setText(newText)
++                if (hasFocus) edit.setSelection(newText.length)
++            }
++
++            // Обновляем UI (цвет/иконка)
++            val hasFocus = edit.isFocused
++            val textNotEmpty = !edit.text.isNullOrEmpty()
++
++            clearIcon.visibility =
++                if (textNotEmpty && hasFocus) View.VISIBLE else View.GONE
++
++            label.setTextColor(
++                if (textNotEmpty && hasFocus)
++                    requireContext().getColor(R.color.blue)
++                else
++                    requireContext().getColor(R.color.gray)
++            )
++        }
+     }
++
+ 
+     private fun setupSalaryCheckbox() {
+         binding.checkBoxIcon.setOnClickListener {
+-            viewModel.filterSettings.observe(viewLifecycleOwner) { settings ->
+-                val current = settings.onlyWithSalary
+-                val newValue = !current
+-                viewModel.saveOnlyWithSalary(newValue)
+-                binding.checkBoxIcon.setImageResource(
+-                    if (newValue) R.drawable.ic_check_box_on
+-                    else R.drawable.ic_check_box_off
+-                )
+-                updateButtonsState()
+-            }
++            val currentValue = viewModel.filterSettings.value?.onlyWithSalary ?: false
++            viewModel.saveOnlyWithSalary(!currentValue)
+         }
+     }
+ 
+@@ -166,25 +185,20 @@
+ 
+     private fun setupResetButton() {
+         binding.btnResert.setOnClickListener {
+-            viewLifecycleOwner.lifecycleScope.launch {
+-                viewModel.clearAllFilters()
+-                loadSavedFilters()
+-            }
++            viewModel.clearAllFilters()
++            loadSavedFilters()
++
+         }
+     }
+ 
+     private fun updateButtonsState() {
+-        viewModel.filterSettings.observe(viewLifecycleOwner) { settings ->
+-            val industry = settings.industry
+-            val salary = settings.salary
+-            val onlyWithSalary = settings.onlyWithSalary
+-
+-            val anyFilterSet = industry != null || salary != null || onlyWithSalary
+-            val visibility = if (anyFilterSet) View.VISIBLE else View.GONE
+-            binding.btnApply.visibility = visibility
+-            binding.btnResert.visibility = visibility
+-        }
++        val settings = viewModel.filterSettings.value
++        val anyFilterSet = settings?.industry != null || settings?.salary != null || settings?.onlyWithSalary == true
++        val visibility = if (anyFilterSet) View.VISIBLE else View.GONE
++        binding.btnApply.visibility = visibility
++        binding.btnResert.visibility = visibility
+     }
++
+ 
+     private fun hideKeyboard() {
+         val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+Index: .idea/deploymentTargetSelector.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project version=\"4\">\n  <component name=\"deploymentTargetSelector\">\n    <selectionStates>\n      <SelectionState runConfigName=\"app\">\n        <option name=\"selectionMode\" value=\"DROPDOWN\" />\n        <DropdownSelection timestamp=\"2025-12-05T12:24:44.502938Z\">\n          <Target type=\"DEFAULT_BOOT\">\n            <handle>\n              <DeviceId pluginId=\"LocalEmulator\" identifier=\"path=/Users/Pupsic/.android/avd/Pixel_5.avd\" />\n            </handle>\n          </Target>\n        </DropdownSelection>\n        <DialogSelection />\n      </SelectionState>\n    </selectionStates>\n  </component>\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/deploymentTargetSelector.xml b/.idea/deploymentTargetSelector.xml
+--- a/.idea/deploymentTargetSelector.xml	(revision f74d475306dc84d13d815525155691283c4ece1c)
++++ b/.idea/deploymentTargetSelector.xml	(date 1764938030251)
+@@ -4,10 +4,10 @@
+     <selectionStates>
+       <SelectionState runConfigName="app">
+         <option name="selectionMode" value="DROPDOWN" />
+-        <DropdownSelection timestamp="2025-12-05T12:24:44.502938Z">
++        <DropdownSelection timestamp="2025-12-05T12:33:24.936443Z">
+           <Target type="DEFAULT_BOOT">
+             <handle>
+-              <DeviceId pluginId="LocalEmulator" identifier="path=/Users/Pupsic/.android/avd/Pixel_5.avd" />
++              <DeviceId pluginId="PhysicalDevice" identifier="serial=RFCTB1HKNRJ" />
+             </handle>
+           </Target>
+         </DropdownSelection>
