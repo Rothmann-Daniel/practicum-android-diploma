@@ -59,20 +59,25 @@ class SearchViewModel(
     private var filterSettings = FilterSettings()
     private var useFilter = false
 
-    init {
+    fun receiveFilterInfo() {
         viewModelScope.launch {
-            getFilterSettings()
-            _uiState.value = SearchUiState.EmptyQuery(useFilter)
+            filterSettings = getFilterSettingsUseCase()
+            useFilter = filterSettings.industry != null || filterSettings.salary != null || filterSettings.onlyWithSalary
+            updateUseFilterInLiveData()
         }
     }
 
-    fun receiveFilterInfo() {
-        viewModelScope.launch { getFilterSettings() }
-    }
-
-    private suspend fun getFilterSettings() {
-        filterSettings = getFilterSettingsUseCase()
-        useFilter = filterSettings.industry != null || filterSettings.salary != null || filterSettings.onlyWithSalary
+    private fun updateUseFilterInLiveData() {
+        val previousState = _uiState.value
+        if (previousState != null) {
+            when (previousState) {
+                is SearchUiState.Loading -> _uiState.value = previousState.copy(useFilter = useFilter)
+                is SearchUiState.EmptyQuery -> _uiState.value = previousState.copy(useFilter = useFilter)
+                is SearchUiState.EmptyResult -> _uiState.value = previousState.copy(useFilter = useFilter)
+                is SearchUiState.Success -> _uiState.value = previousState.copy(useFilter = useFilter)
+                is SearchUiState.Error -> _uiState.value = previousState.copy(useFilter = useFilter)
+            }
+        }
     }
 
     private val debouncedSearch = debounce<String>(
