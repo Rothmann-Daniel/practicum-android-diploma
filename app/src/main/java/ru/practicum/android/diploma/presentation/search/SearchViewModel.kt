@@ -62,7 +62,9 @@ class SearchViewModel(
     fun receiveFilterInfo() {
         viewModelScope.launch {
             filterSettings = getFilterSettingsUseCase()
-            useFilter = filterSettings.industry != null || filterSettings.salary != null || filterSettings.onlyWithSalary
+            useFilter = with (filterSettings) {
+                industry != null || salary != null || onlyWithSalary
+            }
             updateUseFilterInLiveData()
         }
     }
