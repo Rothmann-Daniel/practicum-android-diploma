@@ -8,15 +8,15 @@ import kotlinx.coroutines.launch
 import ru.practicum.android.diploma.core.utils.SingleLiveEvent
 import ru.practicum.android.diploma.core.utils.debounce
 import ru.practicum.android.diploma.domain.models.DomainResult
+import ru.practicum.android.diploma.domain.models.FilterSettings
 import ru.practicum.android.diploma.domain.models.Vacancy
 import ru.practicum.android.diploma.domain.models.VacancySearchRequest
-import ru.practicum.android.diploma.domain.repository.FilterSettings
-import ru.practicum.android.diploma.domain.usecases.SaveFilterSettingsUseCase
+import ru.practicum.android.diploma.domain.usecases.GetFilterSettingsUseCase
 import ru.practicum.android.diploma.domain.usecases.SearchVacanciesUseCase
 
 class SearchViewModel(
     private val searchUseCase: SearchVacanciesUseCase,
-    private val saveFilterSettingsUseCase: SaveFilterSettingsUseCase
+    private val getFilterSettingsUseCase: GetFilterSettingsUseCase
 ) : ViewModel() {
 
     var restorePreviousResults: Boolean = false
@@ -71,7 +71,7 @@ class SearchViewModel(
     }
 
     private suspend fun getFilterSettings() {
-        filterSettings = saveFilterSettingsUseCase.getFilterSettings()
+        filterSettings = getFilterSettingsUseCase()
         useFilter = filterSettings.industry != null || filterSettings.salary != null || filterSettings.onlyWithSalary
     }
 
