@@ -17,6 +17,11 @@ class SearchUiRenderer(
             is SearchViewModel.SearchUiState.Success -> showSuccess(state)
             is SearchViewModel.SearchUiState.Error -> showError(state)
         }
+        if (state.useFilter) {
+            binding.btnFilters.setImageResource(R.drawable.ic_filter_on)
+        } else {
+            binding.btnFilters.setImageResource(R.drawable.ic_filter_off)
+        }
     }
 
     private fun showLoading() {
