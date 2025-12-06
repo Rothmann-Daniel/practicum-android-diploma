@@ -8,34 +8,40 @@ import kotlinx.coroutines.launch
 import ru.practicum.android.diploma.core.utils.SingleLiveEvent
 import ru.practicum.android.diploma.core.utils.debounce
 import ru.practicum.android.diploma.domain.models.DomainResult
+import ru.practicum.android.diploma.domain.models.FilterSettings
 import ru.practicum.android.diploma.domain.models.Vacancy
 import ru.practicum.android.diploma.domain.models.VacancySearchRequest
+import ru.practicum.android.diploma.domain.usecases.GetFilterSettingsUseCase
 import ru.practicum.android.diploma.domain.usecases.SearchVacanciesUseCase
 
 class SearchViewModel(
-    private val searchUseCase: SearchVacanciesUseCase
+    private val searchUseCase: SearchVacanciesUseCase,
+    private val getFilterSettingsUseCase: GetFilterSettingsUseCase
 ) : ViewModel() {
 
     var restorePreviousResults: Boolean = false
     private var allowRestoreFromCache: Boolean = false
 
     sealed class SearchUiState {
-        object Loading : SearchUiState()
-        object EmptyQuery : SearchUiState()
-        object EmptyResult : SearchUiState()
+        abstract val useFilter: Boolean
+        data class Loading(override val useFilter: Boolean) : SearchUiState()
+        data class EmptyQuery(override val useFilter: Boolean) : SearchUiState()
+        data class EmptyResult(override val useFilter: Boolean) : SearchUiState()
         data class Success(
             val vacancies: List<Vacancy>,
             val isLastPage: Boolean,
-            val found: Int
+            val found: Int,
+            override val useFilter: Boolean
         ) : SearchUiState()
 
         data class Error(
             val message: String,
-            val isNetworkError: Boolean = false
+            val isNetworkError: Boolean = false,
+            override val useFilter: Boolean
         ) : SearchUiState()
     }
 
-    private val _uiState = MutableLiveData<SearchUiState>(SearchUiState.EmptyQuery)
+    private val _uiState = MutableLiveData<SearchUiState>(SearchUiState.EmptyQuery(false))
     val uiState: LiveData<SearchUiState> = _uiState
 
     private val _isLoadingNextPage = MutableLiveData(false)
@@ -50,6 +56,32 @@ class SearchViewModel(
     private var isLoadingPage = false
     private var lastQuery: String = ""
 
+    private var filterSettings = FilterSettings()
+    private var useFilter = false
+
+    fun receiveFilterInfo() {
+        viewModelScope.launch {
+            filterSettings = getFilterSettingsUseCase()
+            useFilter = with(filterSettings) {
+                industry != null || salary != null || onlyWithSalary
+            }
+            updateUseFilterInLiveData()
+        }
+    }
+
+    private fun updateUseFilterInLiveData() {
+        val previousState = _uiState.value
+        if (previousState != null) {
+            when (previousState) {
+                is SearchUiState.Loading -> _uiState.value = previousState.copy(useFilter = useFilter)
+                is SearchUiState.EmptyQuery -> _uiState.value = previousState.copy(useFilter = useFilter)
+                is SearchUiState.EmptyResult -> _uiState.value = previousState.copy(useFilter = useFilter)
+                is SearchUiState.Success -> _uiState.value = previousState.copy(useFilter = useFilter)
+                is SearchUiState.Error -> _uiState.value = previousState.copy(useFilter = useFilter)
+            }
+        }
+    }
+
     private val debouncedSearch = debounce<String>(
         delayMillis = DEBOUNCE_DELAY_MS,
         coroutineScope = viewModelScope
@@ -58,7 +90,7 @@ class SearchViewModel(
             loadedVacancies.clear()
             currentPage = 0
             totalPages = 1
-            _uiState.value = SearchUiState.EmptyQuery
+            _uiState.value = SearchUiState.EmptyQuery(useFilter)
         } else {
             searchVacancies(query, page = 0)
         }
@@ -81,7 +113,7 @@ class SearchViewModel(
         currentPage = 0
         totalPages = 1
 
-        _uiState.value = SearchUiState.Loading
+        _uiState.value = SearchUiState.Loading(useFilter)
         searchVacancies(query, page = 0)
     }
 
@@ -93,13 +125,19 @@ class SearchViewModel(
         isLoadingPage = true
 
         if (page == 0) {
-            _uiState.value = SearchUiState.Loading
+            _uiState.value = SearchUiState.Loading(useFilter)
         } else {
             _isLoadingNextPage.value = true
         }
 
         viewModelScope.launch {
-            val request = VacancySearchRequest(text = query, page = page)
+            val request = VacancySearchRequest(
+                text = query,
+                page = page,
+                industry = filterSettings.industry?.id,
+                salary = filterSettings.salary,
+                onlyWithSalary = filterSettings.onlyWithSalary
+            )
 
             when (val result = searchUseCase(request)) {
                 is DomainResult.Success -> {
@@ -125,13 +163,15 @@ class SearchViewModel(
         if (page == 0) {
             _uiState.value = SearchUiState.Error(
                 message = result.message,
-                isNetworkError = isNetworkError
+                isNetworkError = isNetworkError,
+                useFilter = useFilter
             )
         } else {
             _uiState.value = SearchUiState.Success(
                 vacancies = loadedVacancies.toList(),
                 isLastPage = currentPage >= totalPages - 1,
-                found = loadedVacancies.size
+                found = loadedVacancies.size,
+                useFilter = useFilter
             )
         }
 
@@ -155,12 +195,13 @@ class SearchViewModel(
 
     private fun updateUiState(found: Int) {
         if (loadedVacancies.isEmpty()) {
-            _uiState.value = SearchUiState.EmptyResult
+            _uiState.value = SearchUiState.EmptyResult(useFilter)
         } else {
             _uiState.value = SearchUiState.Success(
                 vacancies = loadedVacancies.toList(),
                 isLastPage = currentPage >= totalPages - 1,
-                found = found
+                found = found,
+                useFilter = useFilter
             )
         }
     }
@@ -177,7 +218,7 @@ class SearchViewModel(
         lastQuery = ""
         currentPage = 0
         totalPages = 1
-        _uiState.value = SearchUiState.EmptyQuery
+        _uiState.value = SearchUiState.EmptyQuery(useFilter)
         allowRestoreFromCache = false
         restorePreviousResults = false
     }
