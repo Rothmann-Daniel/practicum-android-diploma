@@ -130,6 +130,11 @@ class FiltersFragment : Fragment() {
                 findNavController().navigate(R.id.action_filters_to_industries)
             }
         }
+
+        binding.filerIndustry.setOnClickListener {
+            // Навигация на выбор отрасли
+            findNavController().navigate(R.id.action_filters_to_industries)
+        }
     }
 
     private fun setupSalaryInput() {
