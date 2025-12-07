@@ -5,8 +5,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
-import ru.practicum.android.diploma.core.utils.SingleLiveEvent
 import ru.practicum.android.diploma.core.utils.debounce
+import ru.practicum.android.diploma.data.remote.dto.response.ApiResponse
 import ru.practicum.android.diploma.domain.models.DomainResult
 import ru.practicum.android.diploma.domain.models.FilterSettings
 import ru.practicum.android.diploma.domain.models.Vacancy
@@ -19,9 +19,12 @@ class SearchViewModel(
     private val getFilterSettingsUseCase: GetFilterSettingsUseCase
 ) : ViewModel() {
 
+    // Флаг для восстановления предыдущих результатов только при навигации
     var restorePreviousResults: Boolean = false
+
     private var allowRestoreFromCache: Boolean = false
 
+    // Состояния UI для экрана поиска вакансий
     sealed class SearchUiState {
         abstract val useFilter: Boolean
         data class Loading(override val useFilter: Boolean) : SearchUiState()
@@ -46,9 +49,6 @@ class SearchViewModel(
 
     private val _isLoadingNextPage = MutableLiveData(false)
     val isLoadingNextPage: LiveData<Boolean> = _isLoadingNextPage
-
-    private val _errorEvent = SingleLiveEvent<String>()
-    val errorEvent: LiveData<String> = _errorEvent
 
     private val loadedVacancies = mutableListOf<Vacancy>()
     private var currentPage = 0
@@ -96,7 +96,12 @@ class SearchViewModel(
         }
     }
 
+    /**
+     * Обрабатывает изменение поискового запроса с отложенным поиском
+     * @param query поисковый запрос
+     */
     fun onSearchQueryChanged(query: String) {
+        // Если до этого была ошибка или пустой результат — сбрасываем блокировку
         val state = _uiState.value
         if (state is SearchUiState.Error || state is SearchUiState.EmptyResult) {
             loadedVacancies.clear()
@@ -107,8 +112,14 @@ class SearchViewModel(
         debouncedSearch(query)
     }
 
+    /**
+     * Выполняет немедленный поиск без задержки
+     * @param query поисковый запрос
+     */
     fun forceSearch(query: String) {
         lastQuery = query
+
+        // Сбросим состояние предыдущей ошибки / пустого результата
         loadedVacancies.clear()
         currentPage = 0
         totalPages = 1
@@ -117,13 +128,15 @@ class SearchViewModel(
         searchVacancies(query, page = 0)
     }
 
+    /**
+     * Выполняет поиск вакансий по запросу и странице
+     * @param query поисковый запрос
+     * @param page номер страницы для пагинации
+     */
     private fun searchVacancies(query: String, page: Int) {
-        if (isLoadingPage || page >= totalPages) {
-            return
-        }
+        if (isLoadingPage || page >= totalPages) return
 
         isLoadingPage = true
-
         if (page == 0) {
             _uiState.value = SearchUiState.Loading(useFilter)
         } else {
@@ -140,24 +153,20 @@ class SearchViewModel(
             )
 
             when (val result = searchUseCase(request)) {
-                is DomainResult.Success -> {
+                is DomainResult.Success -> { // Изменено с ApiResponse на DomainResult
                     totalPages = result.data.pages
                     currentPage = result.data.page
                     updateVacanciesList(result.data.vacancies, page)
                     updateUiState(result.data.found)
                 }
-
-                is DomainResult.Error -> {
-                    handleErrorResult(result, page)
-                }
+                is DomainResult.Error -> handleErrorResult(result) // Изменено
             }
-
             isLoadingPage = false
             _isLoadingNextPage.value = false
         }
     }
 
-    private fun handleErrorResult(result: DomainResult.Error, page: Int) {
+    private fun handleErrorResult(result: DomainResult.Error) { // Изменена сигнатура
         val isNetworkError = result.type == DomainResult.ErrorType.NETWORK_ERROR
 
         if (page == 0) {
@@ -182,22 +191,31 @@ class SearchViewModel(
         }
     }
 
+    /**
+     * Обновляет список вакансий с учетом пагинации и устранения дубликатов
+     * @param vacancies список новых вакансий
+     * @param page номер страницы
+     */
     private fun updateVacanciesList(vacancies: List<Vacancy>, page: Int) {
         if (page == 0) {
             loadedVacancies.clear()
             loadedVacancies.addAll(vacancies)
         } else {
             val existingIds = loadedVacancies.map { it.id }.toSet()
-            val unique = vacancies.filter { it.id !in existingIds }
-            loadedVacancies.addAll(unique)
+            val uniqueNewVacancies = vacancies.filter { it.id !in existingIds }
+            loadedVacancies.addAll(uniqueNewVacancies)
         }
     }
 
+    /**
+     * Обновляет состояние UI на основе текущего списка вакансий
+     * @param found общее количество найденных вакансий
+     */
     private fun updateUiState(found: Int) {
         if (loadedVacancies.isEmpty()) {
             _uiState.value = SearchUiState.EmptyResult(useFilter)
         } else {
-            _uiState.value = SearchUiState.Success(
+            SearchUiState.Success(
                 vacancies = loadedVacancies.toList(),
                 isLastPage = currentPage >= totalPages - 1,
                 found = found,
@@ -206,13 +224,29 @@ class SearchViewModel(
         }
     }
 
+    /**
+     * Обрабатывает ошибки при поиске вакансий
+     * @param result объект ошибки от API
+     */
+    private fun handleErrorResult(result: ApiResponse.Error) {
+        val isNetworkError = result.code == null
+        _uiState.value = SearchUiState.Error(
+            message = result.message,
+            isNetworkError = isNetworkError
+        )
+    }
+
+    /**
+     * Загружает следующую страницу результатов, если доступна
+     */
     fun loadNextPage() {
-        if (currentPage + 1 >= totalPages || isLoadingPage) {
-            return
-        }
+        if (currentPage + 1 >= totalPages || isLoadingPage) return
         searchVacancies(lastQuery, currentPage + 1)
     }
 
+    /**
+     * Очищает состояние поиска и сбрасывает все данные
+     */
     fun clearSearchState() {
         loadedVacancies.clear()
         lastQuery = ""
@@ -223,6 +257,9 @@ class SearchViewModel(
         restorePreviousResults = false
     }
 
+    /**
+     * Помечает состояние для восстановления результатов при навигации назад
+     */
     fun markRestoreForNavigation() {
         restorePreviousResults = true
         allowRestoreFromCache = true
