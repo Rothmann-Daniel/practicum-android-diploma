@@ -82,6 +82,9 @@ class SearchViewModel(
         }
     }
 
+    /**
+     * Отложенный поиск с задержкой для уменьшения количества запросов при вводе текста
+     */
     private val debouncedSearch = debounce<String>(
         delayMillis = DEBOUNCE_DELAY_MS,
         coroutineScope = viewModelScope
@@ -125,6 +128,8 @@ class SearchViewModel(
         totalPages = 1
 
         _uiState.value = SearchUiState.Loading(useFilter)
+
+        // Запускаем моментальный поиск — БЕЗ debounce
         searchVacancies(query, page = 0)
     }
 
@@ -159,14 +164,19 @@ class SearchViewModel(
                     updateVacanciesList(result.data.vacancies, page)
                     updateUiState(result.data.found)
                 }
-                is DomainResult.Error -> handleErrorResult(result) // Изменено
+                is DomainResult.Error -> handleErrorResult(result, page)
             }
             isLoadingPage = false
             _isLoadingNextPage.value = false
         }
     }
 
-    private fun handleErrorResult(result: DomainResult.Error) { // Изменена сигнатура
+    /**
+     * Обрабатывает ошибки при поиске вакансий
+     * @param result объект ошибки
+     * @param page номер страницы
+     */
+    private fun handleErrorResult(result: DomainResult.Error, page: Int) {
         val isNetworkError = result.type == DomainResult.ErrorType.NETWORK_ERROR
 
         if (page == 0) {
@@ -182,12 +192,6 @@ class SearchViewModel(
                 found = loadedVacancies.size,
                 useFilter = useFilter
             )
-        }
-
-        if (isNetworkError) {
-            _errorEvent.value = "Проверьте подключение к интернету"
-        } else {
-            _errorEvent.value = "Произошла ошибка"
         }
     }
 
@@ -225,18 +229,6 @@ class SearchViewModel(
     }
 
     /**
-     * Обрабатывает ошибки при поиске вакансий
-     * @param result объект ошибки от API
-     */
-    private fun handleErrorResult(result: ApiResponse.Error) {
-        val isNetworkError = result.code == null
-        _uiState.value = SearchUiState.Error(
-            message = result.message,
-            isNetworkError = isNetworkError
-        )
-    }
-
-    /**
      * Загружает следующую страницу результатов, если доступна
      */
     fun loadNextPage() {
@@ -253,6 +245,7 @@ class SearchViewModel(
         currentPage = 0
         totalPages = 1
         _uiState.value = SearchUiState.EmptyQuery(useFilter)
+        // Сброс флагов
         allowRestoreFromCache = false
         restorePreviousResults = false
     }
