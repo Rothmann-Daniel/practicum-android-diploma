@@ -9,7 +9,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
@@ -192,10 +191,6 @@ class SearchFragment : Fragment() {
         viewModel.isLoadingNextPage.observe(viewLifecycleOwner) { loading ->
             binding.progressBarBottom.visibility =
                 if (loading) View.VISIBLE else View.GONE
-        }
-
-        viewModel.errorEvent.observe(viewLifecycleOwner) { message ->
-            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
         }
     }
 
