@@ -4,7 +4,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
@@ -20,10 +22,16 @@ class FiltersIndustriesFragment : Fragment() {
 
     private val viewModel: FilterIndustriesViewModel by viewModel()
 
+    // Ленивая инициализация адаптера с передачей функции скрытия клавиатуры
     private val adapter: FilterIndustriesAdapter by lazy {
-        FilterIndustriesAdapter { industry ->
-            viewModel.selectIndustry(industry)
-        }
+        FilterIndustriesAdapter(
+            onItemClick = { industry ->
+                viewModel.selectIndustry(industry)
+            },
+            hideKeyboard = {
+                hideKeyboard()
+            }
+        )
     }
 
     override fun onCreateView(
@@ -50,6 +58,12 @@ class FiltersIndustriesFragment : Fragment() {
         binding.recyclerViewIndustries.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerViewIndustries.adapter = adapter
         binding.buttonContainer.isVisible = false
+
+        // Добавляем обработчик клика по RecyclerView для скрытия клавиатуры
+        binding.recyclerViewIndustries.setOnTouchListener { _, _ ->
+            hideKeyboard()
+            false
+        }
     }
 
     private fun setupSearch() {
@@ -63,6 +77,7 @@ class FiltersIndustriesFragment : Fragment() {
             binding.searchQueryIndustries.text?.clear()
             // сразу сбрасываем поиск без задержки
             viewModel.clearSearch()
+            hideKeyboard() // Скрываем клавиатуру при очистке поиска
         }
     }
 
@@ -74,10 +89,12 @@ class FiltersIndustriesFragment : Fragment() {
 
     private fun setupClickListeners() {
         binding.backButton.setOnClickListener {
+            hideKeyboard()
             parentFragmentManager.popBackStack()
         }
 
         binding.selectButton.setOnClickListener {
+            hideKeyboard()
             viewModel.saveSelectedIndustry()
 
             viewModel.selectedIndustry.value?.let { selectedIndustry ->
@@ -86,6 +103,18 @@ class FiltersIndustriesFragment : Fragment() {
 
             parentFragmentManager.popBackStack()
         }
+    }
+
+    // Функция для скрытия клавиатуры
+    private fun hideKeyboard() {
+        val inputMethodManager = ContextCompat.getSystemService(
+            requireContext(),
+            InputMethodManager::class.java
+        )
+        inputMethodManager?.hideSoftInputFromWindow(
+            binding.searchQueryIndustries.windowToken,
+            0
+        )
     }
 
     private fun showSuccessMessage(industryName: String) {
