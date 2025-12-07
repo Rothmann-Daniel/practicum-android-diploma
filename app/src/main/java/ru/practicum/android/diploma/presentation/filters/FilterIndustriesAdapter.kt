@@ -9,23 +9,37 @@ import ru.practicum.android.diploma.databinding.ItemIndustriesListBinding
 import ru.practicum.android.diploma.domain.models.Industry
 
 class FilterIndustriesAdapter(
-    private val onItemClick: (Industry) -> Unit
+    private val onItemClick: (Industry) -> Unit,
+    private val hideKeyboard: () -> Unit // Добавляем callback для скрытия клавиатуры
 ) : ListAdapter<Industry, FilterIndustriesAdapter.IndustryViewHolder>(IndustryComparator()) {
 
     private var selectedIndustryId: Int? = null
 
     class IndustryViewHolder(
         private val binding: ItemIndustriesListBinding,
-        private val onClick: (Industry) -> Unit
+        private val onClick: (Industry) -> Unit,
+        private val hideKeyboard: () -> Unit // Передаем callback в ViewHolder
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: Industry, isSelected: Boolean) {
             binding.industriesItemList.text = item.name
             binding.industriesItemList.isChecked = isSelected
-            binding.industriesItemList.isClickable = false
 
+            // Разрешаем клик по RadioButton
+            binding.industriesItemList.isClickable = true
+
+            // Обработчик клика по RadioButton
+            binding.industriesItemList.setOnClickListener {
+                hideKeyboard() // Скрываем клавиатуру
+                onClick(item) // Вызываем обработчик
+            }
+
+            // Обработчик клика по всему элементу
             binding.root.setOnClickListener {
-                onClick(item)
+                hideKeyboard() // Скрываем клавиатуру
+                onClick(item) // Вызываем обработчик
+                // Обновляем состояние RadioButton
+                binding.industriesItemList.isChecked = true
             }
         }
     }
@@ -46,7 +60,7 @@ class FilterIndustriesAdapter(
             parent,
             false
         )
-        return IndustryViewHolder(binding, onItemClick)
+        return IndustryViewHolder(binding, onItemClick, hideKeyboard) // Передаем hideKeyboard
     }
 
     override fun onBindViewHolder(holder: IndustryViewHolder, position: Int) {
@@ -75,6 +89,4 @@ class FilterIndustriesAdapter(
             }
         }
     }
-
-    fun getSelectedIndustryId(): Int? = selectedIndustryId
 }
