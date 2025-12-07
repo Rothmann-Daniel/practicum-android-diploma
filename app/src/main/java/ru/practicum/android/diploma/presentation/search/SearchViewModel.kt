@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import ru.practicum.android.diploma.core.utils.debounce
+import ru.practicum.android.diploma.data.remote.dto.response.ApiResponse
 import ru.practicum.android.diploma.domain.models.DomainResult
 import ru.practicum.android.diploma.domain.models.FilterSettings
 import ru.practicum.android.diploma.domain.models.Vacancy
@@ -157,7 +158,7 @@ class SearchViewModel(
             )
 
             when (val result = searchUseCase(request)) {
-                is DomainResult.Success -> {
+                is DomainResult.Success -> { // Изменено с ApiResponse на DomainResult
                     totalPages = result.data.pages
                     currentPage = result.data.page
                     updateVacanciesList(result.data.vacancies, page)
@@ -218,7 +219,7 @@ class SearchViewModel(
         if (loadedVacancies.isEmpty()) {
             _uiState.value = SearchUiState.EmptyResult(useFilter)
         } else {
-            _uiState.value = SearchUiState.Success(
+            SearchUiState.Success(
                 vacancies = loadedVacancies.toList(),
                 isLastPage = currentPage >= totalPages - 1,
                 found = found,
