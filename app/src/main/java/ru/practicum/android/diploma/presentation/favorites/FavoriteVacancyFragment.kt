@@ -82,7 +82,7 @@ class FavoriteVacancyFragment : Fragment() {
         } else {
             // Показываем список вакансий
             showVacanciesList(vacancyList)
-            // Устанавливаем данные в адаптер
+            // Устанавливаем данные в адаптер - удалить
             // adapter.submitList(vacancyList)
         }
     }

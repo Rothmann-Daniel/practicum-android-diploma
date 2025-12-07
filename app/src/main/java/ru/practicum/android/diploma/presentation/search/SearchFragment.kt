@@ -242,6 +242,11 @@ class SearchFragment : Fragment() {
         activity?.lifecycle?.removeObserver(activityObserver)
     }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.receiveFilterInfo()
+    }
+
     companion object {
         private const val PRELOAD_THRESHOLD = 5
     }

@@ -1,5 +1,7 @@
 package ru.practicum.android.diploma.di
 
+import android.content.Context
+import android.content.SharedPreferences
 import androidx.room.Room
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -22,31 +24,47 @@ import ru.practicum.android.diploma.data.remote.mapper.VacancyRemoteMapper
 import ru.practicum.android.diploma.data.remote.mapper.VacancyRequestMapper
 import ru.practicum.android.diploma.data.repository.AreaRepositoryImpl
 import ru.practicum.android.diploma.data.repository.FavoriteRepositoryImpl
+import ru.practicum.android.diploma.data.repository.FilterRepositoryImpl
 import ru.practicum.android.diploma.data.repository.IndustryRepositoryImpl
 import ru.practicum.android.diploma.data.repository.VacancyRepositoryImpl
+import ru.practicum.android.diploma.domain.repository.FilterRepository
 import ru.practicum.android.diploma.domain.repository.IAreaRepository
 import ru.practicum.android.diploma.domain.repository.IFavoriteRepository
 import ru.practicum.android.diploma.domain.repository.IIndustryRepository
 import ru.practicum.android.diploma.domain.repository.IVacancyRepository
 import ru.practicum.android.diploma.domain.usecases.AddVacancyToFavoritesUseCase
+import ru.practicum.android.diploma.domain.usecases.ClearFilterSettingsUseCase
 import ru.practicum.android.diploma.domain.usecases.DeleteVacancyFromFavoritesUseCase
 import ru.practicum.android.diploma.domain.usecases.GetCachedVacanciesUseCase
 import ru.practicum.android.diploma.domain.usecases.GetFavoriteVacanciesUseCase
 import ru.practicum.android.diploma.domain.usecases.GetFavoriteVacancyByIdUseCase
+import ru.practicum.android.diploma.domain.usecases.GetFilterSettingsUseCase
+import ru.practicum.android.diploma.domain.usecases.GetIndustriesUseCase
 import ru.practicum.android.diploma.domain.usecases.GetVacancyDetailsUseCase
 import ru.practicum.android.diploma.domain.usecases.IsVacancyInFavoritesUseCase
+import ru.practicum.android.diploma.domain.usecases.SaveFilterSettingsUseCase
 import ru.practicum.android.diploma.domain.usecases.SearchVacanciesUseCase
 import ru.practicum.android.diploma.presentation.favorites.FavoriteVacancyViewModel
+import ru.practicum.android.diploma.presentation.filters.FilterIndustriesViewModel
+import ru.practicum.android.diploma.presentation.filters.FiltersViewModel
 import ru.practicum.android.diploma.presentation.search.SearchViewModel
 import ru.practicum.android.diploma.presentation.vacancy.VacancyViewModel
 import java.util.concurrent.TimeUnit
 
-// Константы для таймаутов
 private const val CONNECT_TIMEOUT_SECONDS = 30L
 private const val READ_TIMEOUT_SECONDS = 30L
 private const val WRITE_TIMEOUT_SECONDS = 30L
+private const val FILTER_PREFERENCES_NAME = "filter_preferences"
 
 val appModule = module {
+    // SharedPreferences для фильтров
+    single<SharedPreferences> {
+        androidContext().getSharedPreferences(
+            FILTER_PREFERENCES_NAME,
+            Context.MODE_PRIVATE
+        )
+    }
+
     // Database
     single {
         Room.databaseBuilder(
@@ -58,7 +76,7 @@ val appModule = module {
             .build()
     }
 
-    //  InternetConnectionChecker
+    // InternetConnectionChecker
     single { InternetConnectionChecker(androidContext()) }
 
     // DAOs
@@ -92,7 +110,6 @@ val appModule = module {
         val okHttpClient = OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val originalRequest = chain.request()
-
                 val requestWithToken = originalRequest.newBuilder()
                     .header("Authorization", "Bearer ${BuildConfig.API_ACCESS_TOKEN}")
                     .build()
@@ -117,6 +134,7 @@ val appModule = module {
     single<IIndustryRepository> { IndustryRepositoryImpl(get(), get(), get(), get(), get()) }
     single<IVacancyRepository> { VacancyRepositoryImpl(get(), get(), get(), get(), get(), get()) }
     single<IFavoriteRepository> { FavoriteRepositoryImpl(get(), get()) }
+    single<FilterRepository> { FilterRepositoryImpl(get()) }
 
     // Use Cases
     single { SearchVacanciesUseCase(get()) }
@@ -127,19 +145,15 @@ val appModule = module {
     single { GetFavoriteVacanciesUseCase(get()) }
     single { GetFavoriteVacancyByIdUseCase(get()) }
     single { IsVacancyInFavoritesUseCase(get()) }
+    single { GetIndustriesUseCase(get()) }
+    single { SaveFilterSettingsUseCase(get()) }
+    single { GetFilterSettingsUseCase(get()) }
+    single { ClearFilterSettingsUseCase(get()) }
 
     // ViewModels
-    viewModel {
-        SearchViewModel(
-            searchUseCase = get<SearchVacanciesUseCase>()
-        )
-    }
-
-    viewModel {
-        VacancyViewModel(get(), get(), get(), get(), get())
-    }
-
-    viewModel {
-        FavoriteVacancyViewModel(get())
-    }
+    viewModel { SearchViewModel(get(), get()) }
+    viewModel { VacancyViewModel(get(), get(), get(), get(), get()) }
+    viewModel { FavoriteVacancyViewModel(get()) }
+    viewModel { FilterIndustriesViewModel(get(), get()) }
+    viewModel { FiltersViewModel(get(), get(), get()) }
 }
