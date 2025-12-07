@@ -147,7 +147,7 @@ class FiltersFragment : Fragment() {
             val textNotEmpty = !edit.text.isNullOrEmpty()
             clearIcon.visibility = if (textNotEmpty && hasFocus) View.VISIBLE else View.GONE
             label.setTextColor(
-                if (textNotEmpty && hasFocus) {
+                if (hasFocus) {
                     requireContext().getColor(R.color.blue)
                 } else {
                     requireContext().getColor(R.color.gray)
@@ -181,7 +181,7 @@ class FiltersFragment : Fragment() {
                 View.GONE
             }
             label.setTextColor(
-                if (!text.isNullOrEmpty() && hasFocus) {
+                if (hasFocus) {
                     requireContext().getColor(R.color.blue)
                 } else {
                     requireContext().getColor(R.color.gray)
