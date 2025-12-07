@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
@@ -168,19 +169,33 @@ class SearchFragment : Fragment() {
     private fun setupObservers() {
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
             ui?.render(state)
-            // Скрываем клавиатуру для Loading, Success, EmptyResult, Error
+
             if (state !is SearchViewModel.SearchUiState.EmptyQuery) {
                 hideKeyboard(binding.searchQuery)
             }
-            if (state is SearchViewModel.SearchUiState.Success) {
-                adapter?.submitList(state.vacancies)
-            } else {
-                adapter?.submitList(emptyList())
+
+            when (state) {
+                is SearchViewModel.SearchUiState.Success -> {
+                    adapter?.submitList(state.vacancies)
+                }
+
+                is SearchViewModel.SearchUiState.Error -> {
+                    adapter?.submitList(emptyList())
+                }
+
+                else -> {
+                    adapter?.submitList(emptyList())
+                }
             }
         }
 
         viewModel.isLoadingNextPage.observe(viewLifecycleOwner) { loading ->
-            binding.progressBarBottom.visibility = if (loading) View.VISIBLE else View.GONE
+            binding.progressBarBottom.visibility =
+                if (loading) View.VISIBLE else View.GONE
+        }
+
+        viewModel.errorEvent.observe(viewLifecycleOwner) { message ->
+            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
         }
     }
 
