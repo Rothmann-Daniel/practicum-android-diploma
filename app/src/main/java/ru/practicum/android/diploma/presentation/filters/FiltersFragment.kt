@@ -181,22 +181,22 @@ class FiltersFragment : Fragment() {
         binding.btnApply.setOnClickListener {
             // Применяем фильтры в корутине
             viewLifecycleOwner.lifecycleScope.launch {
-                Log.d("FiltersFragment", "Apply button clicked")
+                Log.d(LOG_TAG, "Apply button clicked")
 
                 // Дожидаемся завершения сохранения
                 val saved = viewModel.applyFilters()
 
-                Log.d("FiltersFragment", "Filters saved: $saved")
+                Log.d(LOG_TAG, "Filters saved: $saved")
 
                 // Небольшая задержка для гарантии записи в SharedPreferences
-                kotlinx.coroutines.delay(100)
+                kotlinx.coroutines.delay(PREFERENCES_WRITE_DELAY)
 
                 // Теперь устанавливаем флаг
                 findNavController().previousBackStackEntry
                     ?.savedStateHandle
                     ?.set(KEY_FILTERS_APPLIED, true)
 
-                Log.d("FiltersFragment", "Flag set, navigating back")
+                Log.d(LOG_TAG, "Flag set, navigating back")
 
                 // Возвращаемся назад
                 findNavController().popBackStack()
@@ -223,6 +223,8 @@ class FiltersFragment : Fragment() {
     companion object {
         private const val INDUSTRY_TITLE_TEXT_SIZE_SMALL = 12f
         private const val INDUSTRY_TITLE_TEXT_SIZE_LARGE = 16f
+        private const val PREFERENCES_WRITE_DELAY = 100L
+        private const val LOG_TAG = "FiltersFragment"
         const val KEY_FILTERS_APPLIED = "filters_applied"
     }
 }
