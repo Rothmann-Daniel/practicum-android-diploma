@@ -23,25 +23,22 @@ class FilterIndustriesViewModel(
     private val _filteredIndustries = MutableLiveData<List<Industry>>(emptyList())
     val filteredIndustries: LiveData<List<Industry>> = _filteredIndustries
 
-    private val _selectedIndustry = MutableLiveData<Industry?>(null)
-    val selectedIndustry: LiveData<Industry?> = _selectedIndustry
+    // ВРЕМЕННЫЙ выбор (пока не нажали "Выбрать")
+    private val _temporarySelectedIndustry = MutableLiveData<Industry?>(null)
+    val temporarySelectedIndustry: LiveData<Industry?> = _temporarySelectedIndustry
 
     private val _showSelectButton = MutableLiveData<Boolean>(false)
     val showSelectButton: LiveData<Boolean> = _showSelectButton
 
-    // Добавляем LiveData для ID выбранной отрасли
     private val _selectedIndustryId = MutableLiveData<Int?>(null)
     val selectedIndustryId: LiveData<Int?> = _selectedIndustryId
 
     private var allIndustries: List<Industry> = emptyList()
     private var searchJob: Job? = null
     private var currentQuery: String = ""
-
-    // флаг для отслеживания успешной загрузки данных
     private var isDataLoaded = false
 
     fun loadIndustries() {
-        // Если данные уже загружены, не загружаем повторно
         if (isDataLoaded && allIndustries.isNotEmpty()) {
             filterIndustries(currentQuery)
             return
@@ -62,8 +59,8 @@ class FilterIndustriesViewModel(
                         filterIndustries(currentQuery)
                     }
 
-                    // Загружаем ранее выбранную отрасль
-                    loadPreviouslySelectedIndustry()
+                    // Загружаем текущую отрасль из ПРИМЕНЁННЫХ фильтров
+                    loadCurrentIndustry()
                 }
 
                 is DomainResult.Error -> {
@@ -83,39 +80,37 @@ class FilterIndustriesViewModel(
         }
     }
 
-    // МЕТОД: для мгновенной очистки поиска без задержки
     fun clearSearch() {
         currentQuery = ""
         searchJob?.cancel()
         filterIndustries("")
     }
 
+    /**
+     * ВРЕМЕННЫЙ выбор отрасли (только в UI, не сохраняется)
+     */
     fun selectIndustry(industry: Industry) {
-        _selectedIndustry.value = industry
-        _selectedIndustryId.value = industry.id // Обновляем ID выбранной отрасли
+        _temporarySelectedIndustry.value = industry
+        _selectedIndustryId.value = industry.id
         updateSelectButtonVisibility()
     }
 
-    fun saveSelectedIndustry() {
-        viewModelScope.launch {
-            saveFilterSettingsUseCase.saveIndustry(_selectedIndustry.value)
-        }
+    /**
+     * Возвращает временно выбранную отрасль для передачи в FiltersFragment
+     */
+    fun getTemporarySelection(): Industry? {
+        return _temporarySelectedIndustry.value
     }
 
     fun clearSelection() {
-        _selectedIndustry.value = null
-        _selectedIndustryId.value = null // Сбрасываем ID выбранной отрасли
+        _temporarySelectedIndustry.value = null
+        _selectedIndustryId.value = null
         updateSelectButtonVisibility()
-        viewModelScope.launch {
-            saveFilterSettingsUseCase.saveIndustry(null)
-        }
     }
 
     private fun filterIndustries(query: String) {
-        // проверяем наличие загруженных данных
         if (!isDataLoaded || allIndustries.isEmpty()) {
             _filteredIndustries.value = emptyList()
-            // Не меняем состояние, если данные еще не загружены
             if (_state.value !is IndustriesState.Loading && _state.value !is IndustriesState.Error) {
                 _state.value = IndustriesState.Empty
             }
@@ -132,40 +127,38 @@ class FilterIndustriesViewModel(
 
         _filteredIndustries.value = filtered
 
-        // обновляем состояние только если данные успешно загружены
         if (isDataLoaded) {
             _state.value = if (filtered.isEmpty()) {
-                IndustriesState.NoResults //  состояние для "нет результатов поиска"
+                IndustriesState.NoResults
             } else {
                 IndustriesState.Content
             }
         }
     }
 
-    private fun loadPreviouslySelectedIndustry() {
+    /**
+     * Загружаем ПРИМЕНЁННУЮ отрасль (из SharedPreferences)
+     * для отображения галочки на уже выбранной отрасли
+     */
+    private fun loadCurrentIndustry() {
         viewModelScope.launch {
             val savedIndustry = saveFilterSettingsUseCase.getSavedIndustry()
-            _selectedIndustry.value = savedIndustry
-            _selectedIndustryId.value = savedIndustry?.id // Устанавливаем ID сохраненной отрасли
+            _temporarySelectedIndustry.value = savedIndustry
+            _selectedIndustryId.value = savedIndustry?.id
             updateSelectButtonVisibility()
         }
     }
 
     private fun updateSelectButtonVisibility() {
-        _showSelectButton.value = _selectedIndustry.value != null
-    }
-
-    fun findIndustryPosition(industry: Industry?): Int {
-        if (industry == null) return -1
-        return _filteredIndustries.value?.indexOfFirst { it.id == industry.id } ?: -1
+        _showSelectButton.value = _temporarySelectedIndustry.value != null
     }
 
     sealed class IndustriesState {
         object Loading : IndustriesState()
         object Content : IndustriesState()
-        object NoResults : IndustriesState() // Нет результатов поиска
-        object Empty : IndustriesState() // Пустой список от сервера
-        object Error : IndustriesState() // Ошибка загрузки
+        object NoResults : IndustriesState()
+        object Empty : IndustriesState()
+        object Error : IndustriesState()
     }
 
     companion object {

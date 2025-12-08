@@ -17,8 +17,12 @@ class FiltersViewModel(
     private val clearFilterUseCase: ClearFilterSettingsUseCase
 ) : ViewModel() {
 
+    // Текущие настройки (для UI)
     private val _filterSettings = MutableLiveData<FilterSettings>()
     val filterSettings: LiveData<FilterSettings> = _filterSettings
+
+    // Сохраненные настройки (исходное состояние при открытии экрана)
+    private var savedFilterSettings: FilterSettings = FilterSettings()
 
     init {
         loadFilters()
@@ -26,31 +30,57 @@ class FiltersViewModel(
 
     fun loadFilters() {
         viewModelScope.launch {
-            _filterSettings.value = getFilterUseCase()
+            val settings = getFilterUseCase()
+            savedFilterSettings = settings
+            _filterSettings.value = settings
         }
     }
 
-    fun saveIndustry(industry: Industry?) {
+    /**
+     * Обновляет ТОЛЬКО UI, не сохраняя в SharedPreferences
+     */
+    fun updateIndustry(industry: Industry?) {
+        val current = _filterSettings.value ?: FilterSettings()
+        _filterSettings.value = current.copy(industry = industry)
+    }
+
+    /**
+     * Обновляет ТОЛЬКО UI, не сохраняя в SharedPreferences
+     */
+    fun updateSalary(salary: Int?) {
+        val current = _filterSettings.value ?: FilterSettings()
+        _filterSettings.value = current.copy(salary = salary)
+    }
+
+    /**
+     * Обновляет ТОЛЬКО UI, не сохраняя в SharedPreferences
+     */
+    fun updateOnlyWithSalary(onlyWithSalary: Boolean) {
+        val current = _filterSettings.value ?: FilterSettings()
+        _filterSettings.value = current.copy(onlyWithSalary = onlyWithSalary)
+    }
+
+    /**
+     * ИСПРАВЛЕНО: Применяет все изменения СИНХРОННО
+     * Не использует корутины, чтобы гарантировать немедленное сохранение
+     */
+    fun applyFilters() {
         viewModelScope.launch {
-            saveFilterUseCase.saveIndustry(industry)
-            _filterSettings.value = getFilterUseCase()
+            val settings = _filterSettings.value ?: FilterSettings()
+
+            // Сохраняем ВСЕ настройки последовательно
+            saveFilterUseCase.saveIndustry(settings.industry)
+            saveFilterUseCase.saveSalary(settings.salary)
+            saveFilterUseCase.saveOnlyWithSalary(settings.onlyWithSalary)
+
+            // Обновляем сохраненное состояние
+            savedFilterSettings = settings
         }
     }
 
-    fun saveSalary(salary: Int?) {
-        viewModelScope.launch {
-            saveFilterUseCase.saveSalary(salary)
-            _filterSettings.value = getFilterUseCase()
-        }
-    }
-
-    fun saveOnlyWithSalary(onlyWithSalary: Boolean) {
-        viewModelScope.launch {
-            saveFilterUseCase.saveOnlyWithSalary(onlyWithSalary)
-            _filterSettings.value = getFilterUseCase()
-        }
-    }
-
+    /**
+     * Сбрасывает все фильтры
+     */
     fun clearAllFilters() {
         viewModelScope.launch {
             clearFilterUseCase()
@@ -58,18 +88,17 @@ class FiltersViewModel(
         }
     }
 
-    suspend fun getSavedIndustry(): Industry? {
-        return saveFilterUseCase.getSavedIndustry()
+    /**
+     * Отменяет изменения и восстанавливает сохраненное состояние
+     */
+    fun cancelChanges() {
+        _filterSettings.value = savedFilterSettings
     }
 
-    suspend fun getSavedSalary(): Int? {
-        return saveFilterUseCase.getSavedSalary()
+    /**
+     * Проверяет, были ли изменения
+     */
+    fun hasChanges(): Boolean {
+        return _filterSettings.value != savedFilterSettings
     }
-
-    suspend fun getSavedOnlyWithSalary(): Boolean {
-        return saveFilterUseCase.getSavedOnlyWithSalary()
-    }
-
-    // Можно также вернуть все настройки сразу
-    suspend fun getFilterSettings() = getFilterUseCase()
 }

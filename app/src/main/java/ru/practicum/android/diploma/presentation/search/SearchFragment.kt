@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import ru.practicum.android.diploma.R
 import ru.practicum.android.diploma.databinding.FragmentSearchBinding
+import ru.practicum.android.diploma.presentation.filters.FiltersFragment
 
 class SearchFragment : Fragment() {
 
@@ -29,7 +30,6 @@ class SearchFragment : Fragment() {
     private val viewModel: SearchViewModel by viewModel()
 
     private var adapter: VacanciesAdapter? = null
-
     private var ui: SearchUiRenderer? = null
 
     override fun onCreateView(
@@ -50,6 +50,7 @@ class SearchFragment : Fragment() {
         setupSearch()
         setupObservers()
         setupFilters()
+        observeFilterResults()
     }
 
     private fun resetSearchState() {
@@ -206,6 +207,24 @@ class SearchFragment : Fragment() {
         }
     }
 
+    // слушаем результат от FiltersFragment
+    private fun observeFilterResults() {
+        findNavController().currentBackStackEntry
+            ?.savedStateHandle
+            ?.getLiveData<Boolean>(FiltersFragment.KEY_FILTERS_APPLIED)
+            ?.observe(viewLifecycleOwner) { filtersApplied ->
+                if (filtersApplied) {
+                    // Обновляем индикацию фильтра сразу
+                    viewModel.receiveFilterInfo()
+
+                    // Очищаем результат
+                    findNavController().currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.remove<Boolean>(FiltersFragment.KEY_FILTERS_APPLIED)
+                }
+            }
+    }
+
     private fun showKeyboard(view: View) {
         val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
@@ -259,6 +278,7 @@ class SearchFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        // Обновляем фильтры при каждом возврате на экран
         viewModel.receiveFilterInfo()
     }
 

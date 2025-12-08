@@ -5,12 +5,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import ru.practicum.android.diploma.R
 import ru.practicum.android.diploma.databinding.FragmentFiltersIndustriesBinding
@@ -21,8 +22,8 @@ class FiltersIndustriesFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: FilterIndustriesViewModel by viewModel()
+    private val filtersViewModel: FiltersViewModel by activityViewModel()
 
-    // Ленивая инициализация адаптера с передачей функции скрытия клавиатуры
     private val adapter: FilterIndustriesAdapter by lazy {
         FilterIndustriesAdapter(
             onItemClick = { industry ->
@@ -59,7 +60,6 @@ class FiltersIndustriesFragment : Fragment() {
         binding.recyclerViewIndustries.adapter = adapter
         binding.buttonContainer.isVisible = false
 
-        // Добавляем обработчик клика по RecyclerView для скрытия клавиатуры
         binding.recyclerViewIndustries.setOnTouchListener { _, _ ->
             hideKeyboard()
             false
@@ -75,9 +75,8 @@ class FiltersIndustriesFragment : Fragment() {
 
         binding.btnClear.setOnClickListener {
             binding.searchQueryIndustries.text?.clear()
-            // сразу сбрасываем поиск без задержки
             viewModel.clearSearch()
-            hideKeyboard() // Скрываем клавиатуру при очистке поиска
+            hideKeyboard()
         }
     }
 
@@ -90,22 +89,23 @@ class FiltersIndustriesFragment : Fragment() {
     private fun setupClickListeners() {
         binding.backButton.setOnClickListener {
             hideKeyboard()
-            parentFragmentManager.popBackStack()
+            // ПО ТЗ: При "Назад" изменения НЕ применяются
+            findNavController().popBackStack()
         }
 
         binding.selectButton.setOnClickListener {
             hideKeyboard()
-            viewModel.saveSelectedIndustry()
 
-            viewModel.selectedIndustry.value?.let { selectedIndustry ->
-                showSuccessMessage(selectedIndustry.name)
+            // Передаем ВРЕМЕННЫЙ выбор в FiltersViewModel
+            // Фактическое сохранение произойдет при нажатии "Применить"
+            viewModel.getTemporarySelection()?.let { selectedIndustry ->
+                filtersViewModel.updateIndustry(selectedIndustry)
             }
 
-            parentFragmentManager.popBackStack()
+            findNavController().popBackStack()
         }
     }
 
-    // Функция для скрытия клавиатуры
     private fun hideKeyboard() {
         val inputMethodManager = ContextCompat.getSystemService(
             requireContext(),
@@ -115,15 +115,6 @@ class FiltersIndustriesFragment : Fragment() {
             binding.searchQueryIndustries.windowToken,
             0
         )
-    }
-
-    private fun showSuccessMessage(industryName: String) {
-        val message = "Выбрана отрасль: $industryName"
-        Toast.makeText(
-            requireContext(),
-            message,
-            Toast.LENGTH_SHORT
-        ).show()
     }
 
     private fun observeViewModel() {
@@ -173,17 +164,14 @@ class FiltersIndustriesFragment : Fragment() {
         binding.errorNoInternetConnection.isVisible = false
         binding.serverErrorLayout.isVisible = false
         binding.errorNoSuchIndustry.isVisible = false
-        // Кнопка видна только если есть выбранная отрасль
     }
 
     private fun showNoResults() {
-        // используем плейсхолдер для "нет такой отрасли"
         binding.progressBar.isVisible = false
         binding.recyclerViewIndustries.isVisible = false
         binding.errorNoInternetConnection.isVisible = false
         binding.serverErrorLayout.isVisible = false
         binding.errorNoSuchIndustry.isVisible = true
-        // скрываем кнопку при отображении ошибки "нет такой отрасли"
         binding.buttonContainer.isVisible = false
     }
 

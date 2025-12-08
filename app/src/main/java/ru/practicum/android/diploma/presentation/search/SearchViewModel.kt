@@ -24,6 +24,7 @@ class SearchViewModel(
 
     sealed class SearchUiState {
         abstract val useFilter: Boolean
+
         data class Loading(override val useFilter: Boolean) : SearchUiState()
         data class EmptyQuery(override val useFilter: Boolean) : SearchUiState()
         data class EmptyResult(override val useFilter: Boolean) : SearchUiState()
@@ -59,13 +60,19 @@ class SearchViewModel(
     private var filterSettings = FilterSettings()
     private var useFilter = false
 
+    // Мметод обновляет UI сразу
     fun receiveFilterInfo() {
         viewModelScope.launch {
             filterSettings = getFilterSettingsUseCase()
-            useFilter = with(filterSettings) {
+            val newUseFilter = with(filterSettings) {
                 industry != null || salary != null || onlyWithSalary
             }
-            updateUseFilterInLiveData()
+
+            // Если состояние фильтра изменилось, обновляем UI
+            if (useFilter != newUseFilter) {
+                useFilter = newUseFilter
+                updateUseFilterInLiveData()
+            }
         }
     }
 
