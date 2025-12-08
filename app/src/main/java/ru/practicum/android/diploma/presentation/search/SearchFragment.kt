@@ -22,6 +22,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import ru.practicum.android.diploma.R
 import ru.practicum.android.diploma.databinding.FragmentSearchBinding
 import ru.practicum.android.diploma.domain.models.FilterSettings
+import ru.practicum.android.diploma.presentation.filters.FiltersFragment
 
 class SearchFragment : Fragment() {
 
@@ -30,7 +31,6 @@ class SearchFragment : Fragment() {
     private val viewModel: SearchViewModel by viewModel()
 
     private var adapter: VacanciesAdapter? = null
-
     private var ui: SearchUiRenderer? = null
 
     override fun onCreateView(
@@ -179,11 +179,9 @@ class SearchFragment : Fragment() {
                 is SearchViewModel.SearchUiState.Success -> {
                     adapter?.submitList(state.vacancies)
                 }
-
                 is SearchViewModel.SearchUiState.Error -> {
                     adapter?.submitList(emptyList())
                 }
-
                 else -> {
                     adapter?.submitList(emptyList())
                 }
@@ -201,19 +199,9 @@ class SearchFragment : Fragment() {
     }
 
     private fun setupFilters() {
-        // Подсветка кнопки фильтров по сохранённым фильтрам
-        viewModel.draftFilters.observe(viewLifecycleOwner) { draft ->
-            val anyFilterSet = draft.industry != null ||
-                draft.salary != null ||
-                draft.onlyWithSalary
-
-            binding.btnFilters.setImageDrawable(
-                if (anyFilterSet) {
-                    ContextCompat.getDrawable(requireContext(), R.drawable.ic_filter_on)
-                } else {
-                    ContextCompat.getDrawable(requireContext(), R.drawable.ic_filter_off)
-                }
-            )
+        // ПОДСВЕТКА КНОПКИ ФИЛЬТРА - используем ОТДЕЛЬНЫЙ LiveData
+        viewModel.shouldHighlightFilter.observe(viewLifecycleOwner) { shouldHighlight ->
+            updateFilterIcon(shouldHighlight)
         }
 
         binding.btnFilters.setOnClickListener {
@@ -221,24 +209,34 @@ class SearchFragment : Fragment() {
             findNavController().navigate(R.id.action_search_to_filters)
         }
 
-        // Draft — только для подсветки кнопки, кроме Reset
+        // Слушатель обновлений от экрана фильтров
         parentFragmentManager.setFragmentResultListener(
-            "filters_draft",
+            FiltersFragment.FILTERS_UPDATE_KEY,
             viewLifecycleOwner
         ) { _, bundle ->
-            val draft: FilterSettings? = bundle.getParcelable("filters")
-            val isReset = bundle.getBoolean("isReset", false)
-            draft?.let { viewModel.receiveDraftFilters(it, isReset) }
-        }
+            val filters: FilterSettings? = bundle.getParcelable(FiltersFragment.FILTERS_KEY)
+            val isApply = bundle.getBoolean(FiltersFragment.IS_APPLY_KEY, false)
+            val isReset = bundle.getBoolean(FiltersFragment.IS_RESET_KEY, false)
 
-        // Applied — только при Apply, запускает поиск
-        parentFragmentManager.setFragmentResultListener(
-            "filters_applied",
-            viewLifecycleOwner
-        ) { _, bundle ->
-            val applied: FilterSettings? = bundle.getParcelable("filters")
-            applied?.let { viewModel.receiveAppliedFilters(it) }
+            when {
+                isReset -> {
+                    viewModel.clearFilters()
+                }
+                filters != null -> {
+                    viewModel.receiveFiltersUpdate(filters, isApply)
+                }
+            }
         }
+    }
+
+    private fun updateFilterIcon(shouldHighlight: Boolean) {
+        binding.btnFilters.setImageDrawable(
+            if (shouldHighlight) {
+                ContextCompat.getDrawable(requireContext(), R.drawable.ic_filter_on)
+            } else {
+                ContextCompat.getDrawable(requireContext(), R.drawable.ic_filter_off)
+            }
+        )
     }
 
     private fun showKeyboard(view: View) {
