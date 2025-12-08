@@ -231,7 +231,7 @@ class SearchFragment : Fragment() {
             draft?.let { viewModel.receiveDraftFilters(it, isReset) }
         }
 
-// Applied — только при Apply, запускает поиск
+        // Applied — только при Apply, запускает поиск
         parentFragmentManager.setFragmentResultListener(
             "filters_applied",
             viewLifecycleOwner
