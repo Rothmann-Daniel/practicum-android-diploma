@@ -29,6 +29,9 @@ class FiltersFragment : Fragment() {
     // Таймер для дебаунса при вводе зарплаты
     private var salaryDebounceJob: kotlinx.coroutines.Job? = null
 
+    // Флаг для отслеживания, что изменения нужно применить сразу
+    private var shouldApplyChangesImmediately = false
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -53,7 +56,10 @@ class FiltersFragment : Fragment() {
             viewLifecycleOwner
         ) { _, bundle ->
             val industry = bundle.getParcelable<Industry>("industry")
+            // При выборе отрасли из списка - применяем сразу
+            shouldApplyChangesImmediately = true
             viewModel.updateIndustry(industry)
+            shouldApplyChangesImmediately = false
         }
 
         setupObservers()
@@ -62,8 +68,15 @@ class FiltersFragment : Fragment() {
     private fun setupObservers() {
         viewModel.filterSettings.observe(viewLifecycleOwner) { settings ->
             updateUI(settings)
-            // Отправляем обновления на экран поиска для подсветки кнопки
-            sendFilterUpdateToSearch(settings)
+
+            // Всегда отправляем обновления на экран поиска
+            if (shouldApplyChangesImmediately) {
+                // Если нужно применить изменения сразу (крестик, сброс)
+                sendFilterApplyToSearch(settings)
+            } else {
+                // Обычное обновление (при изменении текста зарплаты - с дебаунсом)
+                sendFilterUpdateToSearch(settings)
+            }
         }
     }
 
@@ -134,8 +147,10 @@ class FiltersFragment : Fragment() {
         binding.industryForwardIcon.setOnClickListener {
             val currentSettings = viewModel.filterSettings.value
             if (currentSettings?.industry != null) {
-                // Очищаем отрасль и НЕМЕДЛЕННО применяем изменение
+                // Очищаем отрасль через крестик - ПРИМЕНЯЕМ СРАЗУ
+                shouldApplyChangesImmediately = true
                 viewModel.updateIndustry(null)
+                shouldApplyChangesImmediately = false
             } else {
                 // Переходим к выбору отрасли
                 findNavController().navigate(R.id.action_filters_to_industries)
@@ -170,7 +185,7 @@ class FiltersFragment : Fragment() {
             )
 
             if (!hasFocus) {
-                // При потере фокуса сразу сохраняем зарплату
+                // При потере фокуса сохраняем зарплату
                 saveCurrentSalary()
             }
         }
@@ -233,17 +248,22 @@ class FiltersFragment : Fragment() {
 
     private fun setupSalaryClearButton() {
         binding.salaryClearIcon.setOnClickListener {
+            // Очищаем зарплату через крестик - ПРИМЕНЯЕМ СРАЗУ
+            shouldApplyChangesImmediately = true
             binding.salarySum.setText("")
             hideKeyboard()
-            // Немедленно сохраняем очищенное значение
             viewModel.updateSalary(null)
+            shouldApplyChangesImmediately = false
         }
     }
 
     private fun setupSalaryCheckbox() {
         binding.checkBoxIcon.setOnClickListener {
+            // Изменение чекбокса - ПРИМЕНЯЕМ СРАЗУ
+            shouldApplyChangesImmediately = true
             val current = viewModel.filterSettings.value?.onlyWithSalary ?: false
             viewModel.updateOnlyWithSalary(!current)
+            shouldApplyChangesImmediately = false
         }
     }
 
@@ -262,12 +282,10 @@ class FiltersFragment : Fragment() {
     private fun setupResetButton() {
         binding.btnResert.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
-                // Очищаем все фильтры
+                // Сброс всех фильтров - ПРИМЕНЯЕМ СРАЗУ
+                shouldApplyChangesImmediately = true
                 viewModel.clearAllFilters()
-
-                // Отправляем пустые фильтры с флагом "сброс" И "применить"
-                // чтобы поиск сразу обновился
-                sendResetToSearch()
+                shouldApplyChangesImmediately = false
 
                 // Закрываем экран фильтров
                 findNavController().popBackStack()
@@ -280,7 +298,7 @@ class FiltersFragment : Fragment() {
             FILTERS_UPDATE_KEY,
             Bundle().apply {
                 putParcelable(FILTERS_KEY, settings)
-                putBoolean(IS_APPLY_KEY, false)
+                putBoolean(IS_APPLY_KEY, false) // Не применять сразу
             }
         )
     }
@@ -290,18 +308,7 @@ class FiltersFragment : Fragment() {
             FILTERS_UPDATE_KEY,
             Bundle().apply {
                 putParcelable(FILTERS_KEY, settings)
-                putBoolean(IS_APPLY_KEY, true) // Флаг "применить"
-            }
-        )
-    }
-
-    private fun sendResetToSearch() {
-        parentFragmentManager.setFragmentResult(
-            FILTERS_UPDATE_KEY,
-            Bundle().apply {
-                putParcelable(FILTERS_KEY, FilterSettings())
-                putBoolean(IS_APPLY_KEY, true) // ВАЖНО: true чтобы применить сброс
-                putBoolean(IS_RESET_KEY, true)
+                putBoolean(IS_APPLY_KEY, true) // Применить сразу
             }
         )
     }
