@@ -13,6 +13,7 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.fragment.findNavController
@@ -21,12 +22,14 @@ import androidx.recyclerview.widget.RecyclerView
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import ru.practicum.android.diploma.R
 import ru.practicum.android.diploma.databinding.FragmentSearchBinding
+import ru.practicum.android.diploma.presentation.filters.SharedViewModel
 
 class SearchFragment : Fragment() {
 
     private var _binding: FragmentSearchBinding? = null
     private val binding get() = _binding!!
     private val viewModel: SearchViewModel by viewModel()
+    private val sharedViewModel: SharedViewModel by activityViewModels()
 
     private var adapter: VacanciesAdapter? = null
 
@@ -197,6 +200,10 @@ class SearchFragment : Fragment() {
         viewModel.errorEvent.observe(viewLifecycleOwner) { message ->
             Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
         }
+
+        sharedViewModel.filterSettings.observe(viewLifecycleOwner) { filter ->
+            viewModel.applyFilters(filter)
+        }
     }
 
     private fun setupFilters() {
@@ -255,11 +262,6 @@ class SearchFragment : Fragment() {
     override fun onDetach() {
         super.onDetach()
         activity?.lifecycle?.removeObserver(activityObserver)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        viewModel.receiveFilterInfo()
     }
 
     companion object {

@@ -9,6 +9,7 @@ import android.view.inputmethod.InputMethodManager
 import androidx.core.content.ContextCompat
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
@@ -16,6 +17,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import ru.practicum.android.diploma.R
 import ru.practicum.android.diploma.databinding.FragmentFiltersBinding
 import ru.practicum.android.diploma.domain.models.FilterSettings
+import kotlin.getValue
 
 class FiltersFragment : Fragment() {
 
@@ -23,6 +25,7 @@ class FiltersFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: FiltersViewModel by viewModel()
+    private val sharedViewModel: SharedViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -229,6 +232,7 @@ class FiltersFragment : Fragment() {
                 viewModel.saveSalary(salary)
 
                 // Применяем фильтры (здесь должна быть логика применения фильтров к поиску)
+                sharedViewModel.loadFilters()
 
                 // Возвращаемся назад
                 findNavController().popBackStack()
@@ -241,6 +245,7 @@ class FiltersFragment : Fragment() {
             viewLifecycleOwner.lifecycleScope.launch {
                 viewModel.clearAllFilters()
                 // UI обновится автоматически через observer
+                sharedViewModel.clearAllFilters()
             }
         }
     }

@@ -69,6 +69,14 @@ class SearchViewModel(
         }
     }
 
+    fun applyFilters(filterSettingsFromSharedViewModel: FilterSettings) {
+        filterSettings = filterSettingsFromSharedViewModel
+        useFilter = with(filterSettings) {
+            industry != null || salary != null || onlyWithSalary
+        }
+        updateUseFilterInLiveData()
+    }
+
     private fun updateUseFilterInLiveData() {
         val previousState = _uiState.value
         if (previousState != null) {
