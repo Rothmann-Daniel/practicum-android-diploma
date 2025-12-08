@@ -8,11 +8,9 @@ import kotlinx.coroutines.launch
 import ru.practicum.android.diploma.domain.models.FilterSettings
 import ru.practicum.android.diploma.domain.usecases.ClearFilterSettingsUseCase
 import ru.practicum.android.diploma.domain.usecases.GetFilterSettingsUseCase
-import ru.practicum.android.diploma.domain.usecases.SaveFilterSettingsUseCase
 
 class SharedViewModel(
     private val getFilterUseCase: GetFilterSettingsUseCase,
-    private val saveFilterUseCase: SaveFilterSettingsUseCase,
     private val clearFilterUseCase: ClearFilterSettingsUseCase
 ) : ViewModel() {
 

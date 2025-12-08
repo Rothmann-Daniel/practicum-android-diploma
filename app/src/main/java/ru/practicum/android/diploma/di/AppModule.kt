@@ -47,6 +47,7 @@ import ru.practicum.android.diploma.domain.usecases.SearchVacanciesUseCase
 import ru.practicum.android.diploma.presentation.favorites.FavoriteVacancyViewModel
 import ru.practicum.android.diploma.presentation.filters.FilterIndustriesViewModel
 import ru.practicum.android.diploma.presentation.filters.FiltersViewModel
+import ru.practicum.android.diploma.presentation.filters.SharedViewModel
 import ru.practicum.android.diploma.presentation.search.SearchViewModel
 import ru.practicum.android.diploma.presentation.vacancy.VacancyViewModel
 import java.util.concurrent.TimeUnit
@@ -156,4 +157,5 @@ val appModule = module {
     viewModel { FavoriteVacancyViewModel(get()) }
     viewModel { FilterIndustriesViewModel(get(), get()) }
     viewModel { FiltersViewModel(get(), get(), get()) }
+    viewModel { SharedViewModel(get(), get()) }
 }
