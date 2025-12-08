@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import ru.practicum.android.diploma.core.utils.SingleLiveEvent
 import ru.practicum.android.diploma.core.utils.debounce
@@ -96,8 +97,18 @@ class SearchViewModel(
                 // Обновляем UI состояние с учетом фильтров
                 updateUseFilterInLiveData()
 
-            } catch (e: Exception) {
-                // В случае ошибки загрузки фильтров, используем пустые настройки
+            } catch (e: CancellationException) {
+                // Прокидываем CancellationException дальше для корректной отмены корутин
+                throw e
+            } catch (e: IllegalStateException) {
+                // Логируем ошибку состояния при загрузке фильтров
+                android.util.Log.e(TAG, "Error loading saved filters: ${e.message}", e)
+                _shouldHighlightFilter.value = false
+                filterSettings = FilterSettings()
+                useFilterInSearch = false
+            } catch (e: RuntimeException) {
+                // Логируем runtime ошибки
+                android.util.Log.e(TAG, "Runtime error loading saved filters: ${e.message}", e)
                 _shouldHighlightFilter.value = false
                 filterSettings = FilterSettings()
                 useFilterInSearch = false
@@ -237,8 +248,20 @@ class SearchViewModel(
                         handleErrorResult(result, page)
                     }
                 }
-            } catch (e: Exception) {
-                // Обработка исключений
+            } catch (e: CancellationException) {
+                // Прокидываем CancellationException дальше
+                throw e
+            } catch (e: IllegalArgumentException) {
+                // Логируем ошибки неверных аргументов
+                android.util.Log.e(TAG, "Invalid search arguments: ${e.message}", e)
+                handleException(e, page)
+            } catch (e: IllegalStateException) {
+                // Логируем ошибки состояния
+                android.util.Log.e(TAG, "Invalid state during search: ${e.message}", e)
+                handleException(e, page)
+            } catch (e: RuntimeException) {
+                // Логируем runtime ошибки
+                android.util.Log.e(TAG, "Runtime error during search: ${e.message}", e)
                 handleException(e, page)
             } finally {
                 // Сброс флагов загрузки
@@ -314,7 +337,7 @@ class SearchViewModel(
     /**
      * Обработка исключений
      */
-    private fun handleException(e: Exception, page: Int) {
+    private fun handleException(e: RuntimeException, page: Int) {
         _uiState.value = SearchUiState.Error(
             message = e.message ?: "Неизвестная ошибка",
             isNetworkError = false,
@@ -403,7 +426,14 @@ class SearchViewModel(
                 if (lastQuery.isNotBlank()) {
                     forceSearch(lastQuery)
                 }
-            } catch (e: Exception) {
+            } catch (e: CancellationException) {
+                // Прокидываем CancellationException дальше
+                throw e
+            } catch (e: IllegalStateException) {
+                android.util.Log.e(TAG, "Error clearing filters: ${e.message}", e)
+                _errorEvent.value = "Ошибка при сбросе фильтров: ${e.message}"
+            } catch (e: RuntimeException) {
+                android.util.Log.e(TAG, "Runtime error clearing filters: ${e.message}", e)
                 _errorEvent.value = "Ошибка при сбросе фильтров: ${e.message}"
             }
         }
@@ -454,5 +484,6 @@ class SearchViewModel(
     companion object {
         // Константа для дебаунсинга (2 секунды)
         private const val DEBOUNCE_DELAY_MS = 2000L
+        private const val TAG = "SearchViewModel"
     }
 }
