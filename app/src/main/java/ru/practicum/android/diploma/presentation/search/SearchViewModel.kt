@@ -102,6 +102,7 @@ class SearchViewModel(
                 throw e
             } catch (e: IllegalStateException) {
                 // В случае ошибки загрузки фильтров, используем пустые настройки
+                e.printStackTrace()
                 _shouldHighlightFilter.value = false
                 filterSettings = FilterSettings()
                 useFilterInSearch = false
