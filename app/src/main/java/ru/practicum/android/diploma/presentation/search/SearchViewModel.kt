@@ -236,7 +236,7 @@ class SearchViewModel(
 
     fun receiveDraftFilters(draftFilters: FilterSettings, isReset: Boolean = false) {
         _draftFilters.value = draftFilters
-        _savedFilters.value = draftFilters  // подсветка кнопки
+        _savedFilters.value = draftFilters
 
         if (isReset && lastQuery.isNotBlank()) {
             // если был предыдущий поиск, повторяем его без фильтров
@@ -259,7 +259,6 @@ class SearchViewModel(
 
         if (lastQuery.isNotBlank()) forceSearch(lastQuery)
     }
-
 
     // Сброс сохранённых фильтров и поиск без фильтров
     fun clearSavedFilters() {

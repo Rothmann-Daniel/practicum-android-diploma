@@ -231,8 +231,8 @@ class FiltersFragment : Fragment() {
                 val filters = viewModel.appliedFilters.value
                 if (filters != null) {
                     parentFragmentManager.setFragmentResult(
-                        "filters_applied",
-                        Bundle().apply { putParcelable("filters", filters) }
+                        KEY_FILTERS_APPLIED,
+                        Bundle().apply { putParcelable(KEY_FILTERS, filters) }
                     )
                 }
                 findNavController().popBackStack()
@@ -258,9 +258,9 @@ class FiltersFragment : Fragment() {
             viewLifecycleOwner.lifecycleScope.launch {
                 viewModel.clearAllFilters() // очищаем локально
                 parentFragmentManager.setFragmentResult(
-                    "filters_applied",
+                    KEY_FILTERS_APPLIED,
                     Bundle().apply {
-                        putParcelable("filters", FilterSettings())
+                        putParcelable(KEY_FILTERS, FilterSettings())
                         putBoolean("isReset", true)
                     }
                 )
@@ -279,6 +279,8 @@ class FiltersFragment : Fragment() {
     }
 
     companion object {
+        const val KEY_FILTERS_APPLIED = "filters_applied"
+        const val KEY_FILTERS = "filters"
         private const val INDUSTRY_TITLE_TEXT_SIZE_SMALL = 12f
         private const val INDUSTRY_TITLE_TEXT_SIZE_LARGE = 16f
     }
