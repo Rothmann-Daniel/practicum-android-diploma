@@ -234,8 +234,20 @@ class SearchViewModel(
         allowRestoreFromCache = true
     }
 
-    // Получаем фильтры после применения или выбора
-    fun receiveFilterInfo(appliedFilters: FilterSettings) {
+    fun receiveDraftFilters(draftFilters: FilterSettings, isReset: Boolean = false) {
+        _draftFilters.value = draftFilters
+        _savedFilters.value = draftFilters  // подсветка кнопки
+
+        if (isReset && lastQuery.isNotBlank()) {
+            // если был предыдущий поиск, повторяем его без фильтров
+            filterSettings = draftFilters
+            useFilter = false
+            updateUseFilterInLiveData()
+            forceSearch(lastQuery)
+        }
+    }
+
+    fun receiveAppliedFilters(appliedFilters: FilterSettings) {
         _draftFilters.value = appliedFilters
         filterSettings = appliedFilters
         useFilter = appliedFilters.industry != null ||
@@ -243,12 +255,11 @@ class SearchViewModel(
             appliedFilters.onlyWithSalary
         updateUseFilterInLiveData()
 
-        // Обновляем сохранённые фильтры для подсветки кнопки
         _savedFilters.value = appliedFilters
 
-        // Если был предыдущий поиск — пересоздаём его
         if (lastQuery.isNotBlank()) forceSearch(lastQuery)
     }
+
 
     // Сброс сохранённых фильтров и поиск без фильтров
     fun clearSavedFilters() {

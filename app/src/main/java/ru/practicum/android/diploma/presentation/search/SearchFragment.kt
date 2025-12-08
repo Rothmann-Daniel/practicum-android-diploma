@@ -220,15 +220,23 @@ class SearchFragment : Fragment() {
             findNavController().navigate(R.id.action_search_to_filters)
         }
 
-        // Слушаем результат от FiltersFragment
+        // Draft — только для подсветки кнопки, кроме Reset
+        parentFragmentManager.setFragmentResultListener(
+            "filters_draft",
+            viewLifecycleOwner
+        ) { _, bundle ->
+            val draft: FilterSettings? = bundle.getParcelable("filters")
+            val isReset = bundle.getBoolean("isReset", false)
+            draft?.let { viewModel.receiveDraftFilters(it, isReset) }
+        }
+
+// Applied — только при Apply, запускает поиск
         parentFragmentManager.setFragmentResultListener(
             "filters_applied",
             viewLifecycleOwner
         ) { _, bundle ->
             val applied: FilterSettings? = bundle.getParcelable("filters")
-            applied?.let {
-                viewModel.receiveFilterInfo(it)
-            }
+            applied?.let { viewModel.receiveAppliedFilters(it) }
         }
     }
 

@@ -49,18 +49,14 @@ class FiltersFragment : Fragment() {
             viewLifecycleOwner
         ) { _, bundle ->
             val industry = bundle.getParcelable<Industry>("industry")
-            if (industry != null) {
-                // Обновляем черновик
-                viewModel.updateIndustryDraft(industry)
-            }
+            viewModel.updateIndustryDraft(industry)
+            sendDraftToSearchFragment() // !!! CHANGE !!!
         }
 
-        // Загружаем сохраненные фильтры из SharedPreferences
         setupObservers()
     }
 
     private fun setupObservers() {
-        // ОДИН общий observer для всего UI
         // подписка на черновик
         viewModel.draftFilters.observe(viewLifecycleOwner) { draft ->
             updateUI(draft)
@@ -135,6 +131,7 @@ class FiltersFragment : Fragment() {
             if (currentDraft?.industry != null) {
                 // очищаем отрасль в черновике
                 viewModel.updateIndustryDraft(null)
+                sendDraftToSearchFragment()
             } else {
                 findNavController().navigate(R.id.action_filters_to_industries)
             }
@@ -170,6 +167,7 @@ class FiltersFragment : Fragment() {
             if (!hasFocus) {
                 val salary = edit.text?.toString()?.toIntOrNull()
                 viewModel.updateSalaryDraft(salary)
+                sendDraftToSearchFragment()
             }
         }
     }
@@ -201,6 +199,7 @@ class FiltersFragment : Fragment() {
             if (currentDraft != null) {
                 updateButtonsState(currentDraft.copy(salary = salary))
             }
+            sendDraftToSearchFragment()
         }
     }
 
@@ -208,7 +207,8 @@ class FiltersFragment : Fragment() {
         binding.salaryClearIcon.setOnClickListener {
             binding.salarySum.setText("")
             hideKeyboard()
-            // doOnTextChanged автоматически обновит значение
+            viewModel.updateSalaryDraft(null)
+            sendDraftToSearchFragment()
         }
     }
 
@@ -216,6 +216,7 @@ class FiltersFragment : Fragment() {
         binding.checkBoxIcon.setOnClickListener {
             val current = viewModel.draftFilters.value?.onlyWithSalary ?: false
             viewModel.updateOnlyWithSalaryDraft(!current)
+            sendDraftToSearchFragment()
         }
     }
 
@@ -227,7 +228,6 @@ class FiltersFragment : Fragment() {
 
             viewLifecycleOwner.lifecycleScope.launch {
                 viewModel.applyFilters()
-                // Передаем применённые фильтры через Fragment Result
                 val filters = viewModel.appliedFilters.value
                 if (filters != null) {
                     parentFragmentManager.setFragmentResult(
@@ -240,15 +240,28 @@ class FiltersFragment : Fragment() {
         }
     }
 
+    // При выборе отрасли, зарплаты, чекбокса — draft, не запускаем поиск
+    private fun sendDraftToSearchFragment(isReset: Boolean = false) {
+        val draft = viewModel.draftFilters.value ?: FilterSettings()
+        parentFragmentManager.setFragmentResult(
+            "filters_draft",
+            Bundle().apply {
+                putParcelable("filters", draft)
+                putBoolean("isReset", isReset)
+            }
+        )
+    }
+
+    // При нажатии Reset — отправляем пустой draft с флагом isReset
     private fun setupResetButton() {
         binding.btnResert.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
                 viewModel.clearAllFilters() // очищаем локально
-                // Отправляем пустые фильтры на SearchFragment
                 parentFragmentManager.setFragmentResult(
                     "filters_applied",
                     Bundle().apply {
                         putParcelable("filters", FilterSettings())
+                        putBoolean("isReset", true)
                     }
                 )
             }
