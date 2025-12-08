@@ -207,8 +207,11 @@ class SearchFragment : Fragment() {
                 saved.salary != null ||
                 saved.onlyWithSalary
             binding.btnFilters.setImageDrawable(
-                if (anyFilterSet) ContextCompat.getDrawable(requireContext(), R.drawable.ic_filter_on)
-                else ContextCompat.getDrawable(requireContext(), R.drawable.ic_filter_off)
+                if (anyFilterSet) {
+                    ContextCompat.getDrawable(requireContext(), R.drawable.ic_filter_on)
+                } else {
+                    ContextCompat.getDrawable(requireContext(), R.drawable.ic_filter_off)
+                }
             )
         }
 
@@ -279,7 +282,7 @@ class SearchFragment : Fragment() {
         super.onDetach()
         activity?.lifecycle?.removeObserver(activityObserver)
     }
-    
+
     companion object {
         private const val PRELOAD_THRESHOLD = 5
     }

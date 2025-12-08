@@ -58,7 +58,6 @@ class SearchViewModel(
     private val _savedFilters = MutableLiveData<FilterSettings>()
     val savedFilters: LiveData<FilterSettings> = _savedFilters
 
-
     private val loadedVacancies = mutableListOf<Vacancy>()
     private var currentPage = 0
     private var totalPages = 1

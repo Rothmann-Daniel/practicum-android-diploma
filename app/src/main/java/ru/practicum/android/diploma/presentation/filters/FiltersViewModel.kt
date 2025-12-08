@@ -28,8 +28,8 @@ class FiltersViewModel(
     init {
         viewModelScope.launch {
             val saved = getFilterUseCase()
-            _appliedFilters.value = saved.copy()          // применённые
-            _draftFilters.value = saved.copy()     // черновик
+            _appliedFilters.value = saved.copy() // применённые
+            _draftFilters.value = saved.copy() // черновик
         }
     }
 
@@ -81,7 +81,7 @@ class FiltersViewModel(
     fun clearAllFilters() {
         viewModelScope.launch {
             clearFilterUseCase()
-            val empty = FilterSettings()              // пустые
+            val empty = FilterSettings() // пустые
             _appliedFilters.value = empty.copy()
             _draftFilters.value = empty.copy()
         }
