@@ -67,14 +67,6 @@ class SearchViewModel(
     private var filterSettings = FilterSettings()
     private var useFilter = false
 
-    init {
-        // Загружаем сохранённые фильтры при старте
-        viewModelScope.launch {
-            val saved = getFilterSettingsUseCase()
-            _savedFilters.value = saved
-        }
-    }
-
     private fun updateUseFilterInLiveData() {
         val previousState = _uiState.value
         if (previousState != null) {
@@ -234,17 +226,27 @@ class SearchViewModel(
         allowRestoreFromCache = true
     }
 
-    fun receiveDraftFilters(draftFilters: FilterSettings, isReset: Boolean = false) {
-        _draftFilters.value = draftFilters
-        _savedFilters.value = draftFilters
+    private fun updateDraftFilters(draft: FilterSettings) {
+        _draftFilters.value = draft.copy()
+        useFilter = draft.industry != null || draft.salary != null || draft.onlyWithSalary
+        updateUseFilterInLiveData()
+    }
 
-        if (isReset && lastQuery.isNotBlank()) {
-            // если был предыдущий поиск, повторяем его без фильтров
-            filterSettings = draftFilters
+    fun receiveDraftFilters(draftFilters: FilterSettings, isReset: Boolean = false) {
+        if (isReset) {
+            val empty = FilterSettings()
+            updateDraftFilters(empty)
+            _savedFilters.value = empty
+            filterSettings = empty
             useFilter = false
             updateUseFilterInLiveData()
-            forceSearch(lastQuery)
+
+            if (lastQuery.isNotBlank()) {
+                forceSearch(lastQuery)
+            }
+            return
         }
+        updateDraftFilters(draftFilters)
     }
 
     fun receiveAppliedFilters(appliedFilters: FilterSettings) {

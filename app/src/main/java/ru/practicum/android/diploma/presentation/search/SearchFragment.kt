@@ -202,10 +202,11 @@ class SearchFragment : Fragment() {
 
     private fun setupFilters() {
         // Подсветка кнопки фильтров по сохранённым фильтрам
-        viewModel.savedFilters.observe(viewLifecycleOwner) { saved ->
-            val anyFilterSet = saved.industry != null ||
-                saved.salary != null ||
-                saved.onlyWithSalary
+        viewModel.draftFilters.observe(viewLifecycleOwner) { draft ->
+            val anyFilterSet = draft.industry != null ||
+                draft.salary != null ||
+                draft.onlyWithSalary
+
             binding.btnFilters.setImageDrawable(
                 if (anyFilterSet) {
                     ContextCompat.getDrawable(requireContext(), R.drawable.ic_filter_on)
