@@ -24,6 +24,7 @@ class SearchViewModel(
 
     sealed class SearchUiState {
         abstract val useFilter: Boolean
+
         data class Loading(override val useFilter: Boolean) : SearchUiState()
         data class EmptyQuery(override val useFilter: Boolean) : SearchUiState()
         data class EmptyResult(override val useFilter: Boolean) : SearchUiState()
@@ -50,6 +51,14 @@ class SearchViewModel(
     private val _errorEvent = SingleLiveEvent<String>()
     val errorEvent: LiveData<String> = _errorEvent
 
+    private val _draftFilters = MutableLiveData<FilterSettings>()
+    val draftFilters: LiveData<FilterSettings> = _draftFilters
+
+    // Новый LiveData для сохранённых фильтров
+    private val _savedFilters = MutableLiveData<FilterSettings>()
+    val savedFilters: LiveData<FilterSettings> = _savedFilters
+
+
     private val loadedVacancies = mutableListOf<Vacancy>()
     private var currentPage = 0
     private var totalPages = 1
@@ -59,13 +68,11 @@ class SearchViewModel(
     private var filterSettings = FilterSettings()
     private var useFilter = false
 
-    fun receiveFilterInfo() {
+    init {
+        // Загружаем сохранённые фильтры при старте
         viewModelScope.launch {
-            filterSettings = getFilterSettingsUseCase()
-            useFilter = with(filterSettings) {
-                industry != null || salary != null || onlyWithSalary
-            }
-            updateUseFilterInLiveData()
+            val saved = getFilterSettingsUseCase()
+            _savedFilters.value = saved
         }
     }
 
@@ -226,6 +233,35 @@ class SearchViewModel(
     fun markRestoreForNavigation() {
         restorePreviousResults = true
         allowRestoreFromCache = true
+    }
+
+    // Получаем фильтры после применения или выбора
+    fun receiveFilterInfo(appliedFilters: FilterSettings) {
+        _draftFilters.value = appliedFilters
+        filterSettings = appliedFilters
+        useFilter = appliedFilters.industry != null ||
+            appliedFilters.salary != null ||
+            appliedFilters.onlyWithSalary
+        updateUseFilterInLiveData()
+
+        // Обновляем сохранённые фильтры для подсветки кнопки
+        _savedFilters.value = appliedFilters
+
+        // Если был предыдущий поиск — пересоздаём его
+        if (lastQuery.isNotBlank()) forceSearch(lastQuery)
+    }
+
+    // Сброс сохранённых фильтров и поиск без фильтров
+    fun clearSavedFilters() {
+        val empty = FilterSettings()
+        _draftFilters.value = empty
+        _savedFilters.value = empty
+        filterSettings = empty
+        useFilter = false
+        updateUseFilterInLiveData()
+
+        // если был предыдущий поиск — повторяем его без фильтров
+        if (lastQuery.isNotBlank()) forceSearch(lastQuery)
     }
 
     companion object {

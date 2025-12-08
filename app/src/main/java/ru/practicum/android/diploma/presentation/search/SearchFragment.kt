@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import ru.practicum.android.diploma.R
 import ru.practicum.android.diploma.databinding.FragmentSearchBinding
+import ru.practicum.android.diploma.domain.models.FilterSettings
 
 class SearchFragment : Fragment() {
 
@@ -200,9 +201,31 @@ class SearchFragment : Fragment() {
     }
 
     private fun setupFilters() {
+        // Подсветка кнопки фильтров по сохранённым фильтрам
+        viewModel.savedFilters.observe(viewLifecycleOwner) { saved ->
+            val anyFilterSet = saved.industry != null ||
+                saved.salary != null ||
+                saved.onlyWithSalary
+            binding.btnFilters.setImageDrawable(
+                if (anyFilterSet) ContextCompat.getDrawable(requireContext(), R.drawable.ic_filter_on)
+                else ContextCompat.getDrawable(requireContext(), R.drawable.ic_filter_off)
+            )
+        }
+
         binding.btnFilters.setOnClickListener {
             viewModel.markRestoreForNavigation()
             findNavController().navigate(R.id.action_search_to_filters)
+        }
+
+        // Слушаем результат от FiltersFragment
+        parentFragmentManager.setFragmentResultListener(
+            "filters_applied",
+            viewLifecycleOwner
+        ) { _, bundle ->
+            val applied: FilterSettings? = bundle.getParcelable("filters")
+            applied?.let {
+                viewModel.receiveFilterInfo(it)
+            }
         }
     }
 
@@ -256,12 +279,7 @@ class SearchFragment : Fragment() {
         super.onDetach()
         activity?.lifecycle?.removeObserver(activityObserver)
     }
-
-    override fun onResume() {
-        super.onResume()
-        viewModel.receiveFilterInfo()
-    }
-
+    
     companion object {
         private const val PRELOAD_THRESHOLD = 5
     }

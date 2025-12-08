@@ -35,4 +35,8 @@ class SaveFilterSettingsUseCase(
     suspend fun getFilterSettings(): FilterSettings {
         return repository.getFilterSettings()
     }
+
+    suspend fun applyFilters(settings: FilterSettings) {
+        repository.saveFilterSettings(settings)
+    }
 }

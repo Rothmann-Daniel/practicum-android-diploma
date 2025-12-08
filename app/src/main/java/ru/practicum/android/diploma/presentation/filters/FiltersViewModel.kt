@@ -17,45 +17,79 @@ class FiltersViewModel(
     private val clearFilterUseCase: ClearFilterSettingsUseCase
 ) : ViewModel() {
 
-    private val _filterSettings = MutableLiveData<FilterSettings>()
-    val filterSettings: LiveData<FilterSettings> = _filterSettings
+    // Применённые фильтры (SharedPreferences)
+    private val _appliedFilters = MutableLiveData<FilterSettings>()
+    val appliedFilters: LiveData<FilterSettings> = _appliedFilters
+
+    // Черновик — редактируемые фильтры, показ в UI
+    private val _draftFilters = MutableLiveData<FilterSettings>()
+    val draftFilters: LiveData<FilterSettings> = _draftFilters
 
     init {
-        loadFilters()
+        viewModelScope.launch {
+            val saved = getFilterUseCase()
+            _appliedFilters.value = saved.copy()          // применённые
+            _draftFilters.value = saved.copy()     // черновик
+        }
     }
 
     fun loadFilters() {
         viewModelScope.launch {
-            _filterSettings.value = getFilterUseCase()
+            _appliedFilters.value = getFilterUseCase()
         }
     }
 
     fun saveIndustry(industry: Industry?) {
-        viewModelScope.launch {
-            saveFilterUseCase.saveIndustry(industry)
-            _filterSettings.value = getFilterUseCase()
-        }
+        _appliedFilters.value = _appliedFilters.value?.copy(
+            industry = industry
+        )
     }
 
     fun saveSalary(salary: Int?) {
-        viewModelScope.launch {
-            saveFilterUseCase.saveSalary(salary)
-            _filterSettings.value = getFilterUseCase()
-        }
+        _appliedFilters.value = _appliedFilters.value?.copy(
+            salary = salary
+        )
     }
 
     fun saveOnlyWithSalary(onlyWithSalary: Boolean) {
-        viewModelScope.launch {
-            saveFilterUseCase.saveOnlyWithSalary(onlyWithSalary)
-            _filterSettings.value = getFilterUseCase()
-        }
+        _appliedFilters.value = _appliedFilters.value?.copy(
+            onlyWithSalary = onlyWithSalary
+        )
+    }
+
+    fun updateIndustryDraft(industry: Industry?) {
+        val current = _draftFilters.value ?: FilterSettings()
+        val updated = current.copy(industry = industry)
+        _draftFilters.value = updated
+        viewModelScope.launch { saveFilterUseCase.applyFilters(updated) } // сохраняем сразу
+    }
+
+    fun updateSalaryDraft(salary: Int?) {
+        val current = _draftFilters.value ?: FilterSettings()
+        val updated = current.copy(salary = salary)
+        _draftFilters.value = updated
+        viewModelScope.launch { saveFilterUseCase.applyFilters(updated) }
+    }
+
+    fun updateOnlyWithSalaryDraft(value: Boolean) {
+        val current = _draftFilters.value ?: FilterSettings()
+        val updated = current.copy(onlyWithSalary = value)
+        _draftFilters.value = updated
+        viewModelScope.launch { saveFilterUseCase.applyFilters(updated) }
     }
 
     fun clearAllFilters() {
         viewModelScope.launch {
             clearFilterUseCase()
-            loadFilters()
+            val empty = FilterSettings()              // пустые
+            _appliedFilters.value = empty.copy()
+            _draftFilters.value = empty.copy()
         }
+    }
+
+    fun applyFilters() {
+        val settings = _draftFilters.value ?: return
+        _appliedFilters.value = settings.copy()
     }
 
     suspend fun getSavedIndustry(): Industry? {
