@@ -199,7 +199,7 @@ class SearchFragment : Fragment() {
     }
 
     private fun setupFilters() {
-        // ПОДСВЕТКА КНОПКИ ФИЛЬТРА - используем ОТДЕЛЬНЫЙ LiveData
+        // ПОДСВЕТКА КНОПКИ ФИЛЬТРА
         viewModel.shouldHighlightFilter.observe(viewLifecycleOwner) { shouldHighlight ->
             updateFilterIcon(shouldHighlight)
         }
@@ -220,21 +220,26 @@ class SearchFragment : Fragment() {
 
             when {
                 isReset -> {
+                    // Сброс фильтров
                     viewModel.clearFilters()
                 }
                 filters != null -> {
+                    // Обновление фильтров
                     viewModel.receiveFiltersUpdate(filters, isApply)
                 }
             }
         }
     }
 
+
     private fun updateFilterIcon(shouldHighlight: Boolean) {
-        binding.btnFilters.setImageDrawable(
+        if (!isAdded || view == null) return
+
+        binding.btnFilters.setImageResource(
             if (shouldHighlight) {
-                ContextCompat.getDrawable(requireContext(), R.drawable.ic_filter_on)
+                R.drawable.ic_filter_on
             } else {
-                ContextCompat.getDrawable(requireContext(), R.drawable.ic_filter_off)
+                R.drawable.ic_filter_off
             }
         )
     }
@@ -288,6 +293,12 @@ class SearchFragment : Fragment() {
     override fun onDetach() {
         super.onDetach()
         activity?.lifecycle?.removeObserver(activityObserver)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // При возврате на экран обновляем подсветку фильтра
+        viewModel.refreshFilterHighlight()
     }
 
     companion object {

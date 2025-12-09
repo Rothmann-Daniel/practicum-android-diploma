@@ -13,7 +13,6 @@ import ru.practicum.android.diploma.domain.models.Vacancy
 import ru.practicum.android.diploma.domain.models.VacancySearchRequest
 import ru.practicum.android.diploma.domain.usecases.GetFilterSettingsUseCase
 import ru.practicum.android.diploma.domain.usecases.SearchVacanciesUseCase
-import kotlinx.coroutines.CancellationException
 
 class SearchViewModel(
     private val searchUseCase: SearchVacanciesUseCase,
@@ -57,7 +56,7 @@ class SearchViewModel(
     private val _errorEvent = SingleLiveEvent<String>()
     val errorEvent: LiveData<String> = _errorEvent
 
-    // LiveData для подсветки кнопки фильтра
+    // LiveData для подсветки кнопки фильтра - ГЛАВНЫЙ ИСТОЧНИК ДЛЯ ИКОНКИ
     private val _shouldHighlightFilter = MutableLiveData<Boolean>(false)
     val shouldHighlightFilter: LiveData<Boolean> = _shouldHighlightFilter
 
@@ -68,10 +67,10 @@ class SearchViewModel(
     private var isLoadingPage = false
     private var lastQuery: String = ""
 
-    // Текущие фильтры для поиска
+    // Текущие фильтры для поиска (используются в запросах)
     private var filterSettings = FilterSettings()
 
-    // Флаг использования фильтров для текущего поиска
+    // Флаг использования фильтров для текущего поиска (для UI состояния)
     private var useFilterInSearch = false
 
     // Инициализация ViewModel
@@ -97,12 +96,8 @@ class SearchViewModel(
                 // Обновляем UI состояние с учетом фильтров
                 updateUseFilterInLiveData()
 
-            } catch (e: CancellationException) {
-                // Прокидываем CancellationException дальше для корректной отмены корутин
-                throw e
-            } catch (e: IllegalStateException) {
+            } catch (e: Exception) {
                 // В случае ошибки загрузки фильтров, используем пустые настройки
-                e.printStackTrace()
                 _shouldHighlightFilter.value = false
                 filterSettings = FilterSettings()
                 useFilterInSearch = false
@@ -121,13 +116,13 @@ class SearchViewModel(
 
     /**
      * Обновление подсветки кнопки фильтра
+     * ВСЕГДА вызывается при изменении фильтров
      */
     private fun updateFilterHighlight(filters: FilterSettings) {
         val shouldHighlight = hasAnyFilters(filters)
-        // Обновляем только если значение изменилось
-        if (_shouldHighlightFilter.value != shouldHighlight) {
-            _shouldHighlightFilter.value = shouldHighlight
-        }
+        // ВСЕГДА устанавливаем значение, даже если оно одинаковое
+        // Это важно для обновления UI при переподписке
+        _shouldHighlightFilter.value = shouldHighlight
     }
 
     /**
@@ -143,10 +138,8 @@ class SearchViewModel(
                 is SearchUiState.Success -> currentState.copy(useFilter = useFilterInSearch)
                 is SearchUiState.Error -> currentState.copy(useFilter = useFilterInSearch)
             }
-            // Обновляем только если состояние изменилось
-            if (currentState.useFilter != newState.useFilter) {
-                _uiState.value = newState
-            }
+            // Обновляем состояние
+            _uiState.value = newState
         }
     }
 
@@ -242,14 +235,8 @@ class SearchViewModel(
                         handleErrorResult(result, page)
                     }
                 }
-            } catch (e: CancellationException) {
-                // Прокидываем CancellationException дальше
-                throw e
-            } catch (e: IllegalArgumentException) {
-                // Обработка ошибок неверных аргументов
-                handleException(e, page)
-            } catch (e: IllegalStateException) {
-                // Обработка ошибок состояния
+            } catch (e: Exception) {
+                // Обработка исключений
                 handleException(e, page)
             } finally {
                 // Сброс флагов загрузки
@@ -325,7 +312,7 @@ class SearchViewModel(
     /**
      * Обработка исключений
      */
-    private fun handleException(e: java.lang.Exception, page: Int) {
+    private fun handleException(e: Exception, page: Int) {
         _uiState.value = SearchUiState.Error(
             message = e.message ?: "Неизвестная ошибка",
             isNetworkError = false,
@@ -369,36 +356,33 @@ class SearchViewModel(
      * Получение обновлений фильтров от экрана фильтров
      *
      * @param filters новые настройки фильтров
-     * @param isApply true если нажата кнопка "Применить" или "Сбросить", false если просто изменение
+     * @param isApply true если нажата кнопка "Применить" или "Сбросить"
      */
     fun receiveFiltersUpdate(filters: FilterSettings, isApply: Boolean = false) {
-        // Всегда обновляем подсветку кнопки на основе новых фильтров
+        // ВСЕГДА обновляем подсветку кнопки
         updateFilterHighlight(filters)
 
         if (isApply) {
-            // При нажатии "Применить" или "Сбросить" обновляем фильтры для поиска
+            // ТОЛЬКО при нажатии "Применить" или "Сбросить" обновляем фильтры для поиска
             filterSettings = filters.copy()
             useFilterInSearch = hasAnyFilters(filters)
             updateUseFilterInLiveData()
 
-            // Запускаем поиск с новыми фильтрами (даже если они пустые)
+            // Запускаем поиск с новыми фильтрами
             if (lastQuery.isNotBlank()) {
                 forceSearch(lastQuery)
             }
-        } else {
-            // При простом изменении (без применения) только обновляем подсветку
-            // но не меняем фильтры для текущего поиска
-            // Это позволяет сохранить черновики без влияния на текущий поиск
         }
+        // Если isApply = false, только подсветка обновится
     }
 
     /**
-     * Сброс всех фильтров
+     * Сброс всех фильтров (используется при получении флага сброса)
      */
     fun clearFilters() {
         viewModelScope.launch {
             try {
-                // Получаем пустые настройки фильтров
+                // Устанавливаем пустые фильтры
                 val empty = FilterSettings()
 
                 // Обновляем подсветку кнопки
@@ -409,22 +393,33 @@ class SearchViewModel(
                 useFilterInSearch = false
                 updateUseFilterInLiveData()
 
-                // ВСЕГДА перезапускаем поиск без фильтров, даже если нет активного запроса
-                // или если lastQuery пустой
+                // Перезапускаем поиск без фильтров
                 if (lastQuery.isNotBlank()) {
                     forceSearch(lastQuery)
                 }
-            } catch (e: CancellationException) {
-                // Прокидываем CancellationException дальше
-                throw e
-            } catch (e: IllegalStateException) {
+
+            } catch (e: Exception) {
                 _errorEvent.value = "Ошибка при сбросе фильтров: ${e.message}"
             }
         }
     }
 
     /**
-     * Получение текущих сохраненных фильтров (для отладки или тестирования)
+     * Принудительное обновление подсветки фильтра (например, при возврате на экран)
+     */
+    fun refreshFilterHighlight() {
+        viewModelScope.launch {
+            try {
+                val savedFilters = getFilterSettingsUseCase()
+                updateFilterHighlight(savedFilters)
+            } catch (e: Exception) {
+                _shouldHighlightFilter.value = false
+            }
+        }
+    }
+
+    /**
+     * Получение текущих сохраненных фильтров
      */
     suspend fun getCurrentSavedFilters(): FilterSettings {
         return getFilterSettingsUseCase()
@@ -463,6 +458,13 @@ class SearchViewModel(
      */
     fun getLoadedVacanciesCount(): Int {
         return loadedVacancies.size
+    }
+
+    /**
+     * Получение текущих настроек фильтров (для отладки)
+     */
+    fun getCurrentFilterSettings(): FilterSettings {
+        return filterSettings
     }
 
     companion object {
