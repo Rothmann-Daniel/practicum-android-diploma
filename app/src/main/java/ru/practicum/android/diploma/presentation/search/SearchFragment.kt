@@ -231,7 +231,6 @@ class SearchFragment : Fragment() {
         }
     }
 
-
     private fun updateFilterIcon(shouldHighlight: Boolean) {
         if (!isAdded || view == null) return
 

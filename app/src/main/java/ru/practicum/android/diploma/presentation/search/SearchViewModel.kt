@@ -13,6 +13,7 @@ import ru.practicum.android.diploma.domain.models.Vacancy
 import ru.practicum.android.diploma.domain.models.VacancySearchRequest
 import ru.practicum.android.diploma.domain.usecases.GetFilterSettingsUseCase
 import ru.practicum.android.diploma.domain.usecases.SearchVacanciesUseCase
+import android.util.Log
 
 class SearchViewModel(
     private val searchUseCase: SearchVacanciesUseCase,
@@ -83,9 +84,9 @@ class SearchViewModel(
      */
     private fun loadSavedFiltersOnInit() {
         viewModelScope.launch {
-            try {
-                val savedFilters = getFilterSettingsUseCase()
-
+            runCatching {
+                getFilterSettingsUseCase()
+            }.onSuccess { savedFilters ->
                 // Обновляем подсветку кнопки на основе сохраненных фильтров
                 updateFilterHighlight(savedFilters)
 
@@ -95,9 +96,9 @@ class SearchViewModel(
 
                 // Обновляем UI состояние с учетом фильтров
                 updateUseFilterInLiveData()
-
-            } catch (e: Exception) {
+            }.onFailure { error ->
                 // В случае ошибки загрузки фильтров, используем пустые настройки
+                Log.e(TAG, "Failed to load saved filters on init", error)
                 _shouldHighlightFilter.value = false
                 filterSettings = FilterSettings()
                 useFilterInSearch = false
@@ -210,7 +211,7 @@ class SearchViewModel(
         }
 
         viewModelScope.launch {
-            try {
+            runCatching {
                 // Формирование запроса с фильтрами
                 val request = VacancySearchRequest(
                     text = query,
@@ -221,7 +222,9 @@ class SearchViewModel(
                 )
 
                 // Выполнение запроса
-                when (val result = searchUseCase(request)) {
+                searchUseCase(request)
+            }.onSuccess { result ->
+                when (result) {
                     is DomainResult.Success -> {
                         // Обработка успешного результата
                         totalPages = result.data.pages
@@ -235,10 +238,11 @@ class SearchViewModel(
                         handleErrorResult(result, page)
                     }
                 }
-            } catch (e: Exception) {
+            }.onFailure { error ->
                 // Обработка исключений
-                handleException(e, page)
-            } finally {
+                Log.e(TAG, "Search failed with exception", error)
+                handleException(error, page)
+            }.also {
                 // Сброс флагов загрузки
                 isLoadingPage = false
                 _isLoadingNextPage.value = false
@@ -312,13 +316,13 @@ class SearchViewModel(
     /**
      * Обработка исключений
      */
-    private fun handleException(e: Exception, page: Int) {
+    private fun handleException(error: Throwable, page: Int) {
         _uiState.value = SearchUiState.Error(
-            message = e.message ?: "Неизвестная ошибка",
+            message = error.message ?: "Неизвестная ошибка",
             isNetworkError = false,
             useFilter = useFilterInSearch
         )
-        _errorEvent.value = "Произошла ошибка: ${e.message}"
+        _errorEvent.value = "Произошла ошибка: ${error.message}"
     }
 
     /**
@@ -381,7 +385,7 @@ class SearchViewModel(
      */
     fun clearFilters() {
         viewModelScope.launch {
-            try {
+            runCatching {
                 // Устанавливаем пустые фильтры
                 val empty = FilterSettings()
 
@@ -397,9 +401,9 @@ class SearchViewModel(
                 if (lastQuery.isNotBlank()) {
                     forceSearch(lastQuery)
                 }
-
-            } catch (e: Exception) {
-                _errorEvent.value = "Ошибка при сбросе фильтров: ${e.message}"
+            }.onFailure { error ->
+                Log.e(TAG, "Failed to clear filters", error)
+                _errorEvent.value = "Ошибка при сбросе фильтров: ${error.message}"
             }
         }
     }
@@ -409,10 +413,12 @@ class SearchViewModel(
      */
     fun refreshFilterHighlight() {
         viewModelScope.launch {
-            try {
-                val savedFilters = getFilterSettingsUseCase()
+            runCatching {
+                getFilterSettingsUseCase()
+            }.onSuccess { savedFilters ->
                 updateFilterHighlight(savedFilters)
-            } catch (e: Exception) {
+            }.onFailure { error ->
+                Log.e(TAG, "Failed to refresh filter highlight", error)
                 _shouldHighlightFilter.value = false
             }
         }
@@ -468,6 +474,7 @@ class SearchViewModel(
     }
 
     companion object {
+        private const val TAG = "SearchViewModel"
         // Константа для дебаунсинга (2 секунды)
         private const val DEBOUNCE_DELAY_MS = 2000L
     }
