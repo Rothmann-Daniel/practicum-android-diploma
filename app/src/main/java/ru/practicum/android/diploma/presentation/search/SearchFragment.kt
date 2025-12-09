@@ -21,6 +21,8 @@ import androidx.recyclerview.widget.RecyclerView
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import ru.practicum.android.diploma.R
 import ru.practicum.android.diploma.databinding.FragmentSearchBinding
+import ru.practicum.android.diploma.domain.models.FilterSettings
+import ru.practicum.android.diploma.presentation.filters.FiltersFragment
 
 class SearchFragment : Fragment() {
 
@@ -29,7 +31,6 @@ class SearchFragment : Fragment() {
     private val viewModel: SearchViewModel by viewModel()
 
     private var adapter: VacanciesAdapter? = null
-
     private var ui: SearchUiRenderer? = null
 
     override fun onCreateView(
@@ -178,11 +179,9 @@ class SearchFragment : Fragment() {
                 is SearchViewModel.SearchUiState.Success -> {
                     adapter?.submitList(state.vacancies)
                 }
-
                 is SearchViewModel.SearchUiState.Error -> {
                     adapter?.submitList(emptyList())
                 }
-
                 else -> {
                     adapter?.submitList(emptyList())
                 }
@@ -200,10 +199,48 @@ class SearchFragment : Fragment() {
     }
 
     private fun setupFilters() {
+        // ПОДСВЕТКА КНОПКИ ФИЛЬТРА
+        viewModel.shouldHighlightFilter.observe(viewLifecycleOwner) { shouldHighlight ->
+            updateFilterIcon(shouldHighlight)
+        }
+
         binding.btnFilters.setOnClickListener {
             viewModel.markRestoreForNavigation()
             findNavController().navigate(R.id.action_search_to_filters)
         }
+
+        // Слушатель обновлений от экрана фильтров
+        parentFragmentManager.setFragmentResultListener(
+            FiltersFragment.FILTERS_UPDATE_KEY,
+            viewLifecycleOwner
+        ) { _, bundle ->
+            val filters: FilterSettings? = bundle.getParcelable(FiltersFragment.FILTERS_KEY)
+            val isApply = bundle.getBoolean(FiltersFragment.IS_APPLY_KEY, false)
+            val isReset = bundle.getBoolean(FiltersFragment.IS_RESET_KEY, false)
+
+            when {
+                isReset -> {
+                    // Сброс фильтров
+                    viewModel.clearFilters()
+                }
+                filters != null -> {
+                    // Обновление фильтров
+                    viewModel.receiveFiltersUpdate(filters, isApply)
+                }
+            }
+        }
+    }
+
+    private fun updateFilterIcon(shouldHighlight: Boolean) {
+        if (!isAdded || view == null) return
+
+        binding.btnFilters.setImageResource(
+            if (shouldHighlight) {
+                R.drawable.ic_filter_on
+            } else {
+                R.drawable.ic_filter_off
+            }
+        )
     }
 
     private fun showKeyboard(view: View) {
@@ -259,7 +296,8 @@ class SearchFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.receiveFilterInfo()
+        // При возврате на экран обновляем подсветку фильтра
+        viewModel.refreshFilterHighlight()
     }
 
     companion object {
