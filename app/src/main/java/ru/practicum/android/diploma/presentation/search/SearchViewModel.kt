@@ -475,6 +475,7 @@ class SearchViewModel(
 
     companion object {
         private const val TAG = "SearchViewModel"
+
         // Константа для дебаунсинга (2 секунды)
         private const val DEBOUNCE_DELAY_MS = 2000L
     }
