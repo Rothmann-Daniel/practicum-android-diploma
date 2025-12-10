@@ -8,34 +8,36 @@ import java.util.Locale
 object SalaryFormatter {
 
     fun formatSalary(salary: Salary?, context: Context): String {
-        if (salary == null) return context.getString(R.string.salary_not_specified)
+        val result = if (salary == null) {
+            context.getString(R.string.salary_not_specified)
+        } else {
+            val currencySymbol = getCurrencySymbol(salary.currency ?: "")
+            if (currencySymbol.isEmpty()) {
+                formatSalaryWithCode(salary, salary.currency ?: "")
+            } else {
+                when {
+                    salary.from != null && salary.to != null ->
+                        context.getString(
+                            R.string.salary_from_to,
+                            formatNumber(salary.from),
+                            formatNumber(salary.to),
+                            currencySymbol
+                        )
 
-        val currencySymbol = getCurrencySymbol(salary.currency ?: "")
+                    salary.from != null ->
+                        context.getString(R.string.salary_from, formatNumber(salary.from), currencySymbol)
 
-        if (currencySymbol.isEmpty()) {
-            // Если валюта неизвестна, показываем как есть с кодом валюты
-            return formatSalaryWithCode(salary, salary.currency ?: "")
+                    salary.to != null ->
+                        context.getString(R.string.salary_to, formatNumber(salary.to), currencySymbol)
+
+                    else ->
+                        context.getString(R.string.salary_not_specified)
+                }
+            }
         }
-
-        return when {
-            salary.from != null && salary.to != null ->
-                context.getString(
-                    R.string.salary_from_to,
-                    formatNumber(salary.from),
-                    formatNumber(salary.to),
-                    currencySymbol
-                )
-
-            salary.from != null ->
-                context.getString(R.string.salary_from, formatNumber(salary.from), currencySymbol)
-
-            salary.to != null ->
-                context.getString(R.string.salary_to, formatNumber(salary.to), currencySymbol)
-
-            else ->
-                context.getString(R.string.salary_not_specified)
-        }
+        return result
     }
+
 
     private fun formatSalaryWithCode(salary: Salary, currencyCode: String): String {
         return when {
@@ -53,59 +55,21 @@ object SalaryFormatter {
         }
     }
 
-    private fun getCurrencySymbol(currencyCode: String): String {
-        return when (currencyCode.uppercase()) {
-            // Основные валюты
-            "RUR", "RUB" -> "₽"
-            "USD" -> "$"
-            "EUR" -> "€"
-            "GBP" -> "£"
-            "JPY" -> "¥"
-            "CNY" -> "¥"
+    private val currencyMap = mapOf(
+        "RUR" to "₽", "RUB" to "₽", "USD" to "$", "EUR" to "€", "GBP" to "£",
+        "JPY" to "¥", "CNY" to "¥",
+        "BYN" to "Br", "BYR" to "Br", "UAH" to "₴", "KZT" to "₸",
+        "AZN" to "₼", "AMD" to "֏", "GEL" to "₾", "KGS" to "с", "UZS" to "сўм",
+        "TJS" to "SM", "TMT" to "TMT",
+        "CHF" to "Fr", "CAD" to "C$", "AUD" to "A$", "NZD" to "NZ$", "SGD" to "S$",
+        "HKD" to "HK$", "SEK" to "kr", "NOK" to "kr", "DKK" to "kr", "PLN" to "zł",
+        "CZK" to "Kč", "HUF" to "Ft", "RON" to "lei", "BGN" to "лв", "TRY" to "₺",
+        "ILS" to "₪", "INR" to "₹", "KRW" to "₩", "THB" to "฿", "PHP" to "₱",
+        "MYR" to "RM", "IDR" to "Rp", "VND" to "₫", "BRL" to "R$", "MXN" to "Mex$",
+        "ZAR" to "R"
+    )
 
-            // Страны СНГ и бывшего СССР
-            "BYN", "BYR" -> "Br" // Белорусский рубль
-            "UAH" -> "₴" // Украинская гривна
-            "KZT" -> "₸" // Казахстанский тенге
-            "AZN" -> "₼" // Азербайджанский манат
-            "AMD" -> "֏" // Армянский драм
-            "GEL" -> "₾" // Грузинский лари
-            "KGS" -> "с" // Киргизский сом
-            "UZS" -> "сўм" // Узбекский сум
-            "TJS" -> "SM" // Таджикский сомони
-            "TMT" -> "TMT" // Туркменский манат
-
-            // Другие популярные валюты
-            "CHF" -> "Fr" // Швейцарский франк
-            "CAD" -> "C$" // Канадский доллар
-            "AUD" -> "A$" // Австралийский доллар
-            "NZD" -> "NZ$" // Новозеландский доллар
-            "SGD" -> "S$" // Сингапурский доллар
-            "HKD" -> "HK$" // Гонконгский доллар
-            "SEK" -> "kr" // Шведская крона
-            "NOK" -> "kr" // Норвежская крона
-            "DKK" -> "kr" // Датская крона
-            "PLN" -> "zł" // Польский злотый
-            "CZK" -> "Kč" // Чешская крона
-            "HUF" -> "Ft" // Венгерский форинт
-            "RON" -> "lei" // Румынский лей
-            "BGN" -> "лв" // Болгарский лев
-            "TRY" -> "₺" // Турецкая лира
-            "ILS" -> "₪" // Израильский шекель
-            "INR" -> "₹" // Индийская рупия
-            "KRW" -> "₩" // Южнокорейская вона
-            "THB" -> "฿" // Тайский бат
-            "PHP" -> "₱" // Филиппинское песо
-            "MYR" -> "RM" // Малайзийский ринггит
-            "IDR" -> "Rp" // Индонезийская рупия
-            "VND" -> "₫" // Вьетнамский донг
-            "BRL" -> "R$" // Бразильский реал
-            "MXN" -> "Mex$" // Мексиканское песо
-            "ZAR" -> "R" // Южноафриканский рэнд
-
-            else -> "" // Неизвестная валюта - вернем пустую строку
-        }
-    }
+    private fun getCurrencySymbol(currencyCode: String) = currencyMap[currencyCode.uppercase()] ?: ""
 
     private fun formatNumber(number: Int): String {
         return String.format(Locale.getDefault(), "%,d", number).replace(',', ' ')

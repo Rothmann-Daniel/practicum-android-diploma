@@ -192,12 +192,18 @@ class SearchFragment : Fragment() {
 
         viewModel.isLoadingNextPage.observe(viewLifecycleOwner) { loading ->
             binding.progressBarBottom.visibility =
-                if (loading) View.VISIBLE else View.GONE
+                if (loading) {
+                    View.VISIBLE
+                } else {
+                    View.GONE
+                }
             // Динамический нижний отступ
             val bottomPadding = if (loading) {
                 val scale = resources.displayMetrics.density
                 (BOTTOM_PROGRESS_BAR * scale).toInt()
-            } else 0
+            } else {
+                0
+            }
 
             binding.recyclerView.setPadding(
                 binding.recyclerView.paddingLeft,
