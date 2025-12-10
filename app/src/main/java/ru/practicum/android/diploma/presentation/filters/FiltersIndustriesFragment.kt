@@ -14,6 +14,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import ru.practicum.android.diploma.R
 import ru.practicum.android.diploma.databinding.FragmentFiltersIndustriesBinding
+import ru.practicum.android.diploma.presentation.filters.FiltersFragment.Companion.INDUSTRY_SELECTED_KEY
+
 
 class FiltersIndustriesFragment : Fragment() {
 
@@ -104,7 +106,7 @@ class FiltersIndustriesFragment : Fragment() {
             viewModel.selectedIndustry.value?.let { selectedIndustry ->
                 // Передаём выбранную отрасль обратно в FiltersFragment
                 parentFragmentManager.setFragmentResult(
-                    "industry_selected",
+                    INDUSTRY_SELECTED_KEY,
                     Bundle().apply { putParcelable("industry", selectedIndustry) }
                 )
             }
