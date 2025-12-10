@@ -5,28 +5,29 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
+import ru.practicum.android.diploma.core.utils.SingleLiveEvent
 import ru.practicum.android.diploma.core.utils.debounce
-import ru.practicum.android.diploma.data.remote.dto.response.ApiResponse
 import ru.practicum.android.diploma.domain.models.DomainResult
 import ru.practicum.android.diploma.domain.models.FilterSettings
 import ru.practicum.android.diploma.domain.models.Vacancy
 import ru.practicum.android.diploma.domain.models.VacancySearchRequest
 import ru.practicum.android.diploma.domain.usecases.GetFilterSettingsUseCase
 import ru.practicum.android.diploma.domain.usecases.SearchVacanciesUseCase
+import android.util.Log
 
 class SearchViewModel(
     private val searchUseCase: SearchVacanciesUseCase,
     private val getFilterSettingsUseCase: GetFilterSettingsUseCase
 ) : ViewModel() {
 
-    // Флаг для восстановления предыдущих результатов только при навигации
+    // Флаги для восстановления состояния
     var restorePreviousResults: Boolean = false
-
     private var allowRestoreFromCache: Boolean = false
 
-    // Состояния UI для экрана поиска вакансий
+    // UI состояние поиска
     sealed class SearchUiState {
         abstract val useFilter: Boolean
+
         data class Loading(override val useFilter: Boolean) : SearchUiState()
         data class EmptyQuery(override val useFilter: Boolean) : SearchUiState()
         data class EmptyResult(override val useFilter: Boolean) : SearchUiState()
@@ -44,221 +45,438 @@ class SearchViewModel(
         ) : SearchUiState()
     }
 
+    // LiveData для UI состояния
     private val _uiState = MutableLiveData<SearchUiState>(SearchUiState.EmptyQuery(false))
     val uiState: LiveData<SearchUiState> = _uiState
 
+    // LiveData для загрузки следующей страницы
     private val _isLoadingNextPage = MutableLiveData(false)
     val isLoadingNextPage: LiveData<Boolean> = _isLoadingNextPage
 
+    // LiveData для ошибок (SingleLiveEvent)
+    private val _errorEvent = SingleLiveEvent<String>()
+    val errorEvent: LiveData<String> = _errorEvent
+
+    // LiveData для подсветки кнопки фильтра - ГЛАВНЫЙ ИСТОЧНИК ДЛЯ ИКОНКИ
+    private val _shouldHighlightFilter = MutableLiveData<Boolean>(false)
+    val shouldHighlightFilter: LiveData<Boolean> = _shouldHighlightFilter
+
+    // Внутренние переменные для управления поиском
     private val loadedVacancies = mutableListOf<Vacancy>()
     private var currentPage = 0
     private var totalPages = 1
     private var isLoadingPage = false
     private var lastQuery: String = ""
 
+    // Текущие фильтры для поиска (используются в запросах)
     private var filterSettings = FilterSettings()
-    private var useFilter = false
 
-    fun receiveFilterInfo() {
-        viewModelScope.launch {
-            filterSettings = getFilterSettingsUseCase()
-            useFilter = with(filterSettings) {
-                industry != null || salary != null || onlyWithSalary
-            }
-            updateUseFilterInLiveData()
-        }
+    // Флаг использования фильтров для текущего поиска (для UI состояния)
+    private var useFilterInSearch = false
+
+    // Инициализация ViewModel
+    init {
+        loadSavedFiltersOnInit()
     }
 
-    private fun updateUseFilterInLiveData() {
-        val previousState = _uiState.value
-        if (previousState != null) {
-            when (previousState) {
-                is SearchUiState.Loading -> _uiState.value = previousState.copy(useFilter = useFilter)
-                is SearchUiState.EmptyQuery -> _uiState.value = previousState.copy(useFilter = useFilter)
-                is SearchUiState.EmptyResult -> _uiState.value = previousState.copy(useFilter = useFilter)
-                is SearchUiState.Success -> _uiState.value = previousState.copy(useFilter = useFilter)
-                is SearchUiState.Error -> _uiState.value = previousState.copy(useFilter = useFilter)
+    /**
+     * Загрузка сохраненных фильтров при инициализации ViewModel
+     */
+    private fun loadSavedFiltersOnInit() {
+        viewModelScope.launch {
+            runCatching {
+                getFilterSettingsUseCase()
+            }.onSuccess { savedFilters ->
+                // Обновляем подсветку кнопки на основе сохраненных фильтров
+                updateFilterHighlight(savedFilters)
+
+                // Инициализируем фильтры для поиска
+                filterSettings = savedFilters.copy()
+                useFilterInSearch = hasAnyFilters(savedFilters)
+
+                // Обновляем UI состояние с учетом фильтров
+                updateUseFilterInLiveData()
+            }.onFailure { error ->
+                // В случае ошибки загрузки фильтров, используем пустые настройки
+                Log.e(TAG, "Failed to load saved filters on init", error)
+                _shouldHighlightFilter.value = false
+                filterSettings = FilterSettings()
+                useFilterInSearch = false
             }
         }
     }
 
     /**
-     * Отложенный поиск с задержкой для уменьшения количества запросов при вводе текста
+     * Проверка наличия любых фильтров
+     */
+    private fun hasAnyFilters(filters: FilterSettings): Boolean {
+        return filters.industry != null ||
+            filters.salary != null ||
+            filters.onlyWithSalary
+    }
+
+    /**
+     * Обновление подсветки кнопки фильтра
+     * ВСЕГДА вызывается при изменении фильтров
+     */
+    private fun updateFilterHighlight(filters: FilterSettings) {
+        val shouldHighlight = hasAnyFilters(filters)
+        // ВСЕГДА устанавливаем значение, даже если оно одинаковое
+        // Это важно для обновления UI при переподписке
+        _shouldHighlightFilter.value = shouldHighlight
+    }
+
+    /**
+     * Обновление флага useFilter в текущем UI состоянии
+     */
+    private fun updateUseFilterInLiveData() {
+        val currentState = _uiState.value
+        if (currentState != null) {
+            val newState = when (currentState) {
+                is SearchUiState.Loading -> currentState.copy(useFilter = useFilterInSearch)
+                is SearchUiState.EmptyQuery -> currentState.copy(useFilter = useFilterInSearch)
+                is SearchUiState.EmptyResult -> currentState.copy(useFilter = useFilterInSearch)
+                is SearchUiState.Success -> currentState.copy(useFilter = useFilterInSearch)
+                is SearchUiState.Error -> currentState.copy(useFilter = useFilterInSearch)
+            }
+            // Обновляем состояние
+            _uiState.value = newState
+        }
+    }
+
+    /**
+     * Дебаунсинг для поисковых запросов
      */
     private val debouncedSearch = debounce<String>(
         delayMillis = DEBOUNCE_DELAY_MS,
         coroutineScope = viewModelScope
     ) { query ->
         if (query.isBlank()) {
+            // Очистка результатов при пустом запросе
             loadedVacancies.clear()
             currentPage = 0
             totalPages = 1
-            _uiState.value = SearchUiState.EmptyQuery(useFilter)
+            _uiState.value = SearchUiState.EmptyQuery(useFilterInSearch)
         } else {
+            // Запуск поиска
             searchVacancies(query, page = 0)
         }
     }
 
     /**
-     * Обрабатывает изменение поискового запроса с отложенным поиском
-     * @param query поисковый запрос
+     * Обработка изменения поискового запроса (с дебаунсингом)
      */
     fun onSearchQueryChanged(query: String) {
-        // Если до этого была ошибка или пустой результат — сбрасываем блокировку
+        // Сброс состояния при ошибке или пустом результате
         val state = _uiState.value
         if (state is SearchUiState.Error || state is SearchUiState.EmptyResult) {
             loadedVacancies.clear()
             currentPage = 0
             totalPages = 1
         }
+
         lastQuery = query
         debouncedSearch(query)
     }
 
     /**
-     * Выполняет немедленный поиск без задержки
-     * @param query поисковый запрос
+     * Принудительный запуск поиска (без дебаунсинга)
      */
     fun forceSearch(query: String) {
         lastQuery = query
-
-        // Сбросим состояние предыдущей ошибки / пустого результата
         loadedVacancies.clear()
         currentPage = 0
         totalPages = 1
 
-        _uiState.value = SearchUiState.Loading(useFilter)
-
-        // Запускаем моментальный поиск — БЕЗ debounce
+        _uiState.value = SearchUiState.Loading(useFilterInSearch)
         searchVacancies(query, page = 0)
     }
 
     /**
-     * Выполняет поиск вакансий по запросу и странице
-     * @param query поисковый запрос
-     * @param page номер страницы для пагинации
+     * Выполнение поиска вакансий
      */
     private fun searchVacancies(query: String, page: Int) {
-        if (isLoadingPage || page >= totalPages) return
+        // Проверка на возможность загрузки
+        if (isLoadingPage || page >= totalPages) {
+            return
+        }
 
         isLoadingPage = true
+
+        // Обновление UI состояния
         if (page == 0) {
-            _uiState.value = SearchUiState.Loading(useFilter)
+            _uiState.value = SearchUiState.Loading(useFilterInSearch)
         } else {
             _isLoadingNextPage.value = true
         }
 
         viewModelScope.launch {
-            val request = VacancySearchRequest(
-                text = query,
-                page = page,
-                industry = filterSettings.industry?.id,
-                salary = filterSettings.salary,
-                onlyWithSalary = filterSettings.onlyWithSalary
-            )
+            runCatching {
+                // Формирование запроса с фильтрами
+                val request = VacancySearchRequest(
+                    text = query,
+                    page = page,
+                    industry = filterSettings.industry?.id,
+                    salary = filterSettings.salary,
+                    onlyWithSalary = filterSettings.onlyWithSalary
+                )
 
-            when (val result = searchUseCase(request)) {
-                is DomainResult.Success -> { // Изменено с ApiResponse на DomainResult
-                    totalPages = result.data.pages
-                    currentPage = result.data.page
-                    updateVacanciesList(result.data.vacancies, page)
-                    updateUiState(result.data.found)
+                // Выполнение запроса
+                searchUseCase(request)
+            }.onSuccess { result ->
+                when (result) {
+                    is DomainResult.Success -> {
+                        // Обработка успешного результата
+                        totalPages = result.data.pages
+                        currentPage = result.data.page
+                        updateVacanciesList(result.data.vacancies, page)
+                        updateUiState(result.data.found)
+                    }
+
+                    is DomainResult.Error -> {
+                        // Обработка ошибки
+                        handleErrorResult(result, page)
+                    }
                 }
-                is DomainResult.Error -> handleErrorResult(result, page)
+            }.onFailure { error ->
+                // Обработка исключений
+                Log.e(TAG, "Search failed with exception", error)
+                handleException(error, page)
+            }.also {
+                // Сброс флагов загрузки
+                isLoadingPage = false
+                _isLoadingNextPage.value = false
             }
-            isLoadingPage = false
-            _isLoadingNextPage.value = false
         }
     }
 
     /**
-     * Обрабатывает ошибки при поиске вакансий
-     * @param result объект ошибки
-     * @param page номер страницы
-     */
-    private fun handleErrorResult(result: DomainResult.Error, page: Int) {
-        val isNetworkError = result.type == DomainResult.ErrorType.NETWORK_ERROR
-
-        if (page == 0) {
-            _uiState.value = SearchUiState.Error(
-                message = result.message,
-                isNetworkError = isNetworkError,
-                useFilter = useFilter
-            )
-        } else {
-            _uiState.value = SearchUiState.Success(
-                vacancies = loadedVacancies.toList(),
-                isLastPage = currentPage >= totalPages - 1,
-                found = loadedVacancies.size,
-                useFilter = useFilter
-            )
-        }
-    }
-
-    /**
-     * Обновляет список вакансий с учетом пагинации и устранения дубликатов
-     * @param vacancies список новых вакансий
-     * @param page номер страницы
+     * Обновление списка вакансий
      */
     private fun updateVacanciesList(vacancies: List<Vacancy>, page: Int) {
         if (page == 0) {
+            // Первая страница - очистка и добавление
             loadedVacancies.clear()
             loadedVacancies.addAll(vacancies)
         } else {
+            // Последующие страницы - добавление уникальных вакансий
             val existingIds = loadedVacancies.map { it.id }.toSet()
-            val uniqueNewVacancies = vacancies.filter { it.id !in existingIds }
-            loadedVacancies.addAll(uniqueNewVacancies)
+            val unique = vacancies.filter { it.id !in existingIds }
+            loadedVacancies.addAll(unique)
         }
     }
 
     /**
-     * Обновляет состояние UI на основе текущего списка вакансий
-     * @param found общее количество найденных вакансий
+     * Обновление UI состояния после успешного поиска
      */
     private fun updateUiState(found: Int) {
-        if (loadedVacancies.isEmpty()) {
-            _uiState.value = SearchUiState.EmptyResult(useFilter)
+        _uiState.value = if (loadedVacancies.isEmpty()) {
+            SearchUiState.EmptyResult(useFilterInSearch)
         } else {
             SearchUiState.Success(
                 vacancies = loadedVacancies.toList(),
                 isLastPage = currentPage >= totalPages - 1,
                 found = found,
-                useFilter = useFilter
+                useFilter = useFilterInSearch
             )
         }
     }
 
     /**
-     * Загружает следующую страницу результатов, если доступна
+     * Обработка ошибки поиска
+     */
+    private fun handleErrorResult(result: DomainResult.Error, page: Int) {
+        val isNetworkError = result.type == DomainResult.ErrorType.NETWORK_ERROR
+
+        if (page == 0) {
+            // Ошибка при загрузке первой страницы
+            _uiState.value = SearchUiState.Error(
+                message = result.message,
+                isNetworkError = isNetworkError,
+                useFilter = useFilterInSearch
+            )
+        } else {
+            // Ошибка при загрузке следующих страниц
+            _uiState.value = SearchUiState.Success(
+                vacancies = loadedVacancies.toList(),
+                isLastPage = currentPage >= totalPages - 1,
+                found = loadedVacancies.size,
+                useFilter = useFilterInSearch
+            )
+        }
+
+        // Публикация события ошибки
+        if (isNetworkError) {
+            _errorEvent.value = "Проверьте подключение к интернету"
+        } else {
+            _errorEvent.value = "Произошла ошибка при поиске"
+        }
+    }
+
+    /**
+     * Обработка исключений
+     */
+    private fun handleException(error: Throwable, page: Int) {
+        _uiState.value = SearchUiState.Error(
+            message = error.message ?: "Неизвестная ошибка",
+            isNetworkError = false,
+            useFilter = useFilterInSearch
+        )
+        _errorEvent.value = "Произошла ошибка: ${error.message}"
+    }
+
+    /**
+     * Загрузка следующей страницы результатов
      */
     fun loadNextPage() {
-        if (currentPage + 1 >= totalPages || isLoadingPage) return
+        if (currentPage + 1 >= totalPages || isLoadingPage) {
+            return
+        }
         searchVacancies(lastQuery, currentPage + 1)
     }
 
     /**
-     * Очищает состояние поиска и сбрасывает все данные
+     * Очистка состояния поиска
      */
     fun clearSearchState() {
         loadedVacancies.clear()
         lastQuery = ""
         currentPage = 0
         totalPages = 1
-        _uiState.value = SearchUiState.EmptyQuery(useFilter)
-        // Сброс флагов
+        _uiState.value = SearchUiState.EmptyQuery(useFilterInSearch)
         allowRestoreFromCache = false
         restorePreviousResults = false
     }
 
     /**
-     * Помечает состояние для восстановления результатов при навигации назад
+     * Отметка для восстановления результатов при навигации
      */
     fun markRestoreForNavigation() {
         restorePreviousResults = true
         allowRestoreFromCache = true
     }
 
+    /**
+     * Получение обновлений фильтров от экрана фильтров
+     *
+     * @param filters новые настройки фильтров
+     * @param isApply true если нажата кнопка "Применить" или "Сбросить"
+     */
+    fun receiveFiltersUpdate(filters: FilterSettings, isApply: Boolean = false) {
+        // ВСЕГДА обновляем подсветку кнопки
+        updateFilterHighlight(filters)
+
+        if (isApply) {
+            // ТОЛЬКО при нажатии "Применить" или "Сбросить" обновляем фильтры для поиска
+            filterSettings = filters.copy()
+            useFilterInSearch = hasAnyFilters(filters)
+            updateUseFilterInLiveData()
+
+            // Запускаем поиск с новыми фильтрами
+            if (lastQuery.isNotBlank()) {
+                forceSearch(lastQuery)
+            }
+        }
+        // Если isApply = false, только подсветка обновится
+    }
+
+    /**
+     * Сброс всех фильтров (используется при получении флага сброса)
+     */
+    fun clearFilters() {
+        viewModelScope.launch {
+            runCatching {
+                // Устанавливаем пустые фильтры
+                val empty = FilterSettings()
+
+                // Обновляем подсветку кнопки
+                _shouldHighlightFilter.value = false
+
+                // Обновляем фильтры для поиска
+                filterSettings = empty
+                useFilterInSearch = false
+                updateUseFilterInLiveData()
+
+                // Перезапускаем поиск без фильтров
+                if (lastQuery.isNotBlank()) {
+                    forceSearch(lastQuery)
+                }
+            }.onFailure { error ->
+                Log.e(TAG, "Failed to clear filters", error)
+                _errorEvent.value = "Ошибка при сбросе фильтров: ${error.message}"
+            }
+        }
+    }
+
+    /**
+     * Принудительное обновление подсветки фильтра (например, при возврате на экран)
+     */
+    fun refreshFilterHighlight() {
+        viewModelScope.launch {
+            runCatching {
+                getFilterSettingsUseCase()
+            }.onSuccess { savedFilters ->
+                updateFilterHighlight(savedFilters)
+            }.onFailure { error ->
+                Log.e(TAG, "Failed to refresh filter highlight", error)
+                _shouldHighlightFilter.value = false
+            }
+        }
+    }
+
+    /**
+     * Получение текущих сохраненных фильтров
+     */
+    suspend fun getCurrentSavedFilters(): FilterSettings {
+        return getFilterSettingsUseCase()
+    }
+
+    /**
+     * Проверка наличия активных фильтров
+     */
+    fun hasActiveFilters(): Boolean {
+        return useFilterInSearch
+    }
+
+    /**
+     * Получение текущего поискового запроса
+     */
+    fun getCurrentQuery(): String {
+        return lastQuery
+    }
+
+    /**
+     * Получение текущей страницы
+     */
+    fun getCurrentPage(): Int {
+        return currentPage
+    }
+
+    /**
+     * Получение общего количества страниц
+     */
+    fun getTotalPages(): Int {
+        return totalPages
+    }
+
+    /**
+     * Получение общего количества загруженных вакансий
+     */
+    fun getLoadedVacanciesCount(): Int {
+        return loadedVacancies.size
+    }
+
+    /**
+     * Получение текущих настроек фильтров (для отладки)
+     */
+    fun getCurrentFilterSettings(): FilterSettings {
+        return filterSettings
+    }
+
     companion object {
+        private const val TAG = "SearchViewModel"
+
+        // Константа для дебаунсинга (2 секунды)
         private const val DEBOUNCE_DELAY_MS = 2000L
     }
 }

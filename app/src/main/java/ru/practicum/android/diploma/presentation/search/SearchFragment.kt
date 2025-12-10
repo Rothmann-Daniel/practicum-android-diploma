@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
@@ -20,6 +21,8 @@ import androidx.recyclerview.widget.RecyclerView
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import ru.practicum.android.diploma.R
 import ru.practicum.android.diploma.databinding.FragmentSearchBinding
+import ru.practicum.android.diploma.domain.models.FilterSettings
+import ru.practicum.android.diploma.presentation.filters.FiltersFragment
 
 class SearchFragment : Fragment() {
 
@@ -28,7 +31,6 @@ class SearchFragment : Fragment() {
     private val viewModel: SearchViewModel by viewModel()
 
     private var adapter: VacanciesAdapter? = null
-
     private var ui: SearchUiRenderer? = null
 
     override fun onCreateView(
@@ -168,27 +170,77 @@ class SearchFragment : Fragment() {
     private fun setupObservers() {
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
             ui?.render(state)
-            // Скрываем клавиатуру для Loading, Success, EmptyResult, Error
+
             if (state !is SearchViewModel.SearchUiState.EmptyQuery) {
                 hideKeyboard(binding.searchQuery)
             }
-            if (state is SearchViewModel.SearchUiState.Success) {
-                adapter?.submitList(state.vacancies)
-            } else {
-                adapter?.submitList(emptyList())
+
+            when (state) {
+                is SearchViewModel.SearchUiState.Success -> {
+                    adapter?.submitList(state.vacancies)
+                }
+                is SearchViewModel.SearchUiState.Error -> {
+                    adapter?.submitList(emptyList())
+                }
+                else -> {
+                    adapter?.submitList(emptyList())
+                }
             }
         }
 
         viewModel.isLoadingNextPage.observe(viewLifecycleOwner) { loading ->
-            binding.progressBarBottom.visibility = if (loading) View.VISIBLE else View.GONE
+            binding.progressBarBottom.visibility =
+                if (loading) View.VISIBLE else View.GONE
+        }
+
+        viewModel.errorEvent.observe(viewLifecycleOwner) { message ->
+            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun setupFilters() {
+        // ПОДСВЕТКА КНОПКИ ФИЛЬТРА
+        viewModel.shouldHighlightFilter.observe(viewLifecycleOwner) { shouldHighlight ->
+            updateFilterIcon(shouldHighlight)
+        }
+
         binding.btnFilters.setOnClickListener {
             viewModel.markRestoreForNavigation()
             findNavController().navigate(R.id.action_search_to_filters)
         }
+
+        // Слушатель обновлений от экрана фильтров
+        parentFragmentManager.setFragmentResultListener(
+            FiltersFragment.FILTERS_UPDATE_KEY,
+            viewLifecycleOwner
+        ) { _, bundle ->
+            val filters: FilterSettings? = bundle.getParcelable(FiltersFragment.FILTERS_KEY)
+            val isApply = bundle.getBoolean(FiltersFragment.IS_APPLY_KEY, false)
+            val isReset = bundle.getBoolean(FiltersFragment.IS_RESET_KEY, false)
+
+            when {
+                isReset -> {
+                    // Сброс фильтров
+                    viewModel.clearFilters()
+                }
+                filters != null -> {
+                    // Обновление фильтров
+                    viewModel.receiveFiltersUpdate(filters, isApply)
+                }
+            }
+        }
+    }
+
+    private fun updateFilterIcon(shouldHighlight: Boolean) {
+        if (!isAdded || view == null) return
+
+        binding.btnFilters.setImageResource(
+            if (shouldHighlight) {
+                R.drawable.ic_filter_on
+            } else {
+                R.drawable.ic_filter_off
+            }
+        )
     }
 
     private fun showKeyboard(view: View) {
@@ -244,7 +296,8 @@ class SearchFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.receiveFilterInfo()
+        // При возврате на экран обновляем подсветку фильтра
+        viewModel.refreshFilterHighlight()
     }
 
     companion object {

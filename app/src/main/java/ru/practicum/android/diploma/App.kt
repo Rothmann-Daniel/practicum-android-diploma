@@ -13,6 +13,4 @@ class App : Application() {
             modules(appModule)
         }
     }
-}
-
-// init iteration_1_review
+} // init iteration_3_review

@@ -101,6 +101,14 @@ class FiltersIndustriesFragment : Fragment() {
                 showSuccessMessage(selectedIndustry.name)
             }
 
+            viewModel.selectedIndustry.value?.let { selectedIndustry ->
+                // Передаём выбранную отрасль обратно в FiltersFragment
+                parentFragmentManager.setFragmentResult(
+                    "industry_selected",
+                    Bundle().apply { putParcelable("industry", selectedIndustry) }
+                )
+            }
+
             parentFragmentManager.popBackStack()
         }
     }
