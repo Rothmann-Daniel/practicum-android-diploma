@@ -38,7 +38,6 @@ object SalaryFormatter {
         return result
     }
 
-
     private fun formatSalaryWithCode(salary: Salary, currencyCode: String): String {
         return when {
             salary.from != null && salary.to != null ->
