@@ -16,7 +16,6 @@ import ru.practicum.android.diploma.R
 import ru.practicum.android.diploma.databinding.FragmentFiltersIndustriesBinding
 import ru.practicum.android.diploma.presentation.filters.FiltersFragment.Companion.INDUSTRY_SELECTED_KEY
 
-
 class FiltersIndustriesFragment : Fragment() {
 
     private var _binding: FragmentFiltersIndustriesBinding? = null
