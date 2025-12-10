@@ -60,7 +60,7 @@ class SearchFragment : Fragment() {
     }
 
     private fun setupAdapter() {
-        adapter = VacanciesAdapter { vacancy ->
+        adapter = VacanciesAdapter(useTopPadding = true) { vacancy ->
             viewModel.markRestoreForNavigation()
             val action = SearchFragmentDirections.actionSearchToVacancy(
                 vacancyId = vacancy.id
@@ -179,9 +179,11 @@ class SearchFragment : Fragment() {
                 is SearchViewModel.SearchUiState.Success -> {
                     adapter?.submitList(state.vacancies)
                 }
+
                 is SearchViewModel.SearchUiState.Error -> {
                     adapter?.submitList(emptyList())
                 }
+
                 else -> {
                     adapter?.submitList(emptyList())
                 }
@@ -223,6 +225,7 @@ class SearchFragment : Fragment() {
                     // Сброс фильтров
                     viewModel.clearFilters()
                 }
+
                 filters != null -> {
                     // Обновление фильтров
                     viewModel.receiveFiltersUpdate(filters, isApply)
