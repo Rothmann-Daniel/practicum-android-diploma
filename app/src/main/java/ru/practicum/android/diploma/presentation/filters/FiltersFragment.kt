@@ -49,7 +49,7 @@ class FiltersFragment : Fragment() {
         setupResetButton()
 
         parentFragmentManager.setFragmentResultListener(
-            "industry_selected",
+            INDUSTRY_SELECTED_KEY,
             viewLifecycleOwner
         ) { _, bundle ->
             val industry = bundle.getParcelable<Industry>("industry")
@@ -323,6 +323,7 @@ class FiltersFragment : Fragment() {
     }
 
     companion object {
+        const val INDUSTRY_SELECTED_KEY = "industry_selected"
         const val FILTERS_UPDATE_KEY = "filters_update"
         const val FILTERS_KEY = "filters"
         const val IS_APPLY_KEY = "is_apply"

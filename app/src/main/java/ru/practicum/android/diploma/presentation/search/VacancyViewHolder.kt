@@ -4,8 +4,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import ru.practicum.android.diploma.R
 import ru.practicum.android.diploma.databinding.ItemVacancyListBinding
-import ru.practicum.android.diploma.domain.models.Salary
 import ru.practicum.android.diploma.domain.models.Vacancy
+import ru.practicum.android.diploma.presentation.vacancy.SalaryFormatter
 
 class VacancyViewHolder(
     private val binding: ItemVacancyListBinding,
@@ -18,7 +18,8 @@ class VacancyViewHolder(
         binding.jobTitle.text = "$jobName, $jobCity"
         binding.companyTitle.text = vacancy.employer.name
         binding.cityTitle.text = ""
-        binding.salaryTitle.text = formatSalary(vacancy.salary)
+        // Используем SalaryFormatter для форматирования зарплаты
+        binding.salaryTitle.text = SalaryFormatter.formatSalary(vacancy.salary, itemView.context)
 
         Glide.with(binding.logoCompany.context)
             .load(vacancy.employer.logo)
@@ -31,18 +32,4 @@ class VacancyViewHolder(
         }
     }
 
-    private fun formatSalary(salary: Salary?): String {
-        if (salary == null) return "Зарплата не указана"
-
-        val from = salary.from
-        val to = salary.to
-        val currency = salary.currency ?: ""
-
-        return when {
-            from != null && to != null -> "от $from до $to $currency"
-            from != null -> "от $from $currency"
-            to != null -> "до $to $currency"
-            else -> "Зарплата не указана"
-        }
-    }
 }

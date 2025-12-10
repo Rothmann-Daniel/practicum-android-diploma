@@ -85,4 +85,10 @@
     <string name="area_ilter_toast">Фильтр находится в разработке</string>
     <string name="error_no_such_industry">Нет такой отрасли</string>
 
+
+    <!-- Зарплата -->
+    <string name="salary_from_to">от %1$s до %2$s %3$s</string>
+    <string name="salary_from">от %1$s %2$s</string>
+    <string name="salary_to">до %1$s %2$s</string>
+
 </resources>

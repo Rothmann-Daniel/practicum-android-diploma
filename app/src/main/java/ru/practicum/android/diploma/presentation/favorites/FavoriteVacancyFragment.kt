@@ -38,7 +38,7 @@ class FavoriteVacancyFragment : Fragment() {
     }
 
     private fun setupAdapter() {
-        adapter = VacanciesAdapter { vacancy ->
+        adapter = VacanciesAdapter(useTopPadding = false) { vacancy ->
             val action = FavoriteVacancyFragmentDirections.actionFavoriteVacancyToVacancy(
                 vacancyId = vacancy.id
             )

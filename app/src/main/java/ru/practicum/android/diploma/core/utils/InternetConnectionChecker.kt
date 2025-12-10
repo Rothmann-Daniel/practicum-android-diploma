@@ -6,7 +6,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import androidx.annotation.RequiresPermission
 
-class InternetConnectionChecker(context: Context) { // provides function isConnected(): Boolean
+class InternetConnectionChecker(context: Context) {
 
     val connectivityManager = context.getSystemService(
         Context.CONNECTIVITY_SERVICE

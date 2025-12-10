@@ -8,6 +8,7 @@ import ru.practicum.android.diploma.databinding.ItemVacancyListBinding
 import ru.practicum.android.diploma.domain.models.Vacancy
 
 class VacanciesAdapter(
+    private val useTopPadding: Boolean,
     private val onItemClick: (Vacancy) -> Unit
 ) : RecyclerView.Adapter<VacancyViewHolder>() {
 
@@ -24,7 +25,7 @@ class VacanciesAdapter(
 
     override fun onBindViewHolder(holder: VacancyViewHolder, position: Int) {
         holder.bind(vacancies[position])
-        val topPadding = if (position == 0) FIRST_ITEM_TOP_PADDING_DP.dp else 0
+        val topPadding = if (position == 0 && useTopPadding) FIRST_ITEM_TOP_PADDING_DP.dp else 0
         holder.itemView.setPadding(
             holder.itemView.paddingLeft,
             topPadding,
