@@ -60,7 +60,7 @@ class SearchFragment : Fragment() {
     }
 
     private fun setupAdapter() {
-        adapter = VacanciesAdapter { vacancy ->
+        adapter = VacanciesAdapter(useTopPadding = true) { vacancy ->
             viewModel.markRestoreForNavigation()
             val action = SearchFragmentDirections.actionSearchToVacancy(
                 vacancyId = vacancy.id
@@ -179,9 +179,11 @@ class SearchFragment : Fragment() {
                 is SearchViewModel.SearchUiState.Success -> {
                     adapter?.submitList(state.vacancies)
                 }
+
                 is SearchViewModel.SearchUiState.Error -> {
                     adapter?.submitList(emptyList())
                 }
+
                 else -> {
                     adapter?.submitList(emptyList())
                 }
@@ -190,7 +192,25 @@ class SearchFragment : Fragment() {
 
         viewModel.isLoadingNextPage.observe(viewLifecycleOwner) { loading ->
             binding.progressBarBottom.visibility =
-                if (loading) View.VISIBLE else View.GONE
+                if (loading) {
+                    View.VISIBLE
+                } else {
+                    View.GONE
+                }
+            // Динамический нижний отступ
+            val bottomPadding = if (loading) {
+                val scale = resources.displayMetrics.density
+                (BOTTOM_PROGRESS_BAR * scale).toInt()
+            } else {
+                0
+            }
+
+            binding.recyclerView.setPadding(
+                binding.recyclerView.paddingLeft,
+                binding.recyclerView.paddingTop,
+                binding.recyclerView.paddingRight,
+                bottomPadding
+            )
         }
 
         viewModel.errorEvent.observe(viewLifecycleOwner) { message ->
@@ -223,6 +243,7 @@ class SearchFragment : Fragment() {
                     // Сброс фильтров
                     viewModel.clearFilters()
                 }
+
                 filters != null -> {
                     // Обновление фильтров
                     viewModel.receiveFiltersUpdate(filters, isApply)
@@ -302,5 +323,6 @@ class SearchFragment : Fragment() {
 
     companion object {
         private const val PRELOAD_THRESHOLD = 5
+        private const val BOTTOM_PROGRESS_BAR = 80
     }
 }

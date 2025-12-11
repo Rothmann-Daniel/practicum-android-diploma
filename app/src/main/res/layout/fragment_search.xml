@@ -75,10 +75,11 @@
     </LinearLayout>
 
     <FrameLayout
+        android:id="@+id/content_container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/progressBarBottom"
         app:layout_constraintTop_toBottomOf="@id/layoutSearch">
 
         <!-- RecyclerView -->
@@ -87,6 +88,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
+            android:paddingBottom="16dp"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             tools:itemCount="5"
             tools:listitem="@layout/item_vacancy_list" />
@@ -102,17 +104,19 @@
             android:paddingVertical="4dp"
             android:textColor="@color/white"
             tools:text="Найдено 0 вакансий" />
-
-        <!-- ProgressBar для подгрузки следующей страницы -->
-        <ProgressBar
-            android:id="@+id/progressBarBottom"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_gravity="bottom|center_horizontal"
-            android:layout_marginBottom="8dp"
-            android:indeterminateTint="@color/blue"
-            android:visibility="gone" />
     </FrameLayout>
+
+    <!-- ProgressBar для подгрузки следующей страницы -->
+    <ProgressBar
+        android:id="@+id/progressBarBottom"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:indeterminateTint="@color/blue"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@+id/content_container"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <!-- Картинка и сообщение -->
     <ImageView

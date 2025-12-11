@@ -28,7 +28,7 @@ class VacancyDataBinder(
 
     private fun bindBasicInfo(vacancy: Vacancy) {
         binding.vacancyTitle.text = vacancy.name
-        binding.salaryText.text = SalaryFormatter.formatSalary(vacancy, context)
+        binding.salaryText.text = SalaryFormatter.formatSalary(vacancy.salary, context)
         loadCompanyLogo(vacancy.employer.logo)
         binding.companyName.text = vacancy.employer.name
         binding.cityText.text = if (!vacancy.address?.fullAddress.isNullOrEmpty()) {
